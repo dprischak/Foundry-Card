@@ -165,9 +165,14 @@ Then open a pull request on GitHub with a clear description of your changes.
 
 Future cards planned for the Foundry Card collection:
 - Analog Clock Card
-- Vintage Meter Card
-- Industrial Switch Card
-- Retro Display Card
+- Vintage Thermometer Card
+- Industrial Button Card
+- Retro Sliders
+- Seismic Graph Card
+- Industrial Uptime Card
+- Industrial Energy Map
+- Industrical Climate Card
+
 
 ## Support
 
@@ -181,7 +186,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Credits
 
-Created by [dprischak](https://github.com/dprischak)
+Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
 
 ---
 

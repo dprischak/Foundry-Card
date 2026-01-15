@@ -37,7 +37,7 @@ A custom card for displaying sensor data in a steam gauge style.
 Add a card to your dashboard with the following configuration:
 
 ```yaml
-type: custom:steam-gauge-card
+type: custom:foundry-gauge-card
 entity: sensor.your_sensor
 name: "Gauge Name"
 ```
