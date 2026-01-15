@@ -1,4 +1,4 @@
-// src/cards/steam-gauge-card.js
+// src/cards/utils.js
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -24,6 +24,8 @@ function getActionConfig(config, key, fallback) {
   if (config && config[key]) return config[key];
   return fallback;
 }
+
+// src/cards/steam-gauge-card.js
 var SteamGaugeCard = class extends HTMLElement {
   constructor() {
     super();
@@ -1397,6 +1399,17 @@ var SteamGaugeCard = class extends HTMLElement {
     };
   }
 };
+customElements.define("steam-gauge-card", SteamGaugeCard);
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "steam-gauge-card",
+  name: "Steam Gauge Card",
+  description: "A vintage steam engine style gauge card",
+  preview: "https://raw.githubusercontent.com/dprischak/Steam-Gauge-Card/main/preview.png",
+  documentationURL: "https://github.com/dprischak/Steam-Gauge-Card"
+});
+
+// src/cards/steam-gauge-editor.js
 var SteamGaugeCardEditor = class extends HTMLElement {
   constructor() {
     super();
@@ -2008,24 +2021,10 @@ var SteamGaugeCardEditor = class extends HTMLElement {
     return schema;
   }
 };
-customElements.define("steam-gauge-card", SteamGaugeCard);
 customElements.define("steam-gauge-card-editor", SteamGaugeCardEditor);
-console.info(
-  `%cSteam Gauge Card%c v${STEAM_GAUGE_CARD_VERSION}`,
-  "color: #03a9f4; font-weight: bold;",
-  "color: inherit;"
-);
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "steam-gauge-card",
-  name: "Steam Gauge Card",
-  description: "A vintage steam engine style gauge card",
-  preview: "https://raw.githubusercontent.com/dprischak/Steam-Gauge-Card/main/preview.png",
-  documentationURL: "https://github.com/dprischak/Steam-Gauge-Card"
-});
 
 // src/foundry-cards.js
-var FOUNDRY_CARDS_VERSION = "0.5.1";
+var FOUNDRY_CARDS_VERSION = "0.6.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
