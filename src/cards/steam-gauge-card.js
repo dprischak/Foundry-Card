@@ -2047,7 +2047,7 @@ class SteamGaugeCardEditor extends HTMLElement {
       odometer_vertical_position: 120,
       ring_style: 'brass',
       rivet_color: '#6d5d4b',
-      plate_color: 'transparent',
+      plate_color: '#8c7626',
       plate_transparent: false,
       wear_level: 50,
       glass_effect_enabled: true,
