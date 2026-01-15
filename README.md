@@ -103,19 +103,63 @@ unit: "hPa"
 
 Want to contribute or customize the cards?
 
+### Prerequisites
+
 1. **Install Node.js**
    - Download and install Node.js from [nodejs.org](https://nodejs.org/), which includes `npm`.
 
-2. **Clone the Repository**
+
+### Setting Up Your Development Environment
+
+1. **Clone the Repository**
+   ```bash
    git clone https://github.com/dprischak/Foundry-Card.git
    cd Foundry-Card
-
-3. **Install Dependencies**
+   ```
+   
+2. **Install Dependencies**
+   ```bash
    npm install
+   ```
+### Development Workflow
 
-4. **Build the Project**
+1. **Create a branch and make the changes into that branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/your-bug-fix
+   ```
+
+2. Make Your Changes:
+   - Write clean, readable code
+   - Follow the existing code style
+   - Add comments for complex logic
+   - Update documentation if needed 
+
+3. **Build the Project**
+   ```bash
    npm run build
+   ```
 
+4. Commit your changes
+   ```bash
+   git add .
+   git commit -m "feat: add new feature" # or "fix: resolve bug"
+   ```
+   
+5. Push and Create a Pull Request:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+Then open a pull request on GitHub with a clear description of your changes.
+
+### Ways to Contribute
+
+- **Report Bugs:** Open an issue with detailed steps to reproduce
+- **Suggest Features:** Share your ideas for improvements
+- **Fix Issues:** Look for open issues and submit fixes
+- **Improve Documentation:** Help make the docs clearer and more comprehensive
 
 ## Roadmap
 
