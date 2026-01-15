@@ -1,3 +1,9 @@
+## v0.8.5
+
+### Bug Fixes
+- Fixed visual editor not loading for `foundry-gauge-card`.
+- Corrected console log references.
+
 ## v0.8.0
 
 ### Breaking Changes
