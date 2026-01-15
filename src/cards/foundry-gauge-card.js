@@ -1358,7 +1358,7 @@ class FoundryGaugeCard extends HTMLElement {
   _handleEntityError(message) {
     // Only log if error has changed
     if (this._entityError !== message) {
-      console.warn(`Steam Gauge Card [${this.config.entity}]: ${message}`);
+      console.warn(`Foundry Gauge Card [${this.config.entity}]: ${message}`);
       this._entityError = message;
 
       // Update display to show error state

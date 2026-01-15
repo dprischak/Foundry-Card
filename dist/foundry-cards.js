@@ -1121,7 +1121,7 @@ var FoundryGaugeCard = class extends HTMLElement {
   }
   _handleEntityError(message) {
     if (this._entityError !== message) {
-      console.warn(`Steam Gauge Card [${this.config.entity}]: ${message}`);
+      console.warn(`Foundry Gauge Card [${this.config.entity}]: ${message}`);
       this._entityError = message;
       const flipDisplay = this.shadowRoot?.getElementById("flipDisplay");
       if (flipDisplay) {
