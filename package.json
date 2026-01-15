@@ -1,0 +1,26 @@
+{
+  "name": "foundry-card",
+  "version": "1.0.0",
+  "description": "A collection of custom dashboard cards for Home Assistant",
+  "main": "dist/steam-gauge-card.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dprischak/Foundry-Card.git"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "hacs",
+    "gauge"
+  ],
+  "author": "dprischak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dprischak/Foundry-Card/issues"
+  },
+  "homepage": "https://github.com/dprischak/Foundry-Card#readme"
+}
