@@ -1363,7 +1363,7 @@ var FoundryGaugeCard = class extends HTMLElement {
     return true;
   }
   static getConfigElement() {
-    return document.createElement("steam-gauge-card-editor");
+    return document.createElement("foundry-gauge-card-editor");
   }
   static getStubConfig() {
     return {
