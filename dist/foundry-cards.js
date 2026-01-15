@@ -1,5 +1,4 @@
-
-
+// src/cards/steam-gauge-card.js
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -11,48 +10,34 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
-
 function fireEvent(node, type, detail = {}, options = {}) {
   const event = new Event(type, {
     bubbles: options.bubbles ?? true,
     cancelable: options.cancelable ?? false,
-    composed: options.composed ?? true,
+    composed: options.composed ?? true
   });
   event.detail = detail;
   node.dispatchEvent(event);
   return event;
 }
-
 function getActionConfig(config, key, fallback) {
-  // HA standard keys: tap_action / hold_action / double_tap_action
   if (config && config[key]) return config[key];
   return fallback;
 }
-
-
-class SteamGaugeCard extends HTMLElement {
+var SteamGaugeCard = class extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this._resizeObserver = null;
-
-    // High needle tracking
     this._highNeedleValue = null;
     this._highNeedleTimeout = null;
-
-    // Shake animation tracking
     this._isShaking = false;
     this._shakeTargetAngle = null;
-
-    // Needle angle tracking
     this._previousNeedleAngle = null;
     this._previousHighNeedleAngle = null;
     this._previousValue = null;
     this._previousHighValue = null;
-
-    // Error state tracking
     this._entityError = null;
-
     this._boundHandleClick = () => this._handleAction("tap");
     this._boundHandleDblClick = () => this._handleAction("double_tap");
     this._boundHandleContextMenu = (e) => {
@@ -60,158 +45,112 @@ class SteamGaugeCard extends HTMLElement {
       this._handleAction("hold");
     };
     this._boundHandleKeyDown = (e) => this._handleKeyDown(e);
-
-    // Debounced resize handler for better performance
     this._debouncedReflow = debounce(() => this._reflowFlipDisplay(), 100);
   }
-
   connectedCallback() {
-    // Reflow the odometer when container-query sizes change (e.g., devtools open/close)
     if (!this._resizeObserver) {
       this._resizeObserver = new ResizeObserver(this._debouncedReflow);
     }
-
-    // Observe the gauge container once it exists
-    const container = this.shadowRoot?.querySelector('.gauge-container');
+    const container = this.shadowRoot?.querySelector(".gauge-container");
     if (container) this._resizeObserver.observe(container);
   }
-
   disconnectedCallback() {
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
     }
   }
-
   _reflowFlipDisplay() {
-    const flipDisplay = this.shadowRoot?.getElementById('flipDisplay');
+    const flipDisplay = this.shadowRoot?.getElementById("flipDisplay");
     if (!flipDisplay || !this.config) return;
-
     const raw = flipDisplay.dataset.numericValue;
-    if (raw === undefined || raw === null || raw === '') return;
-
+    if (raw === void 0 || raw === null || raw === "") return;
     const value = parseFloat(raw);
     if (Number.isNaN(value)) return;
-
-    // Recalculate all digit positions with current actual heights
-    const digitsRow = flipDisplay.querySelector('.digits-row');
+    const digitsRow = flipDisplay.querySelector(".digits-row");
     if (!digitsRow) return;
-
-    const digitElements = Array.from(digitsRow.children).filter(el =>
-      el.classList.contains('flip-digit') &&
-      !el.classList.contains('decimal') &&
-      !el.classList.contains('minus-sign') &&
-      !el.classList.contains('unit')
+    const digitElements = Array.from(digitsRow.children).filter(
+      (el) => el.classList.contains("flip-digit") && !el.classList.contains("decimal") && !el.classList.contains("minus-sign") && !el.classList.contains("unit")
     );
-
-    digitElements.forEach(digitEl => {
-      const inner = digitEl.querySelector('.flip-digit-inner');
+    digitElements.forEach((digitEl) => {
+      const inner = digitEl.querySelector(".flip-digit-inner");
       const position = digitEl.dataset.position;
-
-      if (inner && position !== undefined) {
+      if (inner && position !== void 0) {
         const targetDigit = parseInt(position);
-
-        // Recalculate with current actual height using getComputedStyle
-        const digitItem = inner.querySelector('.digit-item');
+        const digitItem = inner.querySelector(".digit-item");
         if (!digitItem) return;
-
         const computedStyle = window.getComputedStyle(digitItem);
         const digitHeight = parseFloat(computedStyle.height) || 28;
         const offset = Math.round(-targetDigit * digitHeight);
-
-        // Apply without transition
-        inner.style.transition = 'none';
+        inner.style.transition = "none";
         inner.style.transform = `translateY(${offset}px)`;
-
-        // Re-enable transition on next frame
         requestAnimationFrame(() => {
-          inner.style.transition = '';
+          inner.style.transition = "";
         });
       }
     });
   }
-
   setConfig(config) {
     if (!config.entity) {
-      throw new Error('You need to define an entity');
+      throw new Error("You need to define an entity");
     }
-
-    // IMPORTANT: HA may pass a frozen config object. Clone it before adding defaults.
     this.config = { ...config };
-
-    // Validate and sanitize configuration
     this._validateConfig();
-
-    // Default behavior like built-in cards
     if (!this.config.tap_action) {
       this.config.tap_action = { action: "more-info" };
     }
-
-    // Default ring style to brass if not specified
-    if (this.config.ring_style === undefined) {
-      this.config.ring_style = 'brass';
+    if (this.config.ring_style === void 0) {
+      this.config.ring_style = "brass";
     }
-
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     this.render();
     if (this._hass) {
       requestAnimationFrame(() => this.updateGauge());
     }
   }
-
   _validateConfig() {
     const config = this.config;
-
-    // Validate min/max
-    const min = config.min !== undefined ? config.min : 0;
-    const max = config.max !== undefined ? config.max : 100;
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
     if (min >= max) {
-      console.warn('Steam Gauge Card: min value must be less than max value. Using defaults.');
+      console.warn("Steam Gauge Card: min value must be less than max value. Using defaults.");
       this.config.min = 0;
       this.config.max = 100;
     }
-
-    // Validate decimals (must be non-negative integer)
-    if (config.decimals !== undefined) {
+    if (config.decimals !== void 0) {
       const decimals = parseInt(config.decimals);
       if (isNaN(decimals) || decimals < 0) {
-        console.warn('Steam Gauge Card: decimals must be a non-negative integer. Using 0.');
+        console.warn("Steam Gauge Card: decimals must be a non-negative integer. Using 0.");
         this.config.decimals = 0;
       } else {
-        this.config.decimals = Math.min(decimals, 10); // Cap at 10 decimals
+        this.config.decimals = Math.min(decimals, 10);
       }
     }
-
-    // Validate angle ranges (0-360)
-    if (config.start_angle !== undefined) {
+    if (config.start_angle !== void 0) {
       const angle = parseFloat(config.start_angle);
       if (isNaN(angle)) {
         this.config.start_angle = 200;
       } else {
-        this.config.start_angle = ((angle % 360) + 360) % 360; // Normalize to 0-360
+        this.config.start_angle = (angle % 360 + 360) % 360;
       }
     }
-    if (config.end_angle !== undefined) {
+    if (config.end_angle !== void 0) {
       const angle = parseFloat(config.end_angle);
       if (isNaN(angle)) {
         this.config.end_angle = 160;
       } else {
-        this.config.end_angle = ((angle % 360) + 360) % 360; // Normalize to 0-360
+        this.config.end_angle = (angle % 360 + 360) % 360;
       }
     }
-
-    // Validate animation duration (must be positive)
-    if (config.animation_duration !== undefined) {
+    if (config.animation_duration !== void 0) {
       const duration = parseFloat(config.animation_duration);
       if (isNaN(duration) || duration <= 0) {
-        console.warn('Steam Gauge Card: animation_duration must be positive. Using 1.2s.');
+        console.warn("Steam Gauge Card: animation_duration must be positive. Using 1.2s.");
         this.config.animation_duration = 1.2;
       } else {
-        this.config.animation_duration = Math.min(duration, 10); // Cap at 10 seconds
+        this.config.animation_duration = Math.min(duration, 10);
       }
     }
-
-    // Validate wear level (0-100)
-    if (config.wear_level !== undefined) {
+    if (config.wear_level !== void 0) {
       const wear = parseFloat(config.wear_level);
       if (isNaN(wear)) {
         this.config.wear_level = 50;
@@ -219,9 +158,7 @@ class SteamGaugeCard extends HTMLElement {
         this.config.wear_level = Math.max(0, Math.min(100, wear));
       }
     }
-
-    // Validate texture intensity (0-100)
-    if (config.aged_texture_intensity !== undefined) {
+    if (config.aged_texture_intensity !== void 0) {
       const intensity = parseFloat(config.aged_texture_intensity);
       if (isNaN(intensity)) {
         this.config.aged_texture_intensity = 50;
@@ -229,17 +166,15 @@ class SteamGaugeCard extends HTMLElement {
         this.config.aged_texture_intensity = Math.max(0, Math.min(100, intensity));
       }
     }
-
-    // Validate high needle settings
-    if (config.high_needle_duration !== undefined) {
+    if (config.high_needle_duration !== void 0) {
       const duration = parseFloat(config.high_needle_duration);
       if (isNaN(duration) || duration <= 0) {
         this.config.high_needle_duration = 60;
       } else {
-        this.config.high_needle_duration = Math.max(1, duration); // At least 1 second
+        this.config.high_needle_duration = Math.max(1, duration);
       }
     }
-    if (config.high_needle_length !== undefined) {
+    if (config.high_needle_length !== void 0) {
       const length = parseFloat(config.high_needle_length);
       if (isNaN(length)) {
         this.config.high_needle_length = 100;
@@ -248,67 +183,52 @@ class SteamGaugeCard extends HTMLElement {
       }
     }
   }
-
   set hass(hass) {
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
     this.updateGauge();
   }
-
   render() {
     const config = this.config;
-    const title = config.title || '';
-    const min = config.min !== undefined ? config.min : 0;
-    const max = config.max !== undefined ? config.max : 100;
-    const unit = config.unit || '';
+    const title = config.title || "";
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    const unit = config.unit || "";
     const uid = this._uniqueId;
-    const animationDuration = config.animation_duration !== undefined ? config.animation_duration : 1.2;
-    const titleFontSize = config.title_font_size !== undefined ? config.title_font_size : 12;
-    const odometerFontSize = config.odometer_font_size !== undefined ? config.odometer_font_size : 60;
-
-    // Fixed pixel sizes relative to the 200x200 SVG coordinate system
-    // This ensures consistent scaling with the rest of the SVG
+    const animationDuration = config.animation_duration !== void 0 ? config.animation_duration : 1.2;
+    const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 12;
+    const odometerFontSize = config.odometer_font_size !== void 0 ? config.odometer_font_size : 60;
     const odoFont = `${odometerFontSize * 0.16}px`;
     const odoDigitW = `${odometerFontSize * 0.15}px`;
     const odoDigitH = `${odometerFontSize * 0.22}px`;
     const odoGap = `${odometerFontSize * 0.03}px`;
-
-
-    const odometerVerticalPosition = config.odometer_vertical_position !== undefined ? config.odometer_vertical_position : 120;
-    const ringStyle = config.ring_style !== undefined ? config.ring_style : 'brass';
+    const odometerVerticalPosition = config.odometer_vertical_position !== void 0 ? config.odometer_vertical_position : 120;
+    const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
     const rimData = this.getRimStyleData(ringStyle, uid);
-    const rivetColor = config.rivet_color !== undefined ? config.rivet_color : '#6d5d4b';
-    const highNeedleEnabled = config.high_needle_enabled !== undefined ? config.high_needle_enabled : false;
-    const highNeedleColor = config.high_needle_color !== undefined ? config.high_needle_color : '#FF9800';
-    const highNeedleLength = config.high_needle_length !== undefined ? config.high_needle_length : 100;
-    const plateColor = config.plate_color !== undefined ? config.plate_color : 'transparent';
-    const plateTransparent = config.plate_transparent !== undefined ? config.plate_transparent : false;
-    const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'glass_only';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
-    const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    // If plate is transparent and aged_texture is everywhere, treat as glass_only
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
-    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
-
-    // Angle configuration (0 = top, clockwise)
-    // Convert from 0=top to SVG coordinate system where 0=right
-    const startAngleDeg = config.start_angle !== undefined ? config.start_angle : 200;
-    const endAngleDeg = config.end_angle !== undefined ? config.end_angle : 160;
-    // Convert to SVG coordinates (subtract 90 because SVG 0° is right, we want 0° to be top)
+    const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
+    const highNeedleEnabled = config.high_needle_enabled !== void 0 ? config.high_needle_enabled : false;
+    const highNeedleColor = config.high_needle_color !== void 0 ? config.high_needle_color : "#FF9800";
+    const highNeedleLength = config.high_needle_length !== void 0 ? config.high_needle_length : 100;
+    const plateColor = config.plate_color !== void 0 ? config.plate_color : "transparent";
+    const plateTransparent = config.plate_transparent !== void 0 ? config.plate_transparent : false;
+    const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
+    const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const startAngleDeg = config.start_angle !== void 0 ? config.start_angle : 200;
+    const endAngleDeg = config.end_angle !== void 0 ? config.end_angle : 160;
     this._startAngle = startAngleDeg - 90;
     this._endAngle = endAngleDeg - 90;
     this._animationDuration = animationDuration;
-
-    // Default segments if not specified
     const segments = config.segments || [
-      { from: 0, to: 33, color: '#4CAF50' },
-      { from: 33, to: 66, color: '#FFC107' },
-      { from: 66, to: 100, color: '#F44336' }
+      { from: 0, to: 33, color: "#4CAF50" },
+      { from: 33, to: 66, color: "#FFC107" },
+      { from: 66, to: 100, color: "#F44336" }
     ];
-
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -471,7 +391,7 @@ class SteamGaugeCard extends HTMLElement {
           fill: none;
         }
       </style>
-      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, ' ') : 'Steam gauge'} showing ${config.entity}" tabindex="0">
+      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, " ") : "Steam gauge"} showing ${config.entity}" tabindex="0">
         <div class="card" id="actionRoot">
           <div class="gauge-container" role="presentation">
             <svg class="gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
@@ -588,15 +508,15 @@ class SteamGaugeCard extends HTMLElement {
                   <circle cx="100" cy="100" r="85"/>
                 </clipPath>
               </defs>
-              <rect x="0" y="0" width="200" height="200" fill="${plateTransparent ? 'rgba(240, 235, 225, 0.15)' : plateColor}" ${effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})"` : ''} />
+              <rect x="0" y="0" width="200" height="200" fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
-              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${(agedTextureEnabled || effectiveAgedTexture === 'everywhere') ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ""}/>
                             
 
               <!-- Glass effect overlay -->
-              ${glassEffectEnabled ? '<ellipse cx="100" cy="80" rx="60" ry="50" fill="white" opacity="0.15"/>' : ''}
+              ${glassEffectEnabled ? '<ellipse cx="100" cy="80" rx="60" ry="50" fill="white" opacity="0.15"/>' : ""}
               
               <!-- Segment arcs -->
               <g id="segments"></g>
@@ -608,11 +528,11 @@ class SteamGaugeCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize) : ""}
               
               <!-- Center hub background -->
 			  <circle cx="100" cy="100" r="12"
-				fill="${rimData ? `url(#${rimData.grad})` : '#c9a961'}"
+				fill="${rimData ? `url(#${rimData.grad})` : "#c9a961"}"
 				stroke="#6d5d4b" stroke-width="1"/>
               <circle cx="100" cy="100" r="8" fill="#4a4034" opacity="0.6"/>
               
@@ -627,7 +547,7 @@ class SteamGaugeCard extends HTMLElement {
               </foreignObject>
               
               <!-- High needle (rendered before main needle if enabled) -->
-              ${highNeedleEnabled ? this.renderHighNeedle(highNeedleColor, highNeedleLength, animationDuration) : ''}
+              ${highNeedleEnabled ? this.renderHighNeedle(highNeedleColor, highNeedleLength, animationDuration) : ""}
               
               <!-- Needle (rendered after odometer so it's on top) -->
               <g id="needle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
@@ -687,164 +607,106 @@ class SteamGaugeCard extends HTMLElement {
     this.drawStoppers();
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
-      const container = this.shadowRoot?.querySelector('.gauge-container');
+      const container = this.shadowRoot?.querySelector(".gauge-container");
       if (container) this._resizeObserver.observe(container);
     }
-
-    // One extra reflow on next frame so container-query sizes settle
     requestAnimationFrame(() => this._reflowFlipDisplay());
   }
   _attachActionListeners() {
     const root = this.shadowRoot?.getElementById("actionRoot");
     if (!root) return;
-
-    // Remove old listeners (render() can run many times)
     root.removeEventListener("click", this._boundHandleClick);
     root.removeEventListener("dblclick", this._boundHandleDblClick);
     root.removeEventListener("contextmenu", this._boundHandleContextMenu);
     root.removeEventListener("keydown", this._boundHandleKeyDown);
-
-    // Add listeners
     root.addEventListener("click", this._boundHandleClick, { passive: true });
     root.addEventListener("dblclick", this._boundHandleDblClick, { passive: true });
     root.addEventListener("contextmenu", this._boundHandleContextMenu);
     root.addEventListener("keydown", this._boundHandleKeyDown);
   }
-
   _handleKeyDown(e) {
-    // Enter or Space activates tap action
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this._handleAction("tap");
     }
-    // 'h' or long press simulation not practical, so just use Enter/Space
   }
-
   _findDirectionalPath(currentAngle, targetAngle, valueIncreasing) {
-    // If no previous angle, return target as-is
     if (currentAngle === null) return targetAngle;
-
-    // Calculate the difference
     let diff = targetAngle - currentAngle;
-
-    // Normalize difference to -180 to 180 range
     while (diff > 180) diff -= 360;
     while (diff < -180) diff += 360;
-
-    // If value is increasing, ensure we rotate clockwise (positive direction)
-    // If value is decreasing, ensure we rotate counter-clockwise (negative direction)
     if (valueIncreasing !== null) {
       if (valueIncreasing && diff < 0) {
-        // Value increasing but would rotate counter-clockwise, add 360 to go clockwise
         diff += 360;
       } else if (!valueIncreasing && diff > 0) {
-        // Value decreasing but would rotate clockwise, subtract 360 to go counter-clockwise
         diff -= 360;
       }
     }
-
-    // Return the adjusted target angle
     return currentAngle + diff;
   }
-
   _handleAction(kind) {
     if (!this._hass || !this.config) return;
-
     const entityId = this.config.entity;
-
     const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
     const hold = getActionConfig(this.config, "hold_action", { action: "more-info" });
     const dbl = getActionConfig(this.config, "double_tap_action", { action: "more-info" });
-
-    const actionConfig =
-      kind === "hold" ? hold :
-        kind === "double_tap" ? dbl :
-          tap;
-
-    // Check if action is "shake" - custom action for this card
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
     if (actionConfig?.action === "shake") {
       this._shakeGauge();
       return;
     }
-
     this._runAction(actionConfig, entityId);
   }
-
   _shakeGauge() {
-    if (this._isShaking) return; // Already shaking
+    if (this._isShaking) return;
     if (!this._hass || !this.config) return;
-
     const entity = this._hass.states[this.config.entity];
     if (!entity) return;
-
     const value = parseFloat(entity.state);
     if (isNaN(value)) return;
-
-    const min = this.config.min !== undefined ? this.config.min : 0;
-    const max = this.config.max !== undefined ? this.config.max : 100;
+    const min = this.config.min !== void 0 ? this.config.min : 0;
+    const max = this.config.max !== void 0 ? this.config.max : 100;
     const range = max - min;
     const clampedValue = Math.max(min, Math.min(max, value));
-
-    // Calculate random deviation between 10% and 50% of the range
-    const deviationPercent = 0.10 + Math.random() * 0.40; // 10% to 50%
+    const deviationPercent = 0.1 + Math.random() * 0.4;
     const deviation = range * deviationPercent * (Math.random() > 0.5 ? 1 : -1);
     const targetValue = Math.max(min, Math.min(max, clampedValue + deviation));
-
-    // Calculate the target angle
     const valuePosition = Math.max(0, Math.min(1, (targetValue - min) / range));
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
-    let targetGaugeAngle = startAngle + (totalAngle * valuePosition);
-
-    // Normalize angle
+    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : 360 - startAngle + endAngle;
+    let targetGaugeAngle = startAngle + totalAngle * valuePosition;
     while (targetGaugeAngle > 180) targetGaugeAngle -= 360;
     while (targetGaugeAngle < -180) targetGaugeAngle += 360;
-
-    // Store shake state
     this._isShaking = true;
-    this._shakeTargetAngle = targetGaugeAngle + 90; // Add 90° compensation
-
-    const needle = this.shadowRoot.getElementById('needle');
+    this._shakeTargetAngle = targetGaugeAngle + 90;
+    const needle = this.shadowRoot.getElementById("needle");
     if (!needle) return;
-
-    // Shake the whole gauge container
-    const gaugeContainer = this.shadowRoot.querySelector('.gauge-container');
+    const gaugeContainer = this.shadowRoot.querySelector(".gauge-container");
     if (gaugeContainer) {
-      gaugeContainer.classList.add('shaking');
+      gaugeContainer.classList.add("shaking");
       setTimeout(() => {
-        gaugeContainer.classList.remove('shaking');
+        gaugeContainer.classList.remove("shaking");
       }, 250);
     }
-
-    // Apply quick shake movement (0.3s to target position)
-    needle.style.transition = 'transform 0.3s ease-out';
+    needle.style.transition = "transform 0.3s ease-out";
     needle.style.transform = `rotate(${this._shakeTargetAngle}deg)`;
-
-    // After shake, settle back to actual value over 3 seconds
     setTimeout(() => {
       if (needle) {
-        needle.style.transition = 'transform 3s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        needle.style.transition = "transform 3s cubic-bezier(0.4, 0.0, 0.2, 1)";
         this._isShaking = false;
         this._shakeTargetAngle = null;
-        // Trigger normal update to return to actual value
         this.updateGauge();
       }
     }, 300);
   }
-
   _runAction(actionConfig, entityId) {
     const action = actionConfig?.action;
-
     if (!action || action === "none") return;
-
-    // 1) more-info
     if (action === "more-info") {
       fireEvent(this, "hass-more-info", { entityId });
       return;
     }
-
-    // 2) navigate
     if (action === "navigate") {
       const path = actionConfig.navigation_path;
       if (!path) return;
@@ -852,44 +714,31 @@ class SteamGaugeCard extends HTMLElement {
       fireEvent(window, "location-changed", { replace: false });
       return;
     }
-
-    // 3) toggle (HA shorthand used by some cards)
     if (action === "toggle") {
       if (!entityId) return;
       this._hass.callService("homeassistant", "toggle", { entity_id: entityId });
       return;
     }
-
-    // 4) call-service
     if (action === "call-service") {
-      const service = actionConfig.service; // "domain.service"
+      const service = actionConfig.service;
       if (!service) return;
       const [domain, srv] = service.split(".");
       if (!domain || !srv) return;
-
-      const data = { ...(actionConfig.service_data || {}) };
-
-      // Support target.entity_id if present (HA UI sometimes sets target)
+      const data = { ...actionConfig.service_data || {} };
       if (actionConfig.target?.entity_id) data.entity_id = actionConfig.target.entity_id;
-
       this._hass.callService(domain, srv, data);
       return;
     }
-
-    // Unknown action type -> do nothing (safe)
   }
-
   renderTitleText(title, fontSize) {
-    // Split title by newlines - handle both literal \n typed in input and actual newlines
-    const lines = title.replace(/\\n/g, '\n').split('\n').slice(0, 3); // Max 3 lines
-    const lineHeight = fontSize * 1.2; // 20% spacing between lines
+    const lines = title.replace(/\\n/g, "\n").split("\n").slice(0, 3);
+    const lineHeight = fontSize * 1.2;
     const totalHeight = (lines.length - 1) * lineHeight;
-    const startY = 75 - (totalHeight / 2); // Center vertically around y=75
-
+    const startY = 75 - totalHeight / 2;
     return lines.map((line, index) => {
-      const y = startY + (index * lineHeight);
+      const y = startY + index * lineHeight;
       return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
-    }).join('\n');
+    }).join("\n");
   }
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
@@ -898,7 +747,6 @@ class SteamGaugeCard extends HTMLElement {
       case "silver":
       case "chrome":
         return { grad: `silverRim-${uid}`, stroke: "#999999" };
-
       case "white":
         return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
       case "blue":
@@ -911,28 +759,23 @@ class SteamGaugeCard extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8b5a2b" };
-
       default:
-        return null; // "none" or unknown
+        return null;
     }
   }
   renderRim(ringStyle, uid) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return ""; // none
-
+    if (!data) return "";
     return `
 		<circle cx="100" cy="100" r="95" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="2"/>
 		<circle cx="100" cy="100" r="88" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
 	  `;
   }
-
   renderHighNeedle(color, lengthPercent, animationDuration) {
-    // Calculate needle length based on percentage (100% = 75 units, from center at 100 to tip at 25)
     const baseLength = 75;
     const actualLength = baseLength * (lengthPercent / 100);
-    const tipY = 100 - actualLength; // Center is at 100, needle points up
-    const nearTipY = tipY + 5; // 5 units from tip for the taper
-
+    const tipY = 100 - actualLength;
+    const nearTipY = tipY + 5;
     return `
               <g id="highNeedle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
                 <!-- High needle shadow -->
@@ -951,256 +794,205 @@ class SteamGaugeCard extends HTMLElement {
               </g>
     `;
   }
-
   renderWearMarks(wearLevel) {
-    // Scale from 0-100: 0 = no marks, 100 = maximum marks
-    if (wearLevel === 0) return '';
-
-    // Base opacity scales with wear level (0 to 0.25 max)
-    const baseOpacity = (wearLevel / 100) * 0.25;
-
-    // Define all possible wear marks with their properties
+    if (wearLevel === 0) return "";
+    const baseOpacity = wearLevel / 100 * 0.25;
     const allMarks = [
-      { type: 'circle', cx: 45, cy: 60, r: 2, fill: '#8B7355', baseOpacity: 0.2 },
-      { type: 'circle', cx: 155, cy: 75, r: 1.5, fill: '#8B7355', baseOpacity: 0.15 },
-      { type: 'circle', cx: 70, cy: 120, r: 1, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'ellipse', cx: 130, cy: 50, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'circle', cx: 35, cy: 140, r: 1.2, fill: '#8B7355', baseOpacity: 0.12 },
-      { type: 'circle', cx: 165, cy: 130, r: 1.8, fill: '#6d5d4b', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 50, cy: 90, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.08 },
-      { type: 'circle', cx: 120, cy: 145, r: 0.8, fill: '#6d5d4b', baseOpacity: 0.15 },
-      { type: 'circle', cx: 180, cy: 65, r: 1.3, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'ellipse', cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.09 }
+      { type: "circle", cx: 45, cy: 60, r: 2, fill: "#8B7355", baseOpacity: 0.2 },
+      { type: "circle", cx: 155, cy: 75, r: 1.5, fill: "#8B7355", baseOpacity: 0.15 },
+      { type: "circle", cx: 70, cy: 120, r: 1, fill: "#6d5d4b", baseOpacity: 0.2 },
+      { type: "ellipse", cx: 130, cy: 50, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.1 },
+      { type: "circle", cx: 35, cy: 140, r: 1.2, fill: "#8B7355", baseOpacity: 0.12 },
+      { type: "circle", cx: 165, cy: 130, r: 1.8, fill: "#6d5d4b", baseOpacity: 0.18 },
+      { type: "ellipse", cx: 50, cy: 90, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.08 },
+      { type: "circle", cx: 120, cy: 145, r: 0.8, fill: "#6d5d4b", baseOpacity: 0.15 },
+      { type: "circle", cx: 180, cy: 65, r: 1.3, fill: "#8B7355", baseOpacity: 0.1 },
+      { type: "ellipse", cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.09 }
     ];
-
-    // Calculate how many marks to show based on wear level
-    const markCount = Math.ceil((wearLevel / 100) * allMarks.length);
+    const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
-
-    // Generate SVG for visible marks
-    return marksToShow.map(mark => {
+    return marksToShow.map((mark) => {
       const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-      if (mark.type === 'circle') {
+      if (mark.type === "circle") {
         return `<circle cx="${mark.cx}" cy="${mark.cy}" r="${mark.r}" fill="${mark.fill}" opacity="${opacity}"/>`;
-      } else if (mark.type === 'ellipse') {
+      } else if (mark.type === "ellipse") {
         return `<ellipse cx="${mark.cx}" cy="${mark.cy}" rx="${mark.rx}" ry="${mark.ry}" fill="${mark.fill}" opacity="${opacity}"/>`;
       }
-      return '';
-    }).join('\n              ');
+      return "";
+    }).join("\n              ");
   }
-
   drawSegments(segments, min, max) {
-    const segmentsGroup = this.shadowRoot.getElementById('segments');
+    const segmentsGroup = this.shadowRoot.getElementById("segments");
     const centerX = 100;
     const centerY = 100;
     const radius = 70;
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-    // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
-
-    segments.forEach(segment => {
-      const fromPercent = ((segment.from - min) / (max - min)) * 100;
-      const toPercent = ((segment.to - min) / (max - min)) * 100;
-
-      const segmentStartAngle = startAngle + (totalAngle * fromPercent / 100);
-      const segmentEndAngle = startAngle + (totalAngle * toPercent / 100);
-
+    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : 360 - startAngle + endAngle;
+    segments.forEach((segment) => {
+      const fromPercent = (segment.from - min) / (max - min) * 100;
+      const toPercent = (segment.to - min) / (max - min) * 100;
+      const segmentStartAngle = startAngle + totalAngle * fromPercent / 100;
+      const segmentEndAngle = startAngle + totalAngle * toPercent / 100;
       const path = this.describeArc(centerX, centerY, radius, segmentStartAngle, segmentEndAngle);
-
-      const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      pathElement.setAttribute('d', path);
-      pathElement.setAttribute('fill', 'none');
-      pathElement.setAttribute('stroke', segment.color);
-      pathElement.setAttribute('stroke-width', '8');
-      pathElement.setAttribute('opacity', '0.7');
-
+      const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      pathElement.setAttribute("d", path);
+      pathElement.setAttribute("fill", "none");
+      pathElement.setAttribute("stroke", segment.color);
+      pathElement.setAttribute("stroke-width", "8");
+      pathElement.setAttribute("opacity", "0.7");
       segmentsGroup.appendChild(pathElement);
     });
   }
-
   drawTicks(min, max) {
-    const ticksGroup = this.shadowRoot.getElementById('ticks');
-    const numbersGroup = this.shadowRoot.getElementById('numbers');
+    const ticksGroup = this.shadowRoot.getElementById("ticks");
+    const numbersGroup = this.shadowRoot.getElementById("numbers");
     const centerX = 100;
     const centerY = 100;
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-    // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
+    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : 360 - startAngle + endAngle;
     const numTicks = 10;
-
-    // Clear any existing ticks and numbers
-    ticksGroup.innerHTML = '';
-    numbersGroup.innerHTML = '';
-
+    ticksGroup.innerHTML = "";
+    numbersGroup.innerHTML = "";
     for (let i = 0; i <= numTicks; i++) {
-      let angle = startAngle + (totalAngle * i / numTicks);
-      // Normalize angle to -180 to 180 range for proper rendering
+      let angle = startAngle + totalAngle * i / numTicks;
       while (angle > 180) angle -= 360;
       while (angle < -180) angle += 360;
-      const angleRad = (angle * Math.PI) / 180;
-
-      // Major tick
+      const angleRad = angle * Math.PI / 180;
       const innerRadius = 77;
       const outerRadius = 85;
-
       const x1 = centerX + innerRadius * Math.cos(angleRad);
       const y1 = centerY + innerRadius * Math.sin(angleRad);
       const x2 = centerX + outerRadius * Math.cos(angleRad);
       const y2 = centerY + outerRadius * Math.sin(angleRad);
-
-      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      tick.setAttribute('x1', x1);
-      tick.setAttribute('y1', y1);
-      tick.setAttribute('x2', x2);
-      tick.setAttribute('y2', y2);
-      tick.setAttribute('stroke', '#3e2723');
-      tick.setAttribute('stroke-width', '2');
+      const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      tick.setAttribute("x1", x1);
+      tick.setAttribute("y1", y1);
+      tick.setAttribute("x2", x2);
+      tick.setAttribute("y2", y2);
+      tick.setAttribute("stroke", "#3e2723");
+      tick.setAttribute("stroke-width", "2");
       ticksGroup.appendChild(tick);
-
-      // Numbers
-      const value = min + ((max - min) * i / numTicks);
+      const value = min + (max - min) * i / numTicks;
       const textRadius = 65;
       const textX = centerX + textRadius * Math.cos(angleRad);
       const textY = centerY + textRadius * Math.sin(angleRad);
-
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', textX);
-      text.setAttribute('y', textY);
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('dominant-baseline', 'middle');
-      text.setAttribute('font-size', '9');
-      text.setAttribute('font-weight', 'bold');
-      text.setAttribute('fill', '#3e2723');
-      text.setAttribute('font-family', 'Georgia, serif');
-      const displayValue = (max - min) <= 10 ? value.toFixed(1) : Math.round(value);
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", textX);
+      text.setAttribute("y", textY);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("font-size", "9");
+      text.setAttribute("font-weight", "bold");
+      text.setAttribute("fill", "#3e2723");
+      text.setAttribute("font-family", "Georgia, serif");
+      const displayValue = max - min <= 10 ? value.toFixed(1) : Math.round(value);
       text.textContent = displayValue;
       numbersGroup.appendChild(text);
-
-      // Minor ticks
       if (i < numTicks) {
         for (let j = 1; j < 5; j++) {
-          const minorAngle = angle + (totalAngle / numTicks) * (j / 5);
-          const minorAngleRad = (minorAngle * Math.PI) / 180;
-
+          const minorAngle = angle + totalAngle / numTicks * (j / 5);
+          const minorAngleRad = minorAngle * Math.PI / 180;
           const mx1 = centerX + 80 * Math.cos(minorAngleRad);
           const my1 = centerY + 80 * Math.sin(minorAngleRad);
           const mx2 = centerX + 85 * Math.cos(minorAngleRad);
           const my2 = centerY + 85 * Math.sin(minorAngleRad);
-
-          const minorTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          minorTick.setAttribute('x1', mx1);
-          minorTick.setAttribute('y1', my1);
-          minorTick.setAttribute('x2', mx2);
-          minorTick.setAttribute('y2', my2);
-          minorTick.setAttribute('stroke', '#5d4e37');
-          minorTick.setAttribute('stroke-width', '1');
+          const minorTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          minorTick.setAttribute("x1", mx1);
+          minorTick.setAttribute("y1", my1);
+          minorTick.setAttribute("x2", mx2);
+          minorTick.setAttribute("y2", my2);
+          minorTick.setAttribute("stroke", "#5d4e37");
+          minorTick.setAttribute("stroke-width", "1");
           ticksGroup.appendChild(minorTick);
         }
       }
     }
   }
-
   drawStoppers() {
-    const stoppersGroup = this.shadowRoot.getElementById('stoppers');
+    const stoppersGroup = this.shadowRoot.getElementById("stoppers");
     if (!stoppersGroup) return;
-
     const centerX = 100;
     const centerY = 100;
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-
-    // Draw stopper at start angle (min value)
-    const startAngleRad = (startAngle * Math.PI) / 180;
+    const startAngleRad = startAngle * Math.PI / 180;
     const startX = centerX + 75 * Math.cos(startAngleRad);
     const startY = centerY + 75 * Math.sin(startAngleRad);
-
-    const startStopper = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    startStopper.setAttribute('cx', startX);
-    startStopper.setAttribute('cy', startY);
-    startStopper.setAttribute('r', '3');
-    startStopper.setAttribute('fill', '#8B0000');
-    startStopper.setAttribute('stroke', '#4a4034');
-    startStopper.setAttribute('stroke-width', '0.5');
+    const startStopper = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    startStopper.setAttribute("cx", startX);
+    startStopper.setAttribute("cy", startY);
+    startStopper.setAttribute("r", "3");
+    startStopper.setAttribute("fill", "#8B0000");
+    startStopper.setAttribute("stroke", "#4a4034");
+    startStopper.setAttribute("stroke-width", "0.5");
     stoppersGroup.appendChild(startStopper);
-
-    // Draw stopper at end angle (max value)
-    const endAngleRad = (endAngle * Math.PI) / 180;
+    const endAngleRad = endAngle * Math.PI / 180;
     const endX = centerX + 75 * Math.cos(endAngleRad);
     const endY = centerY + 75 * Math.sin(endAngleRad);
-
-    const endStopper = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    endStopper.setAttribute('cx', endX);
-    endStopper.setAttribute('cy', endY);
-    endStopper.setAttribute('r', '3');
-    endStopper.setAttribute('fill', '#8B0000');
-    endStopper.setAttribute('stroke', '#4a4034');
-    endStopper.setAttribute('stroke-width', '0.5');
+    const endStopper = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    endStopper.setAttribute("cx", endX);
+    endStopper.setAttribute("cy", endY);
+    endStopper.setAttribute("r", "3");
+    endStopper.setAttribute("fill", "#8B0000");
+    endStopper.setAttribute("stroke", "#4a4034");
+    endStopper.setAttribute("stroke-width", "0.5");
     stoppersGroup.appendChild(endStopper);
   }
-
   describeArc(x, y, radius, startAngle, endAngle) {
     const start = this.polarToCartesian(x, y, radius, endAngle);
     const end = this.polarToCartesian(x, y, radius, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
     return [
-      "M", start.x, start.y,
-      "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+      "M",
+      start.x,
+      start.y,
+      "A",
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y
     ].join(" ");
   }
-
   polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-    const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
+    const angleInRadians = angleInDegrees * Math.PI / 180;
     return {
-      x: centerX + (radius * Math.cos(angleInRadians)),
-      y: centerY + (radius * Math.sin(angleInRadians))
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians)
     };
   }
-
   darkenColor(color, amount) {
-    // Normalize to hex string
     if (Array.isArray(color) && color.length === 3) {
       const toHex = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
       color = `#${toHex(color[0])}${toHex(color[1])}${toHex(color[2])}`;
     }
-
     if (typeof color !== "string" || color.trim() === "") {
       color = "#000000";
     }
-
-    // Convert hex to RGB, darken, and convert back
-    const hex = color.replace('#', '');
+    const hex = color.replace("#", "");
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
-
     const newR = Math.max(0, Math.floor(r * (1 - amount)));
     const newG = Math.max(0, Math.floor(g * (1 - amount)));
     const newB = Math.max(0, Math.floor(b * (1 - amount)));
-
-    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+    return `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
   }
-
   updateGauge() {
     if (!this._hass || !this.config) return;
-
     const entity = this._hass.states[this.config.entity];
-
-    // Handle missing or unavailable entity
     if (!entity) {
-      this._handleEntityError('Entity not found');
+      this._handleEntityError("Entity not found");
       return;
     }
-
-    // Handle unavailable/unknown states
-    if (entity.state === 'unavailable' || entity.state === 'unknown') {
+    if (entity.state === "unavailable" || entity.state === "unknown") {
       this._handleEntityError(`Entity is ${entity.state}`);
       return;
     }
-
-    // Try to parse the value with proper error handling
     let value;
     try {
       value = parseFloat(entity.state);
@@ -1208,62 +1000,36 @@ class SteamGaugeCard extends HTMLElement {
         this._handleEntityError(`Non-numeric state: "${entity.state}"`);
         return;
       }
-      // Clear any previous errors
       this._clearEntityError();
     } catch (error) {
       this._handleEntityError(`Error parsing state: ${error.message}`);
       return;
     }
-
-    const min = this.config.min !== undefined ? this.config.min : 0;
-    const max = this.config.max !== undefined ? this.config.max : 100;
-    const highNeedleEnabled = this.config.high_needle_enabled !== undefined ? this.config.high_needle_enabled : false;
-    const highNeedleDuration = this.config.high_needle_duration !== undefined ? this.config.high_needle_duration : 60;
-
-    // Update flip display
+    const min = this.config.min !== void 0 ? this.config.min : 0;
+    const max = this.config.max !== void 0 ? this.config.max : 100;
+    const highNeedleEnabled = this.config.high_needle_enabled !== void 0 ? this.config.high_needle_enabled : false;
+    const highNeedleDuration = this.config.high_needle_duration !== void 0 ? this.config.high_needle_duration : 60;
     this.updateFlipDisplay(value);
-
-    // Calculate the position of the value within the min-max range
     const range = max - min;
     const clampedValue = Math.max(min, Math.min(max, value));
     const valuePosition = Math.max(0, Math.min(1, (clampedValue - min) / range));
-
-    // Use configured start and end angles
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-    // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
-
-    // Calculate gauge angle - always interpolate along the valid arc
-    // to prevent needle from crossing the dead zone
-    let gaugeAngle = startAngle + (totalAngle * valuePosition);
-
-    // Normalize the calculated angle to -180 to 180 range first
+    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : 360 - startAngle + endAngle;
+    let gaugeAngle = startAngle + totalAngle * valuePosition;
     while (gaugeAngle > 180) gaugeAngle -= 360;
     while (gaugeAngle < -180) gaugeAngle += 360;
-
-    // Now clamp to start/end angles, preventing crossing the dead zone
     if (endAngle >= startAngle) {
-      // Normal range (no wrap) - simple clamping
       gaugeAngle = Math.max(startAngle, Math.min(endAngle, gaugeAngle));
     } else {
-      // Wrapping range (crosses 0°)
-      // Normalize start and end angles for comparison
       let normStart = startAngle;
       let normEnd = endAngle;
       while (normStart > 180) normStart -= 360;
       while (normStart < -180) normStart += 360;
       while (normEnd > 180) normEnd -= 360;
       while (normEnd < -180) normEnd += 360;
-
-      // Check if needle is in the dead zone (between end and start)
-      // Dead zone is from endAngle (moving clockwise) to startAngle
-      const inDeadZone = normEnd < normStart ?
-        (gaugeAngle > normEnd && gaugeAngle < normStart) :
-        (gaugeAngle > normEnd || gaugeAngle < normStart);
-
+      const inDeadZone = normEnd < normStart ? gaugeAngle > normEnd && gaugeAngle < normStart : gaugeAngle > normEnd || gaugeAngle < normStart;
       if (inDeadZone) {
-        // Clamp to nearest boundary without crossing dead zone
         const distToStart = Math.min(
           Math.abs(gaugeAngle - normStart),
           Math.abs(gaugeAngle - normStart + 360),
@@ -1277,69 +1043,44 @@ class SteamGaugeCard extends HTMLElement {
         gaugeAngle = distToStart < distToEnd ? normStart : normEnd;
       }
     }
-
-    // The needle SVG is drawn pointing UP (-90° in standard SVG coords)
-    // So we need to add 90° to compensate
     let needleAngle = gaugeAngle + 90;
-
-    const needle = this.shadowRoot.getElementById('needle');
+    const needle = this.shadowRoot.getElementById("needle");
     if (needle && !this._isShaking) {
-      // Determine if value is increasing or decreasing
       let valueIncreasing = null;
       if (this._previousValue !== null) {
         valueIncreasing = clampedValue > this._previousValue;
       }
-
-      // Use directional path to ensure correct rotation direction
       needleAngle = this._findDirectionalPath(this._previousNeedleAngle, needleAngle, valueIncreasing);
       needle.style.transform = `rotate(${needleAngle}deg)`;
       this._previousNeedleAngle = needleAngle;
       this._previousValue = clampedValue;
-
-      // Update ARIA live region for accessibility
       this._updateAriaLive(value);
     }
-
-    // Handle high needle logic
     if (highNeedleEnabled) {
-      const highNeedle = this.shadowRoot.getElementById('highNeedle');
+      const highNeedle = this.shadowRoot.getElementById("highNeedle");
       if (highNeedle) {
-        // Initialize high needle value if not set
         if (this._highNeedleValue === null) {
           this._highNeedleValue = clampedValue;
         }
-
-        // If current value is higher than stored high value, update it
         if (clampedValue >= this._highNeedleValue) {
           this._highNeedleValue = clampedValue;
-
-          // Clear any existing timeout
           if (this._highNeedleTimeout) {
             clearTimeout(this._highNeedleTimeout);
             this._highNeedleTimeout = null;
           }
         } else {
-          // Value has decreased - start timeout if not already running
           if (!this._highNeedleTimeout) {
             this._highNeedleTimeout = setTimeout(() => {
-              // After timeout, set high needle to current value
               this._highNeedleValue = clampedValue;
               this._highNeedleTimeout = null;
-              // Trigger update to move the high needle
               this.updateGauge();
-            }, highNeedleDuration * 1000);
+            }, highNeedleDuration * 1e3);
           }
         }
-
-        // Calculate high needle position
         const highValuePosition = Math.max(0, Math.min(1, (this._highNeedleValue - min) / range));
-        let highGaugeAngle = startAngle + (totalAngle * highValuePosition);
-
-        // Normalize high needle angle
+        let highGaugeAngle = startAngle + totalAngle * highValuePosition;
         while (highGaugeAngle > 180) highGaugeAngle -= 360;
         while (highGaugeAngle < -180) highGaugeAngle += 360;
-
-        // Apply same clamping logic as main needle
         if (endAngle >= startAngle) {
           highGaugeAngle = Math.max(startAngle, Math.min(endAngle, highGaugeAngle));
         } else {
@@ -1349,11 +1090,7 @@ class SteamGaugeCard extends HTMLElement {
           while (normStart < -180) normStart += 360;
           while (normEnd > 180) normEnd -= 360;
           while (normEnd < -180) normEnd += 360;
-
-          const inDeadZone = normEnd < normStart ?
-            (highGaugeAngle > normEnd && highGaugeAngle < normStart) :
-            (highGaugeAngle > normEnd || highGaugeAngle < normStart);
-
+          const inDeadZone = normEnd < normStart ? highGaugeAngle > normEnd && highGaugeAngle < normStart : highGaugeAngle > normEnd || highGaugeAngle < normStart;
           if (inDeadZone) {
             const distToStart = Math.min(
               Math.abs(highGaugeAngle - normStart),
@@ -1368,12 +1105,9 @@ class SteamGaugeCard extends HTMLElement {
             highGaugeAngle = distToStart < distToEnd ? normStart : normEnd;
           }
         }
-
         let highNeedleAngle = highGaugeAngle + 90;
-        // Determine if high value is increasing or decreasing
         let highValueIncreasing = null;
         if (this._previousHighNeedleAngle !== null) {
-          // For high needle, compare the current high value with the tracked high value
           highValueIncreasing = this._highNeedleValue >= (this._previousHighValue || this._highNeedleValue);
         }
         highNeedleAngle = this._findDirectionalPath(this._previousHighNeedleAngle, highNeedleAngle, highValueIncreasing);
@@ -1383,339 +1117,234 @@ class SteamGaugeCard extends HTMLElement {
       }
     }
   }
-
   _handleEntityError(message) {
-    // Only log if error has changed
     if (this._entityError !== message) {
       console.warn(`Steam Gauge Card [${this.config.entity}]: ${message}`);
       this._entityError = message;
-
-      // Update display to show error state
-      const flipDisplay = this.shadowRoot?.getElementById('flipDisplay');
+      const flipDisplay = this.shadowRoot?.getElementById("flipDisplay");
       if (flipDisplay) {
-        // Show "---" or "ERR" in the display
         this._showErrorDisplay();
       }
     }
   }
-
   _clearEntityError() {
     this._entityError = null;
   }
-
   _showErrorDisplay() {
-    const flipDisplay = this.shadowRoot?.getElementById('flipDisplay');
+    const flipDisplay = this.shadowRoot?.getElementById("flipDisplay");
     if (!flipDisplay) return;
-
-    const digitsRow = flipDisplay.querySelector('.digits-row');
+    const digitsRow = flipDisplay.querySelector(".digits-row");
     if (digitsRow) {
       digitsRow.innerHTML = '<div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div>';
     }
   }
-
   _updateAriaLive(value) {
-    const ariaLive = this.shadowRoot?.getElementById('ariaLive');
+    const ariaLive = this.shadowRoot?.getElementById("ariaLive");
     if (ariaLive) {
-      const decimals = this.config.decimals !== undefined ? this.config.decimals : 0;
-      const unit = this.config.unit || '';
-      const title = this.config.title || 'Gauge';
+      const decimals = this.config.decimals !== void 0 ? this.config.decimals : 0;
+      const unit = this.config.unit || "";
+      const title = this.config.title || "Gauge";
       ariaLive.textContent = `${title}: ${value.toFixed(decimals)} ${unit}`;
     }
   }
-
   _formatValueWithPadding(value, decimals) {
-    // Get min and max to determine padding requirements
-    const min = this.config.min !== undefined ? this.config.min : 0;
-    const max = this.config.max !== undefined ? this.config.max : 100;
-
-    // Calculate the maximum number of integer digits needed
+    const min = this.config.min !== void 0 ? this.config.min : 0;
+    const max = this.config.max !== void 0 ? this.config.max : 100;
     const maxAbsValue = Math.max(Math.abs(Math.floor(min)), Math.abs(Math.floor(max)));
     const maxIntegerDigits = maxAbsValue.toString().length;
-
-    // Split value into integer and decimal parts
     const isNegative = value < 0;
     const absoluteValue = Math.abs(value);
     const integerPart = Math.floor(absoluteValue);
-    const decimalPart = (absoluteValue - integerPart).toFixed(decimals).substring(2); // Remove "0."
-
-    // Pad the integer part with leading zeros
-    const paddedInteger = integerPart.toString().padStart(maxIntegerDigits, '0');
-
-    // Build the final string
-    let result = isNegative ? '-' : '';
+    const decimalPart = (absoluteValue - integerPart).toFixed(decimals).substring(2);
+    const paddedInteger = integerPart.toString().padStart(maxIntegerDigits, "0");
+    let result = isNegative ? "-" : "";
     result += paddedInteger;
     if (decimals > 0) {
-      result += '.' + decimalPart;
+      result += "." + decimalPart;
     }
-
     return result;
   }
-
   updateFlipDisplay(value) {
-    const flipDisplay = this.shadowRoot.getElementById('flipDisplay');
+    const flipDisplay = this.shadowRoot.getElementById("flipDisplay");
     if (!flipDisplay) return;
-
-    const decimals = this.config.decimals !== undefined ? this.config.decimals : 0;
-    const unit = this.config.unit || '';
-
-    let displayText = isNaN(value) ? '--' : this._formatValueWithPadding(value, decimals);
-    const oldText = flipDisplay.dataset.value || '';
-
-    if (displayText === oldText) return; // No change
-
-    // Check if this is the first update (no previous value stored)
+    const decimals = this.config.decimals !== void 0 ? this.config.decimals : 0;
+    const unit = this.config.unit || "";
+    let displayText = isNaN(value) ? "--" : this._formatValueWithPadding(value, decimals);
+    const oldText = flipDisplay.dataset.value || "";
+    if (displayText === oldText) return;
     const isFirstUpdate = !flipDisplay.dataset.numericValue;
-
-    // Store previous numeric value for animation
     const prevValue = flipDisplay.dataset.numericValue ? parseFloat(flipDisplay.dataset.numericValue) : value;
     flipDisplay.dataset.numericValue = value;
     flipDisplay.dataset.value = displayText;
-
-    // On first update, render directly without animation to avoid glitches
     if (isFirstUpdate) {
       this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(value, decimals), unit, null);
     } else {
-      // Animate through intermediate values like a real odometer
       this.animateOdometer(flipDisplay, prevValue, value, decimals, unit);
     }
   }
-
   animateOdometer(flipDisplay, fromValue, toValue, decimals, unit) {
-    // Cancel any existing animation
     if (this._odometerAnimation) {
       clearInterval(this._odometerAnimation);
     }
-
     const diff = Math.abs(toValue - fromValue);
-    const steps = Math.min(Math.ceil(diff), 20); // Max 20 steps for smooth animation
-
+    const steps = Math.min(Math.ceil(diff), 20);
     if (steps <= 1 || diff === 0) {
-      // Small change or no change, just render directly
       this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(toValue, decimals), unit, null);
       return;
     }
-
     const increment = (toValue - fromValue) / steps;
     const duration = this._animationDuration || 1.2;
-    const stepDuration = (duration * 1000) / steps;
-
+    const stepDuration = duration * 1e3 / steps;
     let currentStep = 0;
     let currentValue = fromValue;
-
     this._odometerAnimation = setInterval(() => {
       currentStep++;
       currentValue += increment;
-
       if (currentStep >= steps) {
         clearInterval(this._odometerAnimation);
         this._odometerAnimation = null;
-        currentValue = toValue; // Ensure we end at exact value
+        currentValue = toValue;
       }
-
       this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(currentValue, decimals), unit, fromValue);
     }, stepDuration);
   }
-
   renderRotaryDisplay(flipDisplay, displayText, unit, previousValue) {
-    // Determine if negative and get absolute value
-    const isNegative = displayText.startsWith('-');
+    const isNegative = displayText.startsWith("-");
     const absDisplayText = isNegative ? displayText.substring(1) : displayText;
-    const chars = absDisplayText.split('');
-
-    // Check if minimum value allows negative numbers
+    const chars = absDisplayText.split("");
     const allowNegative = this.config && this.config.min < 0;
-
-    // Get or create digits row wrapper
-    let digitsRow = flipDisplay.querySelector('.digits-row');
+    let digitsRow = flipDisplay.querySelector(".digits-row");
     if (!digitsRow) {
-      flipDisplay.innerHTML = '';
-      digitsRow = document.createElement('div');
-      digitsRow.className = 'digits-row';
+      flipDisplay.innerHTML = "";
+      digitsRow = document.createElement("div");
+      digitsRow.className = "digits-row";
       flipDisplay.appendChild(digitsRow);
     }
-
-    // Calculate expected structure: minus sign (if min < 0) + digits (excluding decimal point)
-    const digitCount = chars.filter(c => c !== '.').length;
+    const digitCount = chars.filter((c) => c !== ".").length;
     const expectedLength = (allowNegative ? 1 : 0) + digitCount;
     let existingDigits = Array.from(digitsRow.children);
-
-    // Clear if structure changed
     if (existingDigits.length !== expectedLength) {
-      digitsRow.innerHTML = '';
-      existingDigits = []; // Reset to empty array
+      digitsRow.innerHTML = "";
+      existingDigits = [];
     }
-
     let digitIndex = 0;
     let afterDecimal = false;
-
-    // First position: Create/update sign with flip animation if minimum value is below 0
     if (allowNegative) {
       let signEl = existingDigits[digitIndex];
-      if (!signEl || !signEl.classList.contains('minus-sign')) {
-        // Create new sign element with flip structure
-        signEl = document.createElement('div');
-        signEl.className = 'flip-digit minus-sign';
-        const inner = document.createElement('div');
-        inner.className = 'flip-digit-inner';
-
-        // Create two items: minus and plus
-        const signs = ['-', '+'];
-        signs.forEach(s => {
-          const item = document.createElement('div');
-          item.className = 'digit-item';
+      if (!signEl || !signEl.classList.contains("minus-sign")) {
+        signEl = document.createElement("div");
+        signEl.className = "flip-digit minus-sign";
+        const inner2 = document.createElement("div");
+        inner2.className = "flip-digit-inner";
+        const signs = ["-", "+"];
+        signs.forEach((s) => {
+          const item = document.createElement("div");
+          item.className = "digit-item";
           item.textContent = s;
-          inner.appendChild(item);
+          inner2.appendChild(item);
         });
-
-        signEl.appendChild(inner);
+        signEl.appendChild(inner2);
         digitsRow.appendChild(signEl);
       }
-
-      // Update sign position with animation
-      const inner = signEl.querySelector('.flip-digit-inner');
+      const inner = signEl.querySelector(".flip-digit-inner");
       if (inner) {
-        const targetPosition = isNegative ? 0 : 1; // 0 = '-', 1 = '+'
-
-        // Check if this is initial setup
+        const targetPosition = isNegative ? 0 : 1;
         const isInitialSetup = !signEl.dataset.position;
-
         if (isInitialSetup) {
-          // On initial setup, position without animation
           signEl.dataset.position = targetPosition.toString();
-
-          inner.style.transition = 'none';
+          inner.style.transition = "none";
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               inner.offsetHeight;
-              const digitItem = inner.querySelector('.digit-item');
+              const digitItem = inner.querySelector(".digit-item");
               if (!digitItem) return;
-
               const computedStyle = window.getComputedStyle(digitItem);
               const digitHeight = parseFloat(computedStyle.height) || 28;
               const offset = Math.round(-targetPosition * digitHeight);
               inner.style.transform = `translateY(${offset}px)`;
-
               requestAnimationFrame(() => {
-                inner.style.transition = '';
+                inner.style.transition = "";
               });
             });
           });
         } else {
-          // Animated update
           signEl.dataset.position = targetPosition.toString();
-
-          const digitItem = inner.querySelector('.digit-item');
+          const digitItem = inner.querySelector(".digit-item");
           if (!digitItem) return;
-
           const computedStyle = window.getComputedStyle(digitItem);
           const digitHeight = parseFloat(computedStyle.height) || 28;
           const offset = Math.round(-targetPosition * digitHeight);
           inner.style.transform = `translateY(${offset}px)`;
         }
       }
-
       digitIndex++;
     }
-
-    // Process remaining characters (digits and decimal points)
     chars.forEach((char, charIndex) => {
-      if (char === '.') {
+      if (char === ".") {
         afterDecimal = true;
-        // Skip creating decimal point element but keep tracking position
       } else {
         let digitEl = existingDigits[digitIndex];
-        if (!digitEl || digitEl.classList.contains('decimal') || digitEl.classList.contains('minus-sign')) {
-          // Create new rotary digit with single set of digits 0-9
-          digitEl = document.createElement('div');
-          digitEl.className = afterDecimal ? 'flip-digit fractional' : 'flip-digit';
-          const inner = document.createElement('div');
-          inner.className = 'flip-digit-inner';
-
-          // Create single set of digits 0-9
-          const baseDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-          baseDigits.forEach(d => {
-            const item = document.createElement('div');
-            item.className = 'digit-item';
+        if (!digitEl || digitEl.classList.contains("decimal") || digitEl.classList.contains("minus-sign")) {
+          digitEl = document.createElement("div");
+          digitEl.className = afterDecimal ? "flip-digit fractional" : "flip-digit";
+          const inner2 = document.createElement("div");
+          inner2.className = "flip-digit-inner";
+          const baseDigits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+          baseDigits.forEach((d) => {
+            const item = document.createElement("div");
+            item.className = "digit-item";
             item.textContent = d;
-            inner.appendChild(item);
+            inner2.appendChild(item);
           });
-
-          digitEl.appendChild(inner);
+          digitEl.appendChild(inner2);
           digitsRow.appendChild(digitEl);
         }
-
-        // Update rotation position with forward-only animation
-        const inner = digitEl.querySelector('.flip-digit-inner');
+        const inner = digitEl.querySelector(".flip-digit-inner");
         if (inner) {
           const targetDigit = parseInt(char);
-
-          // Check if this is initial setup (no position set yet)
           const isInitialSetup = !digitEl.dataset.position;
-
           if (isInitialSetup) {
-            // On initial setup, position without animation
             digitEl.dataset.position = targetDigit.toString();
-
-            // Disable transition for initial positioning
-            inner.style.transition = 'none';
-
-            // Use double requestAnimationFrame to ensure container-query CSS has fully applied
+            inner.style.transition = "none";
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
-                // Force a reflow to ensure elements are rendered
                 inner.offsetHeight;
-
-                // Now measure the actual height
-                const digitItem = inner.querySelector('.digit-item');
+                const digitItem = inner.querySelector(".digit-item");
                 if (!digitItem) return;
-
-                // Force a style recalculation to get the ACTUAL height after CSS settles
                 const computedStyle = window.getComputedStyle(digitItem);
                 const digitHeight = parseFloat(computedStyle.height) || 28;
-
                 const offset = Math.round(-targetDigit * digitHeight);
                 inner.style.transform = `translateY(${offset}px)`;
-
-                // Re-enable transition after another frame
                 requestAnimationFrame(() => {
-                  inner.style.transition = '';
+                  inner.style.transition = "";
                 });
               });
             });
           } else {
-            // Animated update
             digitEl.dataset.position = targetDigit.toString();
-
-            // Calculate digit height dynamically based on container size
-            const digitItem = inner.querySelector('.digit-item');
+            const digitItem = inner.querySelector(".digit-item");
             const computedStyle = window.getComputedStyle(digitItem);
             const digitHeight = parseFloat(computedStyle.height) || 28;
             const offset = Math.round(-targetDigit * digitHeight);
             inner.style.transform = `translateY(${offset}px)`;
-
-            // Add transitionend listener to ensure perfect alignment
             const handleTransitionEnd = () => {
-              // Recalculate and snap to exact position after animation completes
               const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
               const finalOffset = Math.round(-newPosition * finalDigitHeight);
               inner.style.transform = `translateY(${finalOffset}px)`;
-              inner.removeEventListener('transitionend', handleTransitionEnd);
+              inner.removeEventListener("transitionend", handleTransitionEnd);
             };
-            inner.removeEventListener('transitionend', handleTransitionEnd); // Remove any old listeners
-            inner.addEventListener('transitionend', handleTransitionEnd, { once: true });
+            inner.removeEventListener("transitionend", handleTransitionEnd);
+            inner.addEventListener("transitionend", handleTransitionEnd, { once: true });
           }
         }
-
         digitIndex++;
       }
     });
-
-    // Add unit if present
-    const existingUnit = flipDisplay.querySelector('.flip-digit.unit');
+    const existingUnit = flipDisplay.querySelector(".flip-digit.unit");
     if (unit) {
       if (!existingUnit) {
-        const unitSpan = document.createElement('div');
-        unitSpan.className = 'flip-digit unit';
+        const unitSpan = document.createElement("div");
+        unitSpan.className = "flip-digit unit";
         unitSpan.textContent = unit;
         flipDisplay.appendChild(unitSpan);
       } else {
@@ -1725,86 +1354,70 @@ class SteamGaugeCard extends HTMLElement {
       existingUnit.remove();
     }
   }
-
   getCardSize() {
     return 4;
   }
-
   static get supportsCardResize() {
     return true;
   }
-
   static getConfigElement() {
-    return document.createElement('steam-gauge-card-editor');
+    return document.createElement("steam-gauge-card-editor");
   }
-
   static getStubConfig() {
     return {
-      entity: 'sensor.temperature',
-      title: 'Gauge',
+      entity: "sensor.temperature",
+      title: "Gauge",
       title_font_size: 12,
       odometer_font_size: 60,
       odometer_vertical_position: 120,
-      ring_style: 'brass',
-      rivet_color: '#6a5816',
-      plate_color: '#8c7626',
+      ring_style: "brass",
+      rivet_color: "#6a5816",
+      plate_color: "#8c7626",
       plate_transparent: false,
       min: 0,
       max: 100,
-      unit: '',
+      unit: "",
       decimals: 0,
       start_angle: 200,
       end_angle: 160,
       animation_duration: 1.2,
       high_needle_enabled: false,
-      high_needle_color: '#FF9800',
+      high_needle_color: "#FF9800",
       high_needle_duration: 60,
       high_needle_length: 75,
       wear_level: 50,
       glass_effect_enabled: true,
-      aged_texture: 'everywhere',
+      aged_texture: "everywhere",
       aged_texture_intensity: 50,
       segments: [
-        { from: 0, to: 33, color: '#4CAF50' },
-        { from: 33, to: 66, color: '#FFC107' },
-        { from: 66, to: 100, color: '#F44336' }
+        { from: 0, to: 33, color: "#4CAF50" },
+        { from: 33, to: 66, color: "#FFC107" },
+        { from: 66, to: 100, color: "#F44336" }
       ]
     };
   }
-}
-
-
-//************************************************************************************************************
-// Card Editor
-//************************************************************************************************************
-class SteamGaugeCardEditor extends HTMLElement {
+};
+var SteamGaugeCardEditor = class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
   }
-
   setConfig(config) {
-    // 1. Sanitize config to ensure segments is always an array
     this._config = {
       ...config,
       segments: Array.isArray(config.segments) ? config.segments : []
     };
     this.render();
   }
-
   set hass(hass) {
     this._hass = hass;
     if (this._form1) this._form1.hass = hass;
     if (this._form2) this._form2.hass = hass;
   }
-
   render() {
     if (!this._hass || !this._config) return;
-
-    // 2. Initialize Root Structure (Runs once)
     if (!this._root) {
       this._root = document.createElement("div");
-
       const style = document.createElement("style");
       style.textContent = `
         /* Layout adjustments */
@@ -1928,116 +1541,83 @@ class SteamGaugeCardEditor extends HTMLElement {
       `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
-
-      // --- PART 1: Top Settings (Entity, Title, Min/Max) ---
       this._form1 = document.createElement("ha-form");
       this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
       this._root.appendChild(this._form1);
-
-      // --- PART 2: Manual Segments (Middle) ---
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
       this._root.appendChild(this._segmentsContainer);
-
-      // --- PART 3: Bottom Settings (Appearance, Layout, Actions) ---
       this._form2 = document.createElement("ha-form");
       this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
       this._root.appendChild(this._form2);
-
-      // --- PART 4: Validation Messages and Reset Button ---
       this._validationContainer = document.createElement("div");
       this._root.appendChild(this._validationContainer);
-
-      // Reset to defaults button
       const resetBtn = document.createElement("button");
       resetBtn.className = "reset-btn";
-      resetBtn.textContent = "⚠️ Reset to Default Configuration";
+      resetBtn.textContent = "\u26A0\uFE0F Reset to Default Configuration";
       resetBtn.title = "Reset all settings to defaults (keeps entity)";
       resetBtn.addEventListener("click", () => this._resetToDefaults());
       this._root.appendChild(resetBtn);
     }
-
-    // 3. Update Forms
     if (this._form1) this._form1.hass = this._hass;
     if (this._form2) this._form2.hass = this._hass;
-
     const formData = this._configToForm(this._config);
-
-    // Setup Form 1 (Top)
     this._form1.schema = this._getSchemaTop(formData);
     this._form1.data = formData;
     this._form1.computeLabel = this._computeLabel;
-
-    // Setup Form 2 (Bottom)
     this._form2.schema = this._getSchemaBottom(formData);
     this._form2.data = formData;
     this._form2.computeLabel = this._computeLabel;
-
-    // 4. Render Segments (Middle)
     this._renderSegments();
-
-    // 5. Show validation messages
     this._displayValidationMessages();
   }
-
   _displayValidationMessages() {
     if (!this._validationContainer) return;
-
     const messages = [];
     const config = this._config;
-
-    // Validate min < max
-    const min = config.min !== undefined ? config.min : 0;
-    const max = config.max !== undefined ? config.max : 100;
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
     if (min >= max) {
-      messages.push({ type: 'error', text: '⚠️ Minimum value must be less than maximum value' });
+      messages.push({ type: "error", text: "\u26A0\uFE0F Minimum value must be less than maximum value" });
     }
-
-    // Validate segments
     const segments = config.segments || [];
     if (segments.length > 0) {
       segments.forEach((seg, idx) => {
         if (seg.from >= seg.to) {
-          messages.push({ type: 'warning', text: `⚠️ Segment ${idx + 1}: "From" should be less than "To"` });
+          messages.push({ type: "warning", text: `\u26A0\uFE0F Segment ${idx + 1}: "From" should be less than "To"` });
         }
         if (seg.from < min || seg.to > max) {
-          messages.push({ type: 'warning', text: `⚠️ Segment ${idx + 1}: Range should be within min/max values` });
+          messages.push({ type: "warning", text: `\u26A0\uFE0F Segment ${idx + 1}: Range should be within min/max values` });
         }
       });
     }
-
-    // Validate decimals
-    if (config.decimals !== undefined && (config.decimals < 0 || config.decimals > 10)) {
-      messages.push({ type: 'warning', text: '⚠️ Decimals should be between 0 and 10' });
+    if (config.decimals !== void 0 && (config.decimals < 0 || config.decimals > 10)) {
+      messages.push({ type: "warning", text: "\u26A0\uFE0F Decimals should be between 0 and 10" });
     }
-
-    // Display messages
     if (messages.length > 0) {
-      this._validationContainer.innerHTML = messages.map(msg =>
-        `<div class=\"validation-${msg.type}\">${msg.text}</div>`
-      ).join('');
+      this._validationContainer.innerHTML = messages.map(
+        (msg) => `<div class="validation-${msg.type}">${msg.text}</div>`
+      ).join("");
     } else {
-      this._validationContainer.innerHTML = '';
+      this._validationContainer.innerHTML = "";
     }
   }
-
   _resetToDefaults() {
-    if (!confirm('Reset all settings to defaults? This will keep your entity but reset all other configuration.')) {
+    if (!confirm("Reset all settings to defaults? This will keep your entity but reset all other configuration.")) {
       return;
     }
-
     const entity = this._config.entity;
     this._updateConfig({
-      entity: entity,
-      title: '',
+      entity,
+      title: "",
       min: 0,
       max: 100,
-      unit: '',
+      unit: "",
       decimals: 0,
       segments: [
-        { from: 0, to: 33, color: '#4CAF50' },
-        { from: 33, to: 66, color: '#FFC107' },
-        { from: 66, to: 100, color: '#F44336' }
+        { from: 0, to: 33, color: "#4CAF50" },
+        { from: 33, to: 66, color: "#FFC107" },
+        { from: 66, to: 100, color: "#F44336" }
       ],
       start_angle: 200,
       end_angle: 160,
@@ -2045,42 +1625,35 @@ class SteamGaugeCardEditor extends HTMLElement {
       title_font_size: 12,
       odometer_font_size: 60,
       odometer_vertical_position: 120,
-      ring_style: 'brass',
-      rivet_color: '#6d5d4b',
-      plate_color: '#8c7626',
+      ring_style: "brass",
+      rivet_color: "#6d5d4b",
+      plate_color: "#8c7626",
       plate_transparent: false,
       wear_level: 50,
       glass_effect_enabled: true,
-      aged_texture: 'glass_only',
+      aged_texture: "glass_only",
       aged_texture_intensity: 50,
       high_needle_enabled: false,
-      high_needle_color: '#FF9800',
+      high_needle_color: "#FF9800",
       high_needle_duration: 60,
       high_needle_length: 100,
-      tap_action: { action: 'more-info' },
-      hold_action: { action: 'more-info' },
-      double_tap_action: { action: 'more-info' }
+      tap_action: { action: "more-info" },
+      hold_action: { action: "more-info" },
+      double_tap_action: { action: "more-info" }
     });
   }
-
   // --- Segments Renderer (innerHTML) ---
-
   _renderSegments() {
     if (!this._segmentsContainer) return;
-
     const segments = this._config.segments || [];
-
     let html = `<div class="section-header">Color Ranges</div>`;
-
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
     }
-
     segments.forEach((seg, index) => {
-      const fromVal = seg.from !== undefined ? seg.from : 0;
-      const toVal = seg.to !== undefined ? seg.to : 0;
+      const fromVal = seg.from !== void 0 ? seg.from : 0;
+      const toVal = seg.to !== void 0 ? seg.to : 0;
       const colVal = seg.color || "#000000";
-
       html += `
         <div class="segment-row">
           <div class="input-group">
@@ -2103,85 +1676,68 @@ class SteamGaugeCardEditor extends HTMLElement {
         </div>
       `;
     });
-
     html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
-
     this._segmentsContainer.innerHTML = html;
-
-    // Listeners
-    this._segmentsContainer.querySelectorAll('.seg-input').forEach(input => {
-      input.addEventListener('change', (e) => {
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
         const idx = parseInt(e.target.dataset.idx);
         const key = e.target.dataset.key;
         let val = e.target.value;
-        if (key !== 'color') val = Number(val);
+        if (key !== "color") val = Number(val);
         this._updateSegment(idx, key, val);
       });
     });
-
-    this._segmentsContainer.querySelectorAll('.remove-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const target = e.target.closest('.remove-btn');
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const target = e.target.closest(".remove-btn");
         if (target) {
           this._removeSegment(parseInt(target.dataset.idx));
         }
       });
     });
-
-    const addBtn = this._segmentsContainer.querySelector('#add-btn');
+    const addBtn = this._segmentsContainer.querySelector("#add-btn");
     if (addBtn) {
-      addBtn.addEventListener('click', () => this._addSegment());
+      addBtn.addEventListener("click", () => this._addSegment());
     }
   }
-
   // --- Data Logic for Segments ---
-
   _updateSegment(index, key, value) {
-    const segments = [...(this._config.segments || [])];
+    const segments = [...this._config.segments || []];
     if (segments[index]) {
       segments[index] = { ...segments[index], [key]: value };
       this._updateConfig({ segments });
     }
   }
-
   _addSegment() {
-    const segments = [...(this._config.segments || [])];
+    const segments = [...this._config.segments || []];
     const last = segments[segments.length - 1];
     const from = last ? last.to : 0;
     const to = from + 10;
     segments.push({ from, to, color: "#4CAF50" });
     this._updateConfig({ segments });
   }
-
   _removeSegment(index) {
-    const segments = [...(this._config.segments || [])];
+    const segments = [...this._config.segments || []];
     segments.splice(index, 1);
     this._updateConfig({ segments });
   }
-
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
     this.dispatchEvent(new CustomEvent("config-changed", {
       detail: { config: this._config },
       bubbles: true,
-      composed: true,
+      composed: true
     }));
   }
-
-
-
   // --- HA Form Logic ---
-
   _handleFormChanged(ev) {
     const newConfig = this._formToConfig(ev.detail.value);
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._updateConfig(newConfig);
     }
   }
-
   _configToForm(config) {
     const data = { ...config };
-
     data.appearance = {
       ring_style: config.ring_style,
       rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [106, 88, 22],
@@ -2190,78 +1746,63 @@ class SteamGaugeCardEditor extends HTMLElement {
       wear_level: config.wear_level,
       glass_effect_enabled: config.glass_effect_enabled,
       aged_texture: config.aged_texture,
-      aged_texture_intensity: config.aged_texture_intensity,
+      aged_texture_intensity: config.aged_texture_intensity
     };
-
     data.layout = {
       title_font_size: config.title_font_size,
       odometer_font_size: config.odometer_font_size,
       odometer_vertical_position: config.odometer_vertical_position,
       start_angle: config.start_angle,
       end_angle: config.end_angle,
-      animation_duration: config.animation_duration,
+      animation_duration: config.animation_duration
     };
-
     data.high_needle = {
       high_needle_enabled: config.high_needle_enabled,
       high_needle_color: this._hexToRgb(config.high_needle_color ?? "#FF9800") ?? [255, 152, 0],
       high_needle_duration: config.high_needle_duration,
-      high_needle_length: config.high_needle_length,
+      high_needle_length: config.high_needle_length
     };
-
     data.actions = {};
-    ['tap', 'hold', 'double_tap'].forEach(type => {
+    ["tap", "hold", "double_tap"].forEach((type) => {
       const conf = config[`${type}_action`] || {};
       data.actions[`${type}_action_action`] = conf.action || "more-info";
       data.actions[`${type}_action_navigation_path`] = conf.navigation_path || "";
       data.actions[`${type}_action_service`] = conf.service || "";
       data.actions[`${type}_action_target_entity`] = conf.target?.entity_id || "";
     });
-
     return data;
   }
-
   _formToConfig(formData) {
     const config = { ...this._config };
     const defaults = {
       rivet_color: this._config?.rivet_color ?? "#6d5d4b",
       plate_color: this._config?.plate_color ?? "#8c7626",
-      high_needle_color: this._config?.high_needle_color ?? "#FF9800",
+      high_needle_color: this._config?.high_needle_color ?? "#FF9800"
     };
-
-
-    Object.keys(formData).forEach(key => {
-      if (['appearance', 'layout', 'high_needle', 'actions'].includes(key)) return;
+    Object.keys(formData).forEach((key) => {
+      if (["appearance", "layout", "high_needle", "actions"].includes(key)) return;
       config[key] = formData[key];
     });
-
-
-
-
     if (formData.appearance) Object.assign(config, formData.appearance);
     if (formData.layout) Object.assign(config, formData.layout);
     if (formData.high_needle) Object.assign(config, formData.high_needle);
-
-
-    // Only overwrite if conversion succeeds; otherwise keep existing hex
     const rc = this._rgbToHex(config.rivet_color);
-    if (rc) config.rivet_color = rc; else config.rivet_color = defaults.rivet_color;
-
+    if (rc) config.rivet_color = rc;
+    else config.rivet_color = defaults.rivet_color;
     const pc = this._rgbToHex(config.plate_color);
-    if (pc) config.plate_color = pc; else config.plate_color = defaults.plate_color;
-
+    if (pc) config.plate_color = pc;
+    else config.plate_color = defaults.plate_color;
     const hn = this._rgbToHex(config.high_needle_color);
-    if (hn) config.high_needle_color = hn; else config.high_needle_color = defaults.high_needle_color;
-
+    if (hn) config.high_needle_color = hn;
+    else config.high_needle_color = defaults.high_needle_color;
     if (formData.actions) {
-      ['tap', 'hold', 'double_tap'].forEach(type => {
+      ["tap", "hold", "double_tap"].forEach((type) => {
         const group = formData.actions;
         const actionType = group[`${type}_action_action`];
         const newAction = { action: actionType };
-
-        if (actionType === 'navigate') {
+        if (actionType === "navigate") {
           newAction.navigation_path = group[`${type}_action_navigation_path`];
-        } else if (actionType === 'call-service') {
+        } else if (actionType === "call-service") {
           newAction.service = group[`${type}_action_service`];
           const targetEnt = group[`${type}_action_target_entity`];
           if (targetEnt) newAction.target = { entity_id: targetEnt };
@@ -2269,21 +1810,14 @@ class SteamGaugeCardEditor extends HTMLElement {
         config[`${type}_action`] = newAction;
       });
     }
-
     return config;
   }
-
   _computeLabel(schema) {
     if (schema.label) return schema.label;
     if (schema.name === "entity") return "Entity";
-    return schema.name
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    return schema.name.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   }
-
   // --- Schemas ---
-
   // Schema 1: Top section (Entity, Title, Min/Max)
   _getSchemaTop(formData) {
     return [
@@ -2296,7 +1830,7 @@ class SteamGaugeCardEditor extends HTMLElement {
         name: "",
         schema: [
           { name: "title", selector: { text: {} } },
-          { name: "unit", selector: { text: {} } },
+          { name: "unit", selector: { text: {} } }
         ]
       },
       {
@@ -2310,7 +1844,6 @@ class SteamGaugeCardEditor extends HTMLElement {
       }
     ];
   }
-
   _hexToRgb(hex) {
     if (typeof hex !== "string") return null;
     const h = hex.replace("#", "").trim();
@@ -2321,31 +1854,21 @@ class SteamGaugeCardEditor extends HTMLElement {
     if ([r, g, b].some(Number.isNaN)) return null;
     return [r, g, b];
   }
-
   _rgbToHex(input) {
-    // Accept [r,g,b] OR {r,g,b} OR {color:[r,g,b]}
     let rgb = input;
-
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
       else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
     }
-
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-
     const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
     if ([r, g, b].some((n) => Number.isNaN(n))) return null;
-
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
-
-
-
   // Schema 2: Bottom section (Appearance, Layout, Actions)
   _getSchemaBottom(formData) {
     const actionData = formData.actions || {};
-
     return [
       // Appearance
       {
@@ -2379,7 +1902,7 @@ class SteamGaugeCardEditor extends HTMLElement {
             name: "",
             schema: [
               { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
+              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } }
             ]
           },
           { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
@@ -2399,10 +1922,9 @@ class SteamGaugeCardEditor extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          { name: "aged_texture_intensity", label: "Texture Intensity", selector: { number: { min: 0, max: 100, mode: "slider" } } }
         ]
       },
-
       // Layout
       {
         name: "layout",
@@ -2414,16 +1936,15 @@ class SteamGaugeCardEditor extends HTMLElement {
             name: "",
             schema: [
               { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
-              { name: "odometer_font_size", label: "Odometer Size", selector: { number: { mode: "box" } } },
+              { name: "odometer_font_size", label: "Odometer Size", selector: { number: { mode: "box" } } }
             ]
           },
           { name: "odometer_vertical_position", label: "Odometer Position Y", selector: { number: { mode: "box" } } },
           { name: "start_angle", label: "Start Angle", selector: { number: { min: 0, max: 360, mode: "slider" } } },
           { name: "end_angle", label: "End Angle", selector: { number: { min: 0, max: 360, mode: "slider" } } },
-          { name: "animation_duration", label: "Animation Duration (s)", selector: { number: { mode: "box", step: 0.1, min: 0.1 } } },
+          { name: "animation_duration", label: "Animation Duration (s)", selector: { number: { mode: "box", step: 0.1, min: 0.1 } } }
         ]
       },
-
       // High Needle
       {
         name: "high_needle",
@@ -2437,30 +1958,27 @@ class SteamGaugeCardEditor extends HTMLElement {
             name: "",
             schema: [
               { name: "high_needle_duration", label: "Hold Duration (s)", selector: { number: { mode: "box" } } },
-              { name: "high_needle_length", label: "Length (%)", selector: { number: { mode: "box" } } },
+              { name: "high_needle_length", label: "Length (%)", selector: { number: { mode: "box" } } }
             ]
           }
         ]
       },
-
       // Actions
       {
         name: "actions",
         type: "expandable",
         title: "Actions",
         schema: [
-          ...this._getActionSchema('tap', 'Tap', actionData),
-          ...this._getActionSchema('hold', 'Hold', actionData),
-          ...this._getActionSchema('double_tap', 'Double Tap', actionData),
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
         ]
       }
     ];
   }
-
   _getActionSchema(type, label, actionData) {
     const actionKey = `${type}_action_action`;
     const currentAction = actionData ? actionData[actionKey] : "more-info";
-
     const schema = [
       {
         name: actionKey,
@@ -2480,38 +1998,36 @@ class SteamGaugeCardEditor extends HTMLElement {
         }
       }
     ];
-
-    if (currentAction === 'navigate') {
+    if (currentAction === "navigate") {
       schema.push({ name: `${type}_action_navigation_path`, label: "Navigation Path", selector: { text: {} } });
     }
-
-    if (currentAction === 'call-service') {
+    if (currentAction === "call-service") {
       schema.push({ name: `${type}_action_service`, label: "Service", selector: { text: {} } });
       schema.push({ name: `${type}_action_target_entity`, label: "Target Entity", selector: { entity: {} } });
     }
-
     return schema;
   }
-}
-
-
-
-
-
-
-customElements.define('steam-gauge-card', SteamGaugeCard);
-customElements.define('steam-gauge-card-editor', SteamGaugeCardEditor);
+};
+customElements.define("steam-gauge-card", SteamGaugeCard);
+customElements.define("steam-gauge-card-editor", SteamGaugeCardEditor);
 console.info(
   `%cSteam Gauge Card%c v${STEAM_GAUGE_CARD_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
   "color: inherit;"
 );
-// Register the card with Home Assistant
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'steam-gauge-card',
-  name: 'Steam Gauge Card',
-  description: 'A vintage steam engine style gauge card',
+  type: "steam-gauge-card",
+  name: "Steam Gauge Card",
+  description: "A vintage steam engine style gauge card",
   preview: "https://raw.githubusercontent.com/dprischak/Steam-Gauge-Card/main/preview.png",
-  documentationURL: 'https://github.com/dprischak/Steam-Gauge-Card'
+  documentationURL: "https://github.com/dprischak/Steam-Gauge-Card"
 });
+
+// src/foundry-cards.js
+var FOUNDRY_CARDS_VERSION = "0.5.1";
+console.info(
+  `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
+  "color: #03a9f4; font-weight: bold;",
+  "color: inherit;"
+);

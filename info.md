@@ -21,13 +21,13 @@ A custom card for displaying sensor data in a steam gauge style.
 9. Restart Home Assistant
 
 ### Manual Installation
-1. Download `steam-gauge-card.js` from the latest release
+1. Download `foundry-cards.js` from the latest release
 2. Copy it to `config/www/` in your Home Assistant installation
 3. Add the following to your `configuration.yaml`:
    ```yaml
    lovelace:
      resources:
-       - url: /local/steam-gauge-card.js
+       - url: /local/foundry-cards.js
          type: module
    ```
 4. Restart Home Assistant

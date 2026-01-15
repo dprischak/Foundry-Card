@@ -2,9 +2,11 @@
   "name": "foundry-card",
   "version": "1.0.0",
   "description": "A collection of custom dashboard cards for Home Assistant",
-  "main": "dist/steam-gauge-card.js",
+  "main": "dist/foundry-cards.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js",
+    "watch": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js --sourcemap --watch"
   },
   "repository": {
     "type": "git",
@@ -22,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/dprischak/Foundry-Card/issues"
   },
-  "homepage": "https://github.com/dprischak/Foundry-Card#readme"
+  "homepage": "https://github.com/dprischak/Foundry-Card#readme",
+  "devDependencies": {
+    "esbuild": "^0.27.2"
+  }
 }

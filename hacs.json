@@ -1,5 +1,6 @@
 {
   "name": "Foundry Card",
   "render_readme": true,
-  "filename": "steam-gauge-card.js"
+  "filename": "foundry-cards.js",
+  "version": "0.6.0"
 }
