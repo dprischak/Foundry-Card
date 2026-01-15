@@ -25,8 +25,8 @@ function getActionConfig(config, key, fallback) {
   return fallback;
 }
 
-// src/cards/steam-gauge-card.js
-var SteamGaugeCard = class extends HTMLElement {
+// src/cards/foundry-gauge-card.js
+var FoundryGaugeCard = class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -114,14 +114,14 @@ var SteamGaugeCard = class extends HTMLElement {
     const min = config.min !== void 0 ? config.min : 0;
     const max = config.max !== void 0 ? config.max : 100;
     if (min >= max) {
-      console.warn("Steam Gauge Card: min value must be less than max value. Using defaults.");
+      console.warn("Foundry Gauge Card: min value must be less than max value. Using defaults.");
       this.config.min = 0;
       this.config.max = 100;
     }
     if (config.decimals !== void 0) {
       const decimals = parseInt(config.decimals);
       if (isNaN(decimals) || decimals < 0) {
-        console.warn("Steam Gauge Card: decimals must be a non-negative integer. Using 0.");
+        console.warn("Foundry Gauge Card: decimals must be a non-negative integer. Using 0.");
         this.config.decimals = 0;
       } else {
         this.config.decimals = Math.min(decimals, 10);
@@ -146,7 +146,7 @@ var SteamGaugeCard = class extends HTMLElement {
     if (config.animation_duration !== void 0) {
       const duration = parseFloat(config.animation_duration);
       if (isNaN(duration) || duration <= 0) {
-        console.warn("Steam Gauge Card: animation_duration must be positive. Using 1.2s.");
+        console.warn("Foundry Gauge Card: animation_duration must be positive. Using 1.2s.");
         this.config.animation_duration = 1.2;
       } else {
         this.config.animation_duration = Math.min(duration, 10);
@@ -393,7 +393,7 @@ var SteamGaugeCard = class extends HTMLElement {
           fill: none;
         }
       </style>
-      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, " ") : "Steam gauge"} showing ${config.entity}" tabindex="0">
+      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, " ") : "Foundry gauge"} showing ${config.entity}" tabindex="0">
         <div class="card" id="actionRoot">
           <div class="gauge-container" role="presentation">
             <svg class="gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
@@ -1399,18 +1399,18 @@ var SteamGaugeCard = class extends HTMLElement {
     };
   }
 };
-customElements.define("steam-gauge-card", SteamGaugeCard);
+customElements.define("foundry-gauge-card", FoundryGaugeCard);
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "steam-gauge-card",
-  name: "Steam Gauge Card",
-  description: "A vintage steam engine style gauge card",
-  preview: "https://raw.githubusercontent.com/dprischak/Steam-Gauge-Card/main/preview.png",
-  documentationURL: "https://github.com/dprischak/Steam-Gauge-Card"
+  type: "foundry-gauge-card",
+  name: "Foundry Gauge Card",
+  description: "A vintage style gauge card",
+  preview: "https://raw.githubusercontent.com/dprischak/Foundry-Card/main/preview.png",
+  documentationURL: "https://github.com/dprischak/Foundry-Card"
 });
 
-// src/cards/steam-gauge-editor.js
-var SteamGaugeCardEditor = class extends HTMLElement {
+// src/cards/foundry-gauge-editor.js
+var FoundryGaugeCardEditor = class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -2021,10 +2021,10 @@ var SteamGaugeCardEditor = class extends HTMLElement {
     return schema;
   }
 };
-customElements.define("steam-gauge-card-editor", SteamGaugeCardEditor);
+customElements.define("foundry-gauge-card-editor", FoundryGaugeCardEditor);
 
 // src/foundry-cards.js
-var FOUNDRY_CARDS_VERSION = "0.6.0";
+var FOUNDRY_CARDS_VERSION = "0.7.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",

@@ -1,7 +1,7 @@
 
 import { debounce, fireEvent, getActionConfig } from "./utils.js";
 
-class SteamGaugeCard extends HTMLElement {
+class FoundryGaugeCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -136,7 +136,7 @@ class SteamGaugeCard extends HTMLElement {
     const min = config.min !== undefined ? config.min : 0;
     const max = config.max !== undefined ? config.max : 100;
     if (min >= max) {
-      console.warn('Steam Gauge Card: min value must be less than max value. Using defaults.');
+      console.warn('Foundry Gauge Card: min value must be less than max value. Using defaults.');
       this.config.min = 0;
       this.config.max = 100;
     }
@@ -145,7 +145,7 @@ class SteamGaugeCard extends HTMLElement {
     if (config.decimals !== undefined) {
       const decimals = parseInt(config.decimals);
       if (isNaN(decimals) || decimals < 0) {
-        console.warn('Steam Gauge Card: decimals must be a non-negative integer. Using 0.');
+        console.warn('Foundry Gauge Card: decimals must be a non-negative integer. Using 0.');
         this.config.decimals = 0;
       } else {
         this.config.decimals = Math.min(decimals, 10); // Cap at 10 decimals
@@ -174,7 +174,7 @@ class SteamGaugeCard extends HTMLElement {
     if (config.animation_duration !== undefined) {
       const duration = parseFloat(config.animation_duration);
       if (isNaN(duration) || duration <= 0) {
-        console.warn('Steam Gauge Card: animation_duration must be positive. Using 1.2s.');
+        console.warn('Foundry Gauge Card: animation_duration must be positive. Using 1.2s.');
         this.config.animation_duration = 1.2;
       } else {
         this.config.animation_duration = Math.min(duration, 10); // Cap at 10 seconds
@@ -442,7 +442,7 @@ class SteamGaugeCard extends HTMLElement {
           fill: none;
         }
       </style>
-      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, ' ') : 'Steam gauge'} showing ${config.entity}" tabindex="0">
+      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, ' ') : 'Foundry gauge'} showing ${config.entity}" tabindex="0">
         <div class="card" id="actionRoot">
           <div class="gauge-container" role="presentation">
             <svg class="gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
@@ -1745,13 +1745,14 @@ class SteamGaugeCard extends HTMLElement {
 }
 
 
-customElements.define('steam-gauge-card', SteamGaugeCard);
-// Register the card with Home Assistant
+customElements.define('foundry-gauge-card', FoundryGaugeCard);
+
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'steam-gauge-card',
-  name: 'Steam Gauge Card',
-  description: 'A vintage steam engine style gauge card',
-  preview: "https://raw.githubusercontent.com/dprischak/Steam-Gauge-Card/main/preview.png",
-  documentationURL: 'https://github.com/dprischak/Steam-Gauge-Card'
+  type: 'foundry-gauge-card',
+  name: 'Foundry Gauge Card',
+  description: 'A vintage style gauge card',
+  preview: "https://raw.githubusercontent.com/dprischak/Foundry-Card/main/preview.png",
+  documentationURL: 'https://github.com/dprischak/Foundry-Card'
 });
+

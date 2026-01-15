@@ -1,5 +1,5 @@
-import "./cards/steam-gauge-card.js";
-import "./cards/steam-gauge-editor.js";
+import "./cards/foundry-gauge-card.js";
+import "./cards/foundry-gauge-editor.js";
 
 const FOUNDRY_CARDS_VERSION = "0.7.0";
 

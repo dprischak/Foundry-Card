@@ -1,7 +1,7 @@
 //************************************************************************************************************
 // Card Editor
 //************************************************************************************************************
-class SteamGaugeCardEditor extends HTMLElement {
+class FoundryGaugeCardEditor extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -719,4 +719,4 @@ class SteamGaugeCardEditor extends HTMLElement {
 }
 
 
-customElements.define('steam-gauge-card-editor', SteamGaugeCardEditor);
+customElements.define('foundry-gauge-card-editor', FoundryGaugeCardEditor);
