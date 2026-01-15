@@ -15,7 +15,7 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Theme-aware colors
 - Responsive design
 
-![Foundry Gauge Card Preview](https://via.placeholder.com/400x300?text=Foundry+Gauge+Card+Preview)
+<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
 
 ## Installation
 
@@ -73,31 +73,82 @@ unit: "°C"
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.living_room_temperature
-name: "Living Room"
-min: 10
-max: 35
-unit: "°C"
+title: Living Room
+min: 50
+max: 90
+unit: °F
+segments:
+  - from: 50
+    to: 68
+    color: "#1100ff"
+  - from: 68
+    to: 78
+    color: "#44ff00"
+  - from: 78
+    to: 90
+    color: "#F44336"
 ```
+<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.bathroom_humidity
-name: "Bathroom Humidity"
+title: Bathroom\nHumidity
 min: 0
 max: 100
 unit: "%"
+segments:
+  - from: 0
+    to: 30
+    color: "#1100ff"
+  - from: 30
+    to: 50
+    color: "#44ff00"
+  - from: 50
+    to: 85
+    color: "#f9bc39"
+  - from: 85
+    to: 100
+    color: "#F44336"
 ```
+<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
 
-**Custom Range:**
+
+**Heavily weathered industrial gauge**
 ```yaml
-type: custom:foundry-gauge-card
-entity: sensor.pressure
-name: "Pressure"
-min: 900
-max: 1100
-unit: "hPa"
+type: custom:steam-gauge-card
+entity: sensor.steam_pressure
+title: Sump Pump\nFill Rate
+aged_texture: everywhere
+aged_texture_intensity: 80
+plate_transparent: false
+plate_color: "#d4d4c8"
+unit: cm/min
+decimals: 1
+min: -3
+max: 3
+rivet_color: "#6a5816"
+high_needle_color: "#0040ff"
+high_needle_enabled: true
+high_needle_length: 75
+high_needle_duration: 720
+segments:
+  - from: -3
+    to: 1.3
+    color: "#00ff11"
+  - from: 1.3
+    to: 2
+    color: "#fff700"
+  - from: 2
+    to: 2.5
+    color: "#f9bc39"
+  - from: 2.5
+    to: 3
+    color: "#F44336"
 ```
+<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
+
 
 ## Development
 
