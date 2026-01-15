@@ -49,7 +49,7 @@ Display your sensor data with a beautiful steam gauge visualization featuring:
 Add the card to your dashboard:
 
 ```yaml
-type: custom:steam-gauge-card
+type: custom:foundry-gauge-card
 entity: sensor.temperature
 name: "Temperature"
 min: 0
@@ -71,7 +71,7 @@ unit: "°C"
 
 **Temperature Sensor:**
 ```yaml
-type: custom:steam-gauge-card
+type: custom:foundry-gauge-card
 entity: sensor.living_room_temperature
 name: "Living Room"
 min: 10
@@ -81,7 +81,7 @@ unit: "°C"
 
 **Humidity Sensor:**
 ```yaml
-type: custom:steam-gauge-card
+type: custom:foundry-gauge-card
 entity: sensor.bathroom_humidity
 name: "Bathroom Humidity"
 min: 0
@@ -91,7 +91,7 @@ unit: "%"
 
 **Custom Range:**
 ```yaml
-type: custom:steam-gauge-card
+type: custom:foundry-gauge-card
 entity: sensor.pressure
 name: "Pressure"
 min: 900
