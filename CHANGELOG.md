@@ -1,3 +1,9 @@
+## v0.8.0
+
+### Breaking Changes
+- Renamed `steam-gauge-card` to `foundry-gauge-card`.
+- Users must update dashboards to use `type: custom:foundry-gauge-card`.
+
 ## v0.7.0
 
 ### Features
