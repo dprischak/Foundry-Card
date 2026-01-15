@@ -4,8 +4,8 @@ A collection of custom dashboard cards for Home Assistant.
 
 ## Cards Included
 
-### Steam Gauge Card
-A custom card for displaying sensor data in a steam gauge style.
+### Foundry Gauge Card
+A custom card for displaying sensor data in a foundry gauge style.
 
 ## Installation
 

@@ -8,14 +8,14 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
 
 ## Cards Included
 
-### 🌡️ Steam Gauge Card
-Display your sensor data with a beautiful steam gauge visualization featuring:
+### 🌡️ Foundry Gauge Card
+Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Customizable min/max values
 - Smooth needle animation
 - Theme-aware colors
 - Responsive design
 
-![Steam Gauge Card Preview](https://via.placeholder.com/400x300?text=Steam+Gauge+Card+Preview)
+![Foundry Gauge Card Preview](https://via.placeholder.com/400x300?text=Foundry+Gauge+Card+Preview)
 
 ## Installation
 
@@ -44,7 +44,7 @@ Display your sensor data with a beautiful steam gauge visualization featuring:
 
 ## Usage
 
-### Steam Gauge Card
+### Foundry Gauge Card
 
 Add the card to your dashboard:
 
