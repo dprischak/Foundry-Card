@@ -2,5 +2,6 @@
   "name": "Foundry Card",
   "render_readme": true,
   "filename": "foundry-cards.js",
-  "version": "0.6.0"
+  "content_in_root": false,
+  "homeassistant": "2023.1.0"
 }
