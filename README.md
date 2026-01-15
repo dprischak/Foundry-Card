@@ -15,7 +15,7 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Theme-aware colors
 - Responsive design
 
-<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
 
 ## Installation
 
@@ -88,7 +88,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
@@ -112,13 +112,13 @@ segments:
     to: 100
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
 
 
 **Heavily weathered industrial gauge**
 ```yaml
-type: custom:steam-gauge-card
-entity: sensor.steam_pressure
+type: custom:Foundry-Card
+entity: sensor.sumppump_fill_rate
 title: Sump Pump\nFill Rate
 aged_texture: everywhere
 aged_texture_intensity: 80
@@ -147,7 +147,7 @@ segments:
     to: 3
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Steam-Gauge-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
 
 
 ## Development
