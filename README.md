@@ -103,10 +103,19 @@ unit: "hPa"
 
 Want to contribute or customize the cards?
 
-1. Clone the repository
-2. Make your changes to the files in `dist/`
-3. Test in your Home Assistant instance
-4. Submit a pull request
+1. **Install Node.js**
+   - Download and install Node.js from [nodejs.org](https://nodejs.org/), which includes `npm`.
+
+2. **Clone the Repository**
+   git clone https://github.com/dprischak/Foundry-Card.git
+   cd Foundry-Card
+
+3. **Install Dependencies**
+   npm install
+
+4. **Build the Project**
+   npm run build
+
 
 ## Roadmap
 
