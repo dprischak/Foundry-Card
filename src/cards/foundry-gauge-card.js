@@ -1749,9 +1749,10 @@ customElements.define('foundry-gauge-card', FoundryGaugeCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'foundry-card',
-  name: 'Foundry Card',
-  description: 'A collection of custom dashboard cards for Home Assistant, designed with industrial and vintage aesthetics.',
+  type: 'foundry-gauge-card',
+  name: 'Foundry Gauge Card',
+  preview: true,
+  description: 'A vintage industrial style gauge card',
   documentationURL: 'https://github.com/dprischak/Foundry-Card'
 });
 
