@@ -15,7 +15,7 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Theme-aware colors
 - Responsive design
 
-![Foundry Gauge Card Preview](https://via.placeholder.com/400x300?text=Foundry+Gauge+Card+Preview)
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
 
 ## Installation
 
@@ -57,15 +57,59 @@ max: 100
 unit: "°C"
 ```
 
+### Design Features
+
+- **Vintage Aesthetic**: Aged beige/cream background with subtle texture
+- **Aged Texture System**: Procedural noise-based texture that can be applied to gauge face only or everywhere
+  - Three modes: none, glass_only (default), or everywhere
+  - Adjustable intensity (0-100) for fine control over the vintage appearance
+  - High-quality filtering prevents washed-out colors
+- **Brass Rim**: Gradient brass border with realistic metallic sheen
+- **Rivets**: Decorative corner rivets for industrial look
+- **Wear Marks**: Configurable age spots and wear marks (0-100 wear level) for authenticity
+- **Glass Effect**: Optional subtle highlight overlay simulating glass cover
+- **Transparent Plate Option**: Can make the background transparent to show dashboard background
+- **Red Needle**: Bold red needle with shadow and highlight
+- **Flip Display**: Digital odometer-style display with smooth rolling animation
+- **Configurable Odometer**: Adjustable size (25-200) and vertical position (50-150px)
+- **Smooth Animation**: Configurable animation duration (default 1.2s) with ease-out transition
+- **High Needle Tracking**: Optional high value needle that tracks peak values for a configurable duration
+- **Multi-line Titles**: Support for up to 3 lines of text in title using `\n`
+- **Decorative Rings**: Choice of brass (default), silver, or no ring styles
+- **Customizable Plate**: Adjustable plate color for the gauge face
+
 #### Configuration Options
 
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `entity` | string | **Required** | Entity ID of the sensor to display |
-| `name` | string | Entity name | Display name for the gauge |
-| `min` | number | 0 | Minimum value on the gauge |
-| `max` | number | 100 | Maximum value on the gauge |
-| `unit` | string | Entity unit | Unit of measurement to display |
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | **Yes** | - | Entity ID to display |
+| `title` | string | No | - | Card title (supports multi-line with `\n`) |
+| `min` | number | No | 0 | Minimum gauge value |
+| `max` | number | No | 100 | Maximum gauge value |
+| `unit` | string | No | '' | Unit of measurement |
+| `decimals` | number | No | 0 | Number of decimal places to display |
+| `segments` | array | No | See below | Color segments configuration |
+| `start_angle` | number | No | 200 | Start angle of gauge arc (0 = top, clockwise) |
+| `end_angle` | number | No | 160 | End angle of gauge arc (0 = top, clockwise) |
+| `animation_duration` | number | No | 1.2 | Animation duration in seconds |
+| `title_font_size` | number | No | 12 | Font size for the title text |
+| `odometer_font_size` | number | No | 60 | Size of the odometer display (25-200) |
+| `odometer_vertical_position` | number | No | 120 | Vertical position of odometer in pixels (50-150) |
+| `ring_style` | string | No | 'brass' | Decorative ring style: 'none', 'brass', or 'silver' |
+| `rivet_color` | string | No | '#6a5816' | Color of the decorative rivets (hex color code) |
+| `plate_color` | string | No | '#8c7626' | Color of the gauge face plate (hex color code) |
+| `high_needle_enabled` | boolean | No | false | Enable the high value tracking needle |
+| `high_needle_color` | string | No | '#FF9800' | Color of the high needle (hex color code) |
+| `high_needle_duration` | number | No | 60 | Duration in seconds to track the high value |
+| `high_needle_length` | number | No | 75 | Length of the high needle as percentage (25-150) |
+| `plate_transparent` | boolean | No | false | Make the plate transparent (shows background) |
+| `wear_level` | number | No | 50 | Amount of wear marks and age spots (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', or 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100, higher = more visible) |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap (see Actions below) |
+| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold (see Actions below) |
+| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap (see Actions below) |
 
 #### Example Configurations
 
@@ -73,31 +117,179 @@ unit: "°C"
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.living_room_temperature
-name: "Living Room"
-min: 10
-max: 35
-unit: "°C"
+title: Living Room
+min: 50
+max: 90
+unit: °F
+segments:
+  - from: 50
+    to: 68
+    color: "#1100ff"
+  - from: 68
+    to: 78
+    color: "#44ff00"
+  - from: 78
+    to: 90
+    color: "#F44336"
 ```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.bathroom_humidity
-name: "Bathroom Humidity"
+title: Bathroom\nHumidity
 min: 0
 max: 100
 unit: "%"
+segments:
+  - from: 0
+    to: 30
+    color: "#1100ff"
+  - from: 30
+    to: 50
+    color: "#44ff00"
+  - from: 50
+    to: 85
+    color: "#f9bc39"
+  - from: 85
+    to: 100
+    color: "#F44336"
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
+
+
+**Heavily weathered industrial gauge**
+```yaml
+type: custom:Foundry-Card
+entity: sensor.sumppump_fill_rate
+title: Sump Pump\nFill Rate
+aged_texture: everywhere
+aged_texture_intensity: 80
+plate_transparent: false
+plate_color: "#d4d4c8"
+unit: cm/min
+decimals: 1
+min: -3
+max: 3
+rivet_color: "#6a5816"
+high_needle_color: "#0040ff"
+high_needle_enabled: true
+high_needle_length: 75
+high_needle_duration: 720
+segments:
+  - from: -3
+    to: 1.3
+    color: "#00ff11"
+  - from: 1.3
+    to: 2
+    color: "#fff700"
+  - from: 2
+    to: 2.5
+    color: "#f9bc39"
+  - from: 2.5
+    to: 3
+    color: "#F44336"
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
+
+### Segment Options
+
+Each segment in the `segments` array can have:
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `from` | number | **Yes** | Start value of the segment |
+| `to` | number | **Yes** | End value of the segment |
+| `color` | string | **Yes** | Hex color code for the segment |
+
+### Angle Configuration
+
+The gauge arc can be customized using `start_angle` and `end_angle`:
+
+- **Angle System**: 0° = top of gauge, angles increase clockwise
+- **start_angle**: Where the gauge arc begins (default: 200°)
+- **end_angle**: Where the gauge arc ends (default: 160°)
+- The gauge automatically handles wrapping around 360°
+- The needle will always travel along the shortest arc and never cross the "dead zone"
+
+**Common angle configurations:**
+- Default (200° to 160°): Classic lower 3/4 arc
+- Full semicircle (270° to 90°): Bottom half
+- Upper arc (180° to 0°): Top half
+- Custom ranges for specific aesthetic needs
+
+### Actions
+
+The card supports tap, hold, and double-tap actions like standard Home Assistant cards. Actions can be configured using `tap_action`, `hold_action`, and `double_tap_action`.
+
+**Available action types:**
+- `more-info`: Show entity more-info dialog (default)
+- `navigate`: Navigate to a different view
+- `call-service`: Call a Home Assistant service
+- `toggle`: Toggle the entity
+- `shake`: Custom shake animation (needle moves away and returns)
+- `none`: No action
+
+**Shake Action Example:**
+```yaml
+type: custom:steam-gauge-card
+entity: sensor.temperature
+title: Temperature
+tap_action:
+  action: shake  # Tap to shake the gauge
 ```
 
-**Custom Range:**
+The shake action creates a fun visual effect where the needle moves 10-50% away from the current value and then smoothly returns to the actual value over 3 seconds.
+
+**Standard Action Examples:**
 ```yaml
-type: custom:foundry-gauge-card
-entity: sensor.pressure
-name: "Pressure"
-min: 900
-max: 1100
-unit: "hPa"
+# Navigate to another view
+tap_action:
+  action: navigate
+  navigation_path: /lovelace/energy
+
+# Call a service
+tap_action:
+  action: call-service
+  service: light.turn_on
+  service_data:
+    entity_id: light.living_room
+
+# Toggle an entity
+tap_action:
+  action: toggle
+
+# No action on tap
+tap_action:
+  action: none
 ```
+
+### High Needle Tracking
+
+The high needle feature tracks the highest (peak) value reached over a configurable time period. This is useful for monitoring maximum temperatures, peak power usage, or any metric where you want to see how high the value has climbed.
+
+**Features:**
+- High value tracking needle (customizable color) that marks the highest value
+- Automatically resets after the configured duration (default 60 seconds)
+- Adjustable needle length (25-150% of standard needle)
+- Smooth animations synchronized with main needle
+
+### Aged Texture Effects
+
+The gauge features a realistic aged texture system that adds vintage character to the display. The texture uses procedural noise to simulate the appearance of aged, weathered gauges from the steam era.
+
+**Configuration Options:**
+- **`aged_texture`**: Controls where the texture is applied
+  - `'none'`: No aged texture effect
+  - `'glass_only'`: Applies texture only to the gauge face (default) - creates a subtle aged glass appearance
+  - `'everywhere'`: Applies texture to both the background plate and gauge face - creates a fully weathered vintage look
+  
+- **`aged_texture_intensity`**: Controls the strength of the texture effect (0-100)
+  - `0`: No visible texture (clean, modern look)
+  - `50`: Moderate texture (default) - balanced vintage appearance
+  - `100`: Maximum texture - heavily aged, weathered appearance
+  - Higher values make the texture more prominent and visible
 
 ## Development
 
