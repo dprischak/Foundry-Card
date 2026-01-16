@@ -16,22 +16,7 @@ class FoundryThermostatCard extends HTMLElement {
     };
   }
 
-  setConfig(config) {
-    if (!config.entity) {
-      throw new Error('You need to define an entity');
-    }
 
-    this.config = { ...config };
-
-    // Defaults
-    if (!this.config.tap_action) this.config.tap_action = { action: "more-info" };
-    if (this.config.ring_style === undefined) this.config.ring_style = 'brass';
-    if (this.config.min === undefined) this.config.min = -40;
-    if (this.config.max === undefined) this.config.max = 120;
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
-  }
 
   set hass(hass) {
     this._hass = hass;
@@ -57,7 +42,7 @@ class FoundryThermostatCard extends HTMLElement {
   render() {
     const config = this.config;
     const uid = this._uniqueId;
-    const title = config.title || 'PALMER';
+    const title = config.title || 'Temperature';
 
     const ringStyle = config.ring_style;
     const rimData = this.getRimStyleData(ringStyle, uid);
@@ -86,8 +71,8 @@ class FoundryThermostatCard extends HTMLElement {
     };
 
     // Dimensions
-    const width = 100;
-    const height = 320; // Increased height to accommodate taller header
+    const width = 125; // Adjusted to user preference
+    const height = 320;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -208,44 +193,58 @@ class FoundryThermostatCard extends HTMLElement {
             </defs>
 
             <!-- Casing -->
-            <rect x="5" y="5" width="90" height="310" rx="3" ry="3" 
+            <rect x="5" y="5" width="115" height="310" rx="3" ry="3" 
                   fill="${rimData.grad ? `url(#${rimData.grad})` : rimData.color}" 
                   stroke="#333" stroke-width="1" />
             
-            <!-- Inner Recess (Scale Background) - Moved down 20px -->
-            <rect x="15" y="45" width="70" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
+            <!-- Inner Recess -->
+            <rect x="15" y="45" width="95" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
             
-            <!-- Top Cap Detail - Moved down 20px -->
-            <path d="M 5 45 L 95 45" stroke="#666" stroke-width="1" />
+            <!-- Top Cap Detail -->
+            <path d="M 5 45 L 120 45" stroke="#666" stroke-width="1" />
 
-            <!-- Title - Centered in new top space -->
-            <text x="50" y="22" class="title" style="fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}">${title}</text>
+            <!-- Title - Centered at 63 -->
+            <text x="63" y="22" class="title" style="fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}">${title}</text>
             
-            <!-- Unit Text - Line 2 -->
-            ${config.unit ? `<text x="50" y="38" class="title" style="font-size: 11px; fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ''}
+            <!-- Unit Text -->
+            ${config.unit ? `<text x="63" y="38" class="title" style="font-size: 11px; fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ''}
             
-            <!-- Scale Ticks & Numbers (Placeholder Group) -->
+            <!-- Scale Group -->
             <g id="scale-group" transform="translate(15, 0)"></g>
 
-            <!-- Segments (Right Side) -->
+            <!-- Segments Group -->
             <g id="segments-group"></g>
 
-            <!-- Glass Tube - Moved down 20px -->
-            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
+            <!-- Glass Tube - x=53 -->
+            <rect x="53" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
-            <!-- Empty Bore - Moved down 20px -->
-            <rect x="45" y="52" width="10" height="241" rx="4" ry="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+            <!-- Dynamic Mercury Calculation -->
+            ${(() => {
+        const tubeWidth = 20;
+        const tubeX = 53;
+        const pct = config.mercury_width !== undefined ? config.mercury_width : 50;
+        const widthPx = (tubeWidth * pct) / 100;
+        const xPx = tubeX + (tubeWidth - widthPx) / 2;
 
-            <!-- Liquid Column - Start position managed by updateCard -->
-            <rect id="liquid-col" x="45" y="100" width="10" height="150" rx="4" ry="4" fill="url(#liquidRad-${uid})" />
+        // Store for drawSegments to reuse
+        this._mercuryGeom = { x: xPx, width: widthPx };
+
+        return `
+                  <!-- Empty Bore -->
+                  <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+                  
+                  <!-- Liquid Column -->
+                  <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
+                `;
+      })()}
             
-            <!-- Glass Highlight Overlay - Moved down 20px -->
-            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="url(#glassTube-${uid})" pointer-events="none" />
+            <!-- Glass Highlight Overlay -->
+            <rect x="53" y="50" width="20" height="245" rx="10" ry="10" fill="url(#glassTube-${uid})" pointer-events="none" />
             
-            <!-- Bulb at Bottom - Moved down 20px -->
-            <g transform="translate(50, 295)">
-                <rect x="-10" y="0" width="20" height="15" fill="${this.darkenColor(rimData.color, 10)}" stroke="#444" stroke-width="0.5" />
-                <rect x="-12" y="5" width="24" height="5" fill="${this.darkenColor(rimData.color, 30)}" stroke="none" />
+            <!-- Bulb at Bottom - Center 63 -->
+            <g transform="translate(63, 295)">
+                <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.color, 10)}" stroke="#444" stroke-width="0.5" />
+                <rect x="-15" y="5" width="30" height="5" fill="${this.darkenColor(rimData.color, 30)}" stroke="none" />
             </g>
 
           </svg>
@@ -256,6 +255,25 @@ class FoundryThermostatCard extends HTMLElement {
     this._attachActionListeners();
     this.drawScale();
     this.drawSegments();
+  }
+
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error('You need to define an entity');
+    }
+
+    this.config = { ...config };
+
+    // Defaults
+    if (!this.config.tap_action) this.config.tap_action = { action: "more-info" };
+    if (this.config.ring_style === undefined) this.config.ring_style = 'brass';
+    if (this.config.min === undefined) this.config.min = -40;
+    if (this.config.max === undefined) this.config.max = 120;
+    if (this.config.mercury_width === undefined) this.config.mercury_width = 50;
+    if (this.config.segments_under_mercury === undefined) this.config.segments_under_mercury = true;
+
+    this._uniqueId = Math.random().toString(36).substr(2, 9);
+    this.render();
   }
 
   _attachActionListeners() {
@@ -323,19 +341,19 @@ class FoundryThermostatCard extends HTMLElement {
     for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
       const y = this._valueToY(v);
 
-      // Left tick (Restored to original shorter width)
-      svgContent += `<line x1="20" y1="${y}" x2="38" y2="${y}" stroke="#333" stroke-width="1.5" />`;
+      // Left tick (Shortened to 12px)
+      svgContent += `<line x1="39" y1="${y}" x2="51" y2="${y}" stroke="#333" stroke-width="1.5" />`;
 
-      // Text aligned w/ tick
-      svgContent += `<text x="18" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="#333" font-weight="bold">${v}</text>`;
+      // Text aligned w/ tick (Shifted left to 37)
+      svgContent += `<text x="37" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="#333" font-weight="bold">${v}</text>`;
     }
 
     // Minor ticks
     for (let v = Math.ceil(min / subStep) * subStep; v <= max; v += subStep) {
       if (v % step === 0) continue;
       const y = this._valueToY(v);
-      // Left minor tick
-      svgContent += `<line x1="28" y1="${y}" x2="38" y2="${y}" stroke="#555" stroke-width="1" />`;
+      // Left minor tick (Shortened)
+      svgContent += `<line x1="45" y1="${y}" x2="51" y2="${y}" stroke="#555" stroke-width="1" />`;
     }
 
     group.innerHTML = svgContent;
@@ -346,10 +364,17 @@ class FoundryThermostatCard extends HTMLElement {
     const group = this.shadowRoot.getElementById('segments-group');
     if (!group || !segments.length) return;
 
-    let svgContent = '';
+    // Check configuration option
+    const behindMercury = this.config.segments_under_mercury === true;
 
-    // Draw bar background (optional track)
-    // svgContent += `<rect x="70" y="35" width="6" height="230" rx="3" ry="3" fill="rgba(0,0,0,0.1)" />`;
+    // Geometry based on config
+    // Default (Side): x=78 
+    // Behind Tube: always fills the glass tube (x=53, w=20)
+    const xPos = behindMercury ? 53 : 78;
+    const width = behindMercury ? 20 : 10;
+    const opacity = behindMercury ? 0.35 : 0.8;
+
+    let svgContent = '';
 
     segments.forEach(seg => {
       const from = seg.from !== undefined ? seg.from : 0;
@@ -359,15 +384,12 @@ class FoundryThermostatCard extends HTMLElement {
       if (from >= to) return;
 
       // Map values to Y
-      // Y grows downwards. So 'to' (higher value) is smaller Y (top).
       const yTop = this._valueToY(to);
       const yBottom = this._valueToY(from);
 
       const height = Math.max(0, yBottom - yTop);
 
-      // x=70 is to the right of the tube (tube ends at ~58). 
-      // Width 6px for a clean look.
-      svgContent += `<rect x="70" y="${yTop}" width="10" height="${height}" rx="2" ry="2" fill="${seg.color}" opacity="0.8" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />`;
+      svgContent += `<rect x="${xPos}" y="${yTop}" width="${width}" height="${height}" rx="2" ry="2" fill="${seg.color}" opacity="${opacity}" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />`;
     });
 
     group.innerHTML = svgContent;
@@ -411,10 +433,18 @@ class FoundryThermostatCard extends HTMLElement {
   static getStubConfig() {
     return {
       entity: "sensor.temperature",
-      min: -40,
-      max: 120,
+      min: 0,
+      max: 100,
       ring_style: "brass",
-      title: "PALMER"
+      title: "Temperature",
+      mercury_width: 50,
+      segments_under_mercury: true,
+      animation_duration: 1.5,
+      segments: [
+        { from: 0, to: 33, color: '#4CAF50' },
+        { from: 33, to: 66, color: '#FFC107' },
+        { from: 66, to: 100, color: '#F44336' }
+      ]
     };
   }
 }
