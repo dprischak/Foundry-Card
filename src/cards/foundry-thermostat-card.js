@@ -87,36 +87,36 @@ class FoundryThermostatCard extends HTMLElement {
 
     // Dimensions
     const width = 100;
-    const height = 300;
+    const height = 320; // Increased height to accommodate taller header
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host {
-          display: block;
-        }
-        ha-card {
-          background: transparent;
-          box-shadow: none;
-          border: none;
-        }
-        .card {
-          position: relative;
+        :host { display: block; }
+        ha-card { 
+          background: transparent; 
+          box-shadow: none; 
           width: ${width}px;
-          height: ${height}px;
           margin: 0 auto;
+        }
+        .card { 
+          position: relative; 
+          width: ${width}px; 
+          height: ${height}px; 
+          border-radius: 6px; 
           cursor: pointer;
         }
         .thermostat-svg {
           width: 100%;
           height: 100%;
-          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+          border-radius: 6px;
         }
         .title {
-            font-family: 'Times New Roman', serif;
-            font-weight: bold;
-            text-anchor: middle;
-            fill: #3e2723;
+            font-family: 'Georgia', serif;
             font-size: 14px;
+            font-weight: bold;
+            opacity: 0.9;
+            text-anchor: middle;
+            pointer-events: none;
             letter-spacing: 1px;
         }
       </style>
@@ -158,25 +158,25 @@ class FoundryThermostatCard extends HTMLElement {
               </linearGradient>
 
               <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#d9d9d9;stop-opacity:1" />
-                  <stop offset="20%"  style="stop-color:#f2f2f2;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#ffffff;stop-opacity:1" />
-                  <stop offset="80%"  style="stop-color:#f2f2f2;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#e0e0e0;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#f5f5f5;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
               </linearGradient>
 
               <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#153d6e;stop-opacity:1" />
-                  <stop offset="20%"  style="stop-color:#2a6fdb;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#4f9bea;stop-opacity:1" />
-                  <stop offset="80%"  style="stop-color:#2a6fdb;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#0d2645;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#0d2644;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#3e7cb3;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0a1e35;stop-opacity:1" />
               </linearGradient>
 
               <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#145233;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#0b301e;stop-opacity:1" />
                   <stop offset="20%"  style="stop-color:#2fbf71;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#5be398;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#69e69c;stop-opacity:1" />
                   <stop offset="80%"  style="stop-color:#2fbf71;stop-opacity:1" />
                   <stop offset="100%" style="stop-color:#0b301e;stop-opacity:1" />
               </linearGradient>
@@ -208,37 +208,42 @@ class FoundryThermostatCard extends HTMLElement {
             </defs>
 
             <!-- Casing -->
-            <rect x="5" y="5" width="90" height="290" rx="3" ry="3" 
+            <rect x="5" y="5" width="90" height="310" rx="3" ry="3" 
                   fill="${rimData.grad ? `url(#${rimData.grad})` : rimData.color}" 
                   stroke="#333" stroke-width="1" />
             
-            <!-- Inner Recess (Scale Background) -->
-            <rect x="15" y="25" width="70" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
+            <!-- Inner Recess (Scale Background) - Moved down 20px -->
+            <rect x="15" y="45" width="70" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
             
-            <!-- Top Cap Detail -->
-            <path d="M 5 25 L 95 25" stroke="#666" stroke-width="1" />
-            <text x="50" y="20" class="title" style="fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}">${title}</text>
-            ${config.unit ? `<text x="75" y="45" class="title" style="font-size: 14px; fill: #333;" text-anchor="middle">${config.unit}</text>` : ''}
-            
-            <!-- Title/Logo embossed effect -->
+            <!-- Top Cap Detail - Moved down 20px -->
+            <path d="M 5 45 L 95 45" stroke="#666" stroke-width="1" />
 
+            <!-- Title - Centered in new top space -->
+            <text x="50" y="22" class="title" style="fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}">${title}</text>
+            
+            <!-- Unit Text - Line 2 -->
+            ${config.unit ? `<text x="50" y="38" class="title" style="font-size: 11px; fill: ${ringStyle === 'black' || ringStyle === 'blue' || ringStyle === 'red' || ringStyle === 'green' ? '#e0e0e0' : '#3e2723'}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ''}
+            
             <!-- Scale Ticks & Numbers (Placeholder Group) -->
             <g id="scale-group" transform="translate(15, 0)"></g>
 
-            <!-- Glass Tube -->
-            <rect x="42" y="30" width="16" height="245" rx="8" ry="8" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
+            <!-- Segments (Right Side) -->
+            <g id="segments-group"></g>
 
-            <!-- Empty Bore (The channel the liquid travels in) -->
-            <rect x="45" y="32" width="10" height="241" rx="4" ry="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+            <!-- Glass Tube - Moved down 20px -->
+            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
-            <!-- Liquid Column -->
+            <!-- Empty Bore - Moved down 20px -->
+            <rect x="45" y="52" width="10" height="241" rx="4" ry="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+
+            <!-- Liquid Column - Start position managed by updateCard -->
             <rect id="liquid-col" x="45" y="100" width="10" height="150" rx="4" ry="4" fill="url(#liquidRad-${uid})" />
             
-            <!-- Glass Highlight Overlay -->
-            <rect x="42" y="30" width="16" height="245" rx="8" ry="8" fill="url(#glassTube-${uid})" pointer-events="none" />
+            <!-- Glass Highlight Overlay - Moved down 20px -->
+            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="url(#glassTube-${uid})" pointer-events="none" />
             
-            <!-- Bulb at Bottom (Connector) -->
-            <g transform="translate(50, 275)">
+            <!-- Bulb at Bottom - Moved down 20px -->
+            <g transform="translate(50, 295)">
                 <rect x="-10" y="0" width="20" height="15" fill="${this.darkenColor(rimData.color, 10)}" stroke="#444" stroke-width="0.5" />
                 <rect x="-12" y="5" width="24" height="5" fill="${this.darkenColor(rimData.color, 30)}" stroke="none" />
             </g>
@@ -250,6 +255,7 @@ class FoundryThermostatCard extends HTMLElement {
 
     this._attachActionListeners();
     this.drawScale();
+    this.drawSegments();
   }
 
   _attachActionListeners() {
@@ -278,37 +284,46 @@ class FoundryThermostatCard extends HTMLElement {
   // Adjusted alignment: 
   // yTop=35 (Lower than 25 to avoid cutoff)
   // yBottom=265 (Lower than 235 to close gap with bulb)
-  _valueToY(value) {
-    const min = this.config.min;
-    const max = this.config.max;
-    // Scale range
-    const yTop = 35;
-    const yBottom = 265;
+  _valueToY(val) {
+    const yTop = 55;   // Shifted down 20px
+    const yBottom = 285; // Shifted down 20px
+    const min = this.config.min !== undefined ? this.config.min : -40;
+    const max = this.config.max !== undefined ? this.config.max : 120;
 
-    // Clamp
-    const val = Math.max(min, Math.min(max, value));
+    // Linear mapping
+    // val = min -> y = yBottom
+    // val = max -> y = yTop
 
-    // Linear map
+    // Normalize val to 0..1 based on range
     const pct = (val - min) / (max - min);
-    return yBottom - (pct * (yBottom - yTop));
+    // Invert pct because pixel Y grows downward
+    return yBottom - pct * (yBottom - yTop);
   }
 
   drawScale() {
-    const min = this.config.min;
-    const max = this.config.max;
-    const step = this._calculateTickInterval(min, max);
-    const subStep = step / 2;
-
     const group = this.shadowRoot.getElementById('scale-group');
     if (!group) return;
 
+    const min = this.config.min !== undefined ? this.config.min : -40;
+    const max = this.config.max !== undefined ? this.config.max : 120;
+
+    // Heuristic for steps
+    const range = max - min;
+    let step = 20;
+    if (range <= 20) step = 2;
+    else if (range <= 50) step = 5;
+    else if (range <= 100) step = 10;
+
+    // Subdivisions (half step)
+    const subStep = step / 2;
+
     let svgContent = '';
 
-    // Major ticks
+    // Major ticks and numbers
     for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
       const y = this._valueToY(v);
 
-      // Left tick only
+      // Left tick (Restored to original shorter width)
       svgContent += `<line x1="20" y1="${y}" x2="38" y2="${y}" stroke="#333" stroke-width="1.5" />`;
 
       // Text aligned w/ tick
@@ -326,6 +341,38 @@ class FoundryThermostatCard extends HTMLElement {
     group.innerHTML = svgContent;
   }
 
+  drawSegments() {
+    const segments = this.config.segments || [];
+    const group = this.shadowRoot.getElementById('segments-group');
+    if (!group || !segments.length) return;
+
+    let svgContent = '';
+
+    // Draw bar background (optional track)
+    // svgContent += `<rect x="70" y="35" width="6" height="230" rx="3" ry="3" fill="rgba(0,0,0,0.1)" />`;
+
+    segments.forEach(seg => {
+      const from = seg.from !== undefined ? seg.from : 0;
+      const to = seg.to !== undefined ? seg.to : 0;
+
+      // Skip invalid
+      if (from >= to) return;
+
+      // Map values to Y
+      // Y grows downwards. So 'to' (higher value) is smaller Y (top).
+      const yTop = this._valueToY(to);
+      const yBottom = this._valueToY(from);
+
+      const height = Math.max(0, yBottom - yTop);
+
+      // x=70 is to the right of the tube (tube ends at ~58). 
+      // Width 6px for a clean look.
+      svgContent += `<rect x="70" y="${yTop}" width="10" height="${height}" rx="2" ry="2" fill="${seg.color}" opacity="0.8" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />`;
+    });
+
+    group.innerHTML = svgContent;
+  }
+
   updateCard() {
     if (!this._hass || !this.config) return;
     const entity = this._hass.states[this.config.entity];
@@ -334,22 +381,20 @@ class FoundryThermostatCard extends HTMLElement {
     const val = parseFloat(entity.state);
     if (isNaN(val)) return;
 
-    const yTop = 35;
-    const yBottom = 265;
-    const zeroY = this._valueToY(this.config.min); // Should be yBottom
+    const yTop = 55;   // Shifted down 20px
+    const yBottom = 285; // Shifted down 20px
+    const zeroY = this._valueToY(this.config.min);
     const valY = this._valueToY(val);
 
     // Height is distance from bottom of scale to current value Y
     const height = yBottom - valY;
 
     // Add generous visual base to connect with bulb
-    // Bulb top is around y=275.
-    // The liquid column rect starts at y=valY and goes down.
-    // Total height needs to reach the bulb connection.
+    // Bulb top is now around y=295 (shifted 20px from 275).
 
     const liquidCol = this.shadowRoot.getElementById('liquid-col');
     if (liquidCol) {
-      const liquidBottom = 275; // Connects to bulb
+      const liquidBottom = 295; // Connects to bulb
       const currentHeight = Math.max(0, liquidBottom - valY);
 
       liquidCol.setAttribute('y', valY);

@@ -2092,35 +2092,35 @@ var FoundryThermostatCard = class extends HTMLElement {
       return color;
     };
     const width = 100;
-    const height = 300;
+    const height = 320;
     this.shadowRoot.innerHTML = `
       <style>
-        :host {
-          display: block;
-        }
-        ha-card {
-          background: transparent;
-          box-shadow: none;
-          border: none;
-        }
-        .card {
-          position: relative;
+        :host { display: block; }
+        ha-card { 
+          background: transparent; 
+          box-shadow: none; 
           width: ${width}px;
-          height: ${height}px;
           margin: 0 auto;
+        }
+        .card { 
+          position: relative; 
+          width: ${width}px; 
+          height: ${height}px; 
+          border-radius: 6px; 
           cursor: pointer;
         }
         .thermostat-svg {
           width: 100%;
           height: 100%;
-          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+          border-radius: 6px;
         }
         .title {
-            font-family: 'Times New Roman', serif;
-            font-weight: bold;
-            text-anchor: middle;
-            fill: #3e2723;
+            font-family: 'Georgia', serif;
             font-size: 14px;
+            font-weight: bold;
+            opacity: 0.9;
+            text-anchor: middle;
+            pointer-events: none;
             letter-spacing: 1px;
         }
       </style>
@@ -2162,25 +2162,25 @@ var FoundryThermostatCard = class extends HTMLElement {
               </linearGradient>
 
               <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#d9d9d9;stop-opacity:1" />
-                  <stop offset="20%"  style="stop-color:#f2f2f2;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#ffffff;stop-opacity:1" />
-                  <stop offset="80%"  style="stop-color:#f2f2f2;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#e0e0e0;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#f5f5f5;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
               </linearGradient>
 
               <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#153d6e;stop-opacity:1" />
-                  <stop offset="20%"  style="stop-color:#2a6fdb;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#4f9bea;stop-opacity:1" />
-                  <stop offset="80%"  style="stop-color:#2a6fdb;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#0d2645;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#0d2644;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#3e7cb3;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0a1e35;stop-opacity:1" />
               </linearGradient>
 
               <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"   style="stop-color:#145233;stop-opacity:1" />
+                  <stop offset="0%"   style="stop-color:#0b301e;stop-opacity:1" />
                   <stop offset="20%"  style="stop-color:#2fbf71;stop-opacity:1" />
-                  <stop offset="50%"  style="stop-color:#5be398;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#69e69c;stop-opacity:1" />
                   <stop offset="80%"  style="stop-color:#2fbf71;stop-opacity:1" />
                   <stop offset="100%" style="stop-color:#0b301e;stop-opacity:1" />
               </linearGradient>
@@ -2212,37 +2212,42 @@ var FoundryThermostatCard = class extends HTMLElement {
             </defs>
 
             <!-- Casing -->
-            <rect x="5" y="5" width="90" height="290" rx="3" ry="3" 
+            <rect x="5" y="5" width="90" height="310" rx="3" ry="3" 
                   fill="${rimData.grad ? `url(#${rimData.grad})` : rimData.color}" 
                   stroke="#333" stroke-width="1" />
             
-            <!-- Inner Recess (Scale Background) -->
-            <rect x="15" y="25" width="70" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
+            <!-- Inner Recess (Scale Background) - Moved down 20px -->
+            <rect x="15" y="45" width="70" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
             
-            <!-- Top Cap Detail -->
-            <path d="M 5 25 L 95 25" stroke="#666" stroke-width="1" />
-            <text x="50" y="20" class="title" style="fill: ${ringStyle === "black" || ringStyle === "blue" || ringStyle === "red" || ringStyle === "green" ? "#e0e0e0" : "#3e2723"}">${title}</text>
-            ${config.unit ? `<text x="75" y="45" class="title" style="font-size: 14px; fill: #333;" text-anchor="middle">${config.unit}</text>` : ""}
-            
-            <!-- Title/Logo embossed effect -->
+            <!-- Top Cap Detail - Moved down 20px -->
+            <path d="M 5 45 L 95 45" stroke="#666" stroke-width="1" />
 
+            <!-- Title - Centered in new top space -->
+            <text x="50" y="22" class="title" style="fill: ${ringStyle === "black" || ringStyle === "blue" || ringStyle === "red" || ringStyle === "green" ? "#e0e0e0" : "#3e2723"}">${title}</text>
+            
+            <!-- Unit Text - Line 2 -->
+            ${config.unit ? `<text x="50" y="38" class="title" style="font-size: 11px; fill: ${ringStyle === "black" || ringStyle === "blue" || ringStyle === "red" || ringStyle === "green" ? "#e0e0e0" : "#3e2723"}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ""}
+            
             <!-- Scale Ticks & Numbers (Placeholder Group) -->
             <g id="scale-group" transform="translate(15, 0)"></g>
 
-            <!-- Glass Tube -->
-            <rect x="42" y="30" width="16" height="245" rx="8" ry="8" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
+            <!-- Segments (Right Side) -->
+            <g id="segments-group"></g>
 
-            <!-- Empty Bore (The channel the liquid travels in) -->
-            <rect x="45" y="32" width="10" height="241" rx="4" ry="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+            <!-- Glass Tube - Moved down 20px -->
+            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
-            <!-- Liquid Column -->
+            <!-- Empty Bore - Moved down 20px -->
+            <rect x="45" y="52" width="10" height="241" rx="4" ry="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+
+            <!-- Liquid Column - Start position managed by updateCard -->
             <rect id="liquid-col" x="45" y="100" width="10" height="150" rx="4" ry="4" fill="url(#liquidRad-${uid})" />
             
-            <!-- Glass Highlight Overlay -->
-            <rect x="42" y="30" width="16" height="245" rx="8" ry="8" fill="url(#glassTube-${uid})" pointer-events="none" />
+            <!-- Glass Highlight Overlay - Moved down 20px -->
+            <rect x="42" y="50" width="16" height="245" rx="8" ry="8" fill="url(#glassTube-${uid})" pointer-events="none" />
             
-            <!-- Bulb at Bottom (Connector) -->
-            <g transform="translate(50, 275)">
+            <!-- Bulb at Bottom - Moved down 20px -->
+            <g transform="translate(50, 295)">
                 <rect x="-10" y="0" width="20" height="15" fill="${this.darkenColor(rimData.color, 10)}" stroke="#444" stroke-width="0.5" />
                 <rect x="-12" y="5" width="24" height="5" fill="${this.darkenColor(rimData.color, 30)}" stroke="none" />
             </g>
@@ -2253,6 +2258,7 @@ var FoundryThermostatCard = class extends HTMLElement {
     `;
     this._attachActionListeners();
     this.drawScale();
+    this.drawSegments();
   }
   _attachActionListeners() {
     const root = this.shadowRoot?.getElementById("actionRoot");
@@ -2277,22 +2283,25 @@ var FoundryThermostatCard = class extends HTMLElement {
   // Adjusted alignment: 
   // yTop=35 (Lower than 25 to avoid cutoff)
   // yBottom=265 (Lower than 235 to close gap with bulb)
-  _valueToY(value) {
-    const min = this.config.min;
-    const max = this.config.max;
-    const yTop = 35;
-    const yBottom = 265;
-    const val = Math.max(min, Math.min(max, value));
+  _valueToY(val) {
+    const yTop = 55;
+    const yBottom = 285;
+    const min = this.config.min !== void 0 ? this.config.min : -40;
+    const max = this.config.max !== void 0 ? this.config.max : 120;
     const pct = (val - min) / (max - min);
     return yBottom - pct * (yBottom - yTop);
   }
   drawScale() {
-    const min = this.config.min;
-    const max = this.config.max;
-    const step = this._calculateTickInterval(min, max);
-    const subStep = step / 2;
     const group = this.shadowRoot.getElementById("scale-group");
     if (!group) return;
+    const min = this.config.min !== void 0 ? this.config.min : -40;
+    const max = this.config.max !== void 0 ? this.config.max : 120;
+    const range = max - min;
+    let step = 20;
+    if (range <= 20) step = 2;
+    else if (range <= 50) step = 5;
+    else if (range <= 100) step = 10;
+    const subStep = step / 2;
     let svgContent = "";
     for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
       const y = this._valueToY(v);
@@ -2306,20 +2315,36 @@ var FoundryThermostatCard = class extends HTMLElement {
     }
     group.innerHTML = svgContent;
   }
+  drawSegments() {
+    const segments = this.config.segments || [];
+    const group = this.shadowRoot.getElementById("segments-group");
+    if (!group || !segments.length) return;
+    let svgContent = "";
+    segments.forEach((seg) => {
+      const from = seg.from !== void 0 ? seg.from : 0;
+      const to = seg.to !== void 0 ? seg.to : 0;
+      if (from >= to) return;
+      const yTop = this._valueToY(to);
+      const yBottom = this._valueToY(from);
+      const height = Math.max(0, yBottom - yTop);
+      svgContent += `<rect x="70" y="${yTop}" width="10" height="${height}" rx="2" ry="2" fill="${seg.color}" opacity="0.8" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />`;
+    });
+    group.innerHTML = svgContent;
+  }
   updateCard() {
     if (!this._hass || !this.config) return;
     const entity = this._hass.states[this.config.entity];
     if (!entity) return;
     const val = parseFloat(entity.state);
     if (isNaN(val)) return;
-    const yTop = 35;
-    const yBottom = 265;
+    const yTop = 55;
+    const yBottom = 285;
     const zeroY = this._valueToY(this.config.min);
     const valY = this._valueToY(val);
     const height = yBottom - valY;
     const liquidCol = this.shadowRoot.getElementById("liquid-col");
     if (liquidCol) {
-      const liquidBottom = 275;
+      const liquidBottom = 295;
       const currentHeight = Math.max(0, liquidBottom - valY);
       liquidCol.setAttribute("y", valY);
       liquidCol.setAttribute("height", currentHeight);
@@ -2355,12 +2380,16 @@ var FoundryThermostatEditor = class extends HTMLElement {
     this.attachShadow({ mode: "open" });
   }
   setConfig(config) {
-    this._config = { ...config };
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
     this.render();
   }
   set hass(hass) {
     this._hass = hass;
-    if (this._form) this._form.hass = hass;
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
   }
   render() {
     if (!this._hass || !this._config) return;
@@ -2369,15 +2398,93 @@ var FoundryThermostatEditor = class extends HTMLElement {
       const style = document.createElement("style");
       style.textContent = `
         .card-config { display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Segment Styles */
+        .segments-section {
+          margin: 8px 0;
+          padding: 16px;
+          background: var(--card-background-color, #fff);
+          border: 1px solid var(--divider-color, #e0e0e0);
+          border-radius: 4px;
+        }
+        .section-header {
+          font-weight: 500;
+          margin-bottom: 12px;
+          color: var(--primary-text-color);
+          font-size: 16px;
+        }
+        .segment-row {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+          margin-bottom: 12px;
+          background: var(--secondary-background-color, #f9f9f9);
+          padding: 10px;
+          border-radius: 4px;
+        }
+        .input-group {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .input-group label {
+          font-size: 11px;
+          color: var(--secondary-text-color);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+        .input-group input {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid var(--divider-color, #ccc);
+          border-radius: 4px;
+          background: var(--card-background-color, #fff);
+          color: var(--primary-text-color);
+        }
+        .input-group input[type="color"] {
+          height: 36px;
+          padding: 2px;
+          cursor: pointer;
+        }
+        .remove-btn {
+          background: none;
+          border: none;
+          color: var(--error-color, #db4437);
+          cursor: pointer;
+          padding: 8px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+        }
+        .add-btn {
+          background-color: var(--primary-color, #03a9f4);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 14px;
+          margin-top: 4px;
+        }
       `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
-      this._form = document.createElement("ha-form");
-      this._form.addEventListener("value-changed", this._handleFormChanged.bind(this));
-      this._root.appendChild(this._form);
+      this._form1 = document.createElement("ha-form");
+      this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._root.appendChild(this._form1);
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._root.appendChild(this._segmentsContainer);
+      this._form2 = document.createElement("ha-form");
+      this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._root.appendChild(this._form2);
     }
-    if (this._form) this._form.hass = this._hass;
-    const schema = [
+    if (this._form1) this._form1.hass = this._hass;
+    if (this._form2) this._form2.hass = this._hass;
+    this._form1.schema = [
       { name: "entity", selector: { entity: { domain: "sensor" } } },
       { name: "title", selector: { text: {} } },
       { name: "unit", selector: { text: {} } },
@@ -2388,7 +2495,12 @@ var FoundryThermostatEditor = class extends HTMLElement {
           { name: "min", selector: { number: { mode: "box" } } },
           { name: "max", selector: { number: { mode: "box" } } }
         ]
-      },
+      }
+    ];
+    this._form1.data = this._config;
+    this._form1.computeLabel = (s) => s.label || s.name;
+    this._renderSegments();
+    this._form2.schema = [
       {
         name: "ring_style",
         label: "Casing Style",
@@ -2411,13 +2523,84 @@ var FoundryThermostatEditor = class extends HTMLElement {
       { name: "liquid_color", label: "Mercury Color", selector: { color_rgb: {} } },
       { name: "tap_action", selector: { "ui-action": {} } }
     ];
-    this._form.schema = schema;
-    this._form.data = this._config;
-    this._form.computeLabel = (s) => s.label || s.name;
+    this._form2.data = this._config;
+    this._form2.computeLabel = (s) => s.label || s.name;
+  }
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = `<div class="section-header">Color Ranges (Right Side)</div>`;
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((seg, index) => {
+      const fromVal = seg.from !== void 0 ? seg.from : 0;
+      const toVal = seg.to !== void 0 ? seg.to : 0;
+      const colVal = seg.color || "#000000";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromVal}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toVal}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colVal}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">\u274C</button>
+        </div>
+      `;
+    });
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const key = e.target.dataset.key;
+        let val = e.target.value;
+        if (key !== "color") val = Number(val);
+        this._updateSegment(idx, key, val);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => this._removeSegment(parseInt(e.target.dataset.idx)));
+    });
+    const addBtn = this._segmentsContainer.querySelector("#add-btn");
+    if (addBtn) addBtn.addEventListener("click", () => this._addSegment());
+  }
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const last = segments[segments.length - 1];
+    const from = last ? last.to : this._config.min || 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
   }
   _handleFormChanged(ev) {
-    const config = ev.detail.value;
-    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
+    const newConfig = { ...this._config, ...ev.detail.value };
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._updateConfig(newConfig);
+    }
   }
 };
 customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
