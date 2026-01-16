@@ -1,5 +1,7 @@
 import "./cards/foundry-gauge-card.js";
 import "./cards/foundry-gauge-editor.js";
+import "./cards/foundry-thermostat-card.js";
+import "./cards/foundry-thermostat-editor.js";
 
 const FOUNDRY_CARDS_VERSION = "1.0";
 

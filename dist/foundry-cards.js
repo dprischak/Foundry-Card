@@ -1404,8 +1404,8 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "foundry-gauge-card",
   name: "Foundry Gauge Card",
-  description: "A vintage style gauge card",
-  preview: "https://raw.githubusercontent.com/dprischak/Foundry-Card/main/preview.png",
+  preview: true,
+  description: "A vintage industrial style gauge card",
   documentationURL: "https://github.com/dprischak/Foundry-Card"
 });
 
@@ -2022,6 +2022,626 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
   }
 };
 customElements.define("foundry-gauge-card-editor", FoundryGaugeCardEditor);
+
+// src/cards/foundry-thermostat-card.js
+var FoundryThermostatCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._resizeObserver = null;
+    this._entityError = null;
+    this._boundHandleClick = () => this._handleAction("tap");
+    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleContextMenu = (e) => {
+      e.preventDefault();
+      this._handleAction("hold");
+    };
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.config) return;
+    this.updateCard();
+  }
+  getRimStyleData(ringStyle, uid) {
+    const styles = {
+      brass: { grad: `brassRim-${uid}`, color: "#c9a961" },
+      silver: { grad: `silverRim-${uid}`, color: "#e8e8e8" },
+      copper: { grad: `copperRim-${uid}`, color: "#c77c43" },
+      black: { grad: `blackRim-${uid}`, color: "#3a3a3a" },
+      white: { grad: `whiteRim-${uid}`, color: "#f6f6f6" },
+      blue: { grad: `blueRim-${uid}`, color: "#2a6fdb" },
+      green: { grad: `greenRim-${uid}`, color: "#2fbf71" },
+      red: { grad: `redRim-${uid}`, color: "#e53935" },
+      none: { grad: null, color: "transparent" }
+    };
+    return styles[ringStyle] || styles.brass;
+  }
+  render() {
+    const config = this.config;
+    const uid = this._uniqueId;
+    const title = config.title || "Temperature";
+    const ringStyle = config.ring_style;
+    const rimData = this.getRimStyleData(ringStyle, uid);
+    const liquidColor = config.liquid_color ? `rgb(${config.liquid_color.join(",")})` : "#cc0000";
+    this.darkenColor = (color, percent) => {
+      if (color.startsWith("#")) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 255) - amt;
+        const B = (num & 255) - amt;
+        return "#" + (16777216 + (R < 255 ? R < 1 ? 0 : R : 255) * 65536 + (G < 255 ? G < 1 ? 0 : G : 255) * 256 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+      }
+      if (color.startsWith("rgb")) {
+        const [r, g, b] = color.match(/\d+/g).map(Number);
+        const factor = 1 - percent / 100;
+        return `rgb(${Math.max(0, Math.round(r * factor))}, ${Math.max(0, Math.round(g * factor))}, ${Math.max(0, Math.round(b * factor))})`;
+      }
+      return color;
+    };
+    const width = 125;
+    const height = 320;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; }
+        ha-card { 
+          background: transparent; 
+          box-shadow: none; 
+          width: ${width}px;
+          margin: 0 auto;
+        }
+        .card { 
+          position: relative; 
+          width: ${width}px; 
+          height: ${height}px; 
+          border-radius: 6px; 
+          cursor: pointer;
+        }
+        .thermostat-svg {
+          width: 100%;
+          height: 100%;
+          border-radius: 6px;
+        }
+        .title {
+            font-family: 'Georgia', serif;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0.9;
+            text-anchor: middle;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+      </style>
+      <ha-card tabindex="0">
+        <div class="card" id="actionRoot">
+          <svg class="thermostat-svg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Metallic Gradients -->
+              <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#b8944d;stop-opacity:1" />
+                <stop offset="20%" style="stop-color:#ddc68f;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#f9edc8;stop-opacity:1" />
+                <stop offset="80%" style="stop-color:#ddc68f;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#a68038;stop-opacity:1" />
+              </linearGradient>
+              
+              <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#999;stop-opacity:1" />
+                <stop offset="20%" style="stop-color:#ddd;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#fff;stop-opacity:1" />
+                <stop offset="80%" style="stop-color:#ddd;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#888;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#8c4a32;stop-opacity:1" />
+                <stop offset="20%" style="stop-color:#c27a5d;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#e0a080;stop-opacity:1" />
+                <stop offset="80%" style="stop-color:#c27a5d;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#6d3521;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   style="stop-color:#1a1a1a;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#333333;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#4d4d4d;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#333333;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0d0d0d;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   style="stop-color:#e0e0e0;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#f5f5f5;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   style="stop-color:#0d2644;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#3e7cb3;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#1e4c7c;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0a1e35;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   style="stop-color:#0b301e;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#2fbf71;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#69e69c;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#2fbf71;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#0b301e;stop-opacity:1" />
+              </linearGradient>
+
+              <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   style="stop-color:#7a1b19;stop-opacity:1" />
+                  <stop offset="20%"  style="stop-color:#d32f2f;stop-opacity:1" />
+                  <stop offset="50%"  style="stop-color:#ff6659;stop-opacity:1" />
+                  <stop offset="80%"  style="stop-color:#d32f2f;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#4a0e0e;stop-opacity:1" />
+              </linearGradient>
+
+              <!-- Glass Tube Gradient -->
+              <linearGradient id="glassTube-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:rgba(255,255,255,0.2)" />
+                <stop offset="30%" style="stop-color:rgba(255,255,255,0.1)" />
+                <stop offset="50%" style="stop-color:rgba(255,255,255,0)" />
+                <stop offset="70%" style="stop-color:rgba(255,255,255,0.1)" />
+                <stop offset="100%" style="stop-color:rgba(255,255,255,0.3)" />
+              </linearGradient>
+
+              <!-- Liquid Gradient -->
+              <linearGradient id="liquidRad-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                 <stop offset="0%" style="stop-color:${this.darkenColor(liquidColor, 20)}" />
+                 <stop offset="40%" style="stop-color:${liquidColor}" />
+                 <stop offset="60%" style="stop-color:${liquidColor}" />
+                 <stop offset="100%" style="stop-color:${this.darkenColor(liquidColor, 40)}" />
+              </linearGradient>
+            </defs>
+
+            <!-- Casing -->
+            <rect x="5" y="5" width="115" height="310" rx="3" ry="3" 
+                  fill="${rimData.grad ? `url(#${rimData.grad})` : rimData.color}" 
+                  stroke="#333" stroke-width="1" />
+            
+            <!-- Inner Recess -->
+            <rect x="15" y="45" width="95" height="250" fill="#fff" stroke="#999" stroke-width="0.5" />
+            
+            <!-- Top Cap Detail -->
+            <path d="M 5 45 L 120 45" stroke="#666" stroke-width="1" />
+
+            <!-- Title - Centered at 63 -->
+            <text x="63" y="22" class="title" style="fill: ${ringStyle === "black" || ringStyle === "blue" || ringStyle === "red" || ringStyle === "green" ? "#e0e0e0" : "#3e2723"}">${title}</text>
+            
+            <!-- Unit Text -->
+            ${config.unit ? `<text x="63" y="38" class="title" style="font-size: 11px; fill: ${ringStyle === "black" || ringStyle === "blue" || ringStyle === "red" || ringStyle === "green" ? "#e0e0e0" : "#3e2723"}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ""}
+            
+            <!-- Scale Group -->
+            <g id="scale-group" transform="translate(15, 0)"></g>
+
+            <!-- Segments Group -->
+            <g id="segments-group"></g>
+
+            <!-- Glass Tube - x=53 -->
+            <rect x="53" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
+
+            <!-- Dynamic Mercury Calculation -->
+            ${(() => {
+      const tubeWidth = 20;
+      const tubeX = 53;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      this._mercuryGeom = { x: xPx, width: widthPx };
+      return `
+                  <!-- Empty Bore -->
+                  <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+                  
+                  <!-- Liquid Column -->
+                  <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
+                `;
+    })()}
+            
+            <!-- Glass Highlight Overlay -->
+            <rect x="53" y="50" width="20" height="245" rx="10" ry="10" fill="url(#glassTube-${uid})" pointer-events="none" />
+            
+            <!-- Bulb at Bottom - Center 63 -->
+            <g transform="translate(63, 295)">
+                <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.color, 10)}" stroke="#444" stroke-width="0.5" />
+                <rect x="-15" y="5" width="30" height="5" fill="${this.darkenColor(rimData.color, 30)}" stroke="none" />
+            </g>
+
+          </svg>
+        </div>
+      </ha-card>
+    `;
+    this._attachActionListeners();
+    this.drawScale();
+    this.drawSegments();
+  }
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error("You need to define an entity");
+    }
+    this.config = { ...config };
+    if (!this.config.tap_action) this.config.tap_action = { action: "more-info" };
+    if (this.config.ring_style === void 0) this.config.ring_style = "brass";
+    if (this.config.min === void 0) this.config.min = -40;
+    if (this.config.max === void 0) this.config.max = 120;
+    if (this.config.mercury_width === void 0) this.config.mercury_width = 50;
+    if (this.config.segments_under_mercury === void 0) this.config.segments_under_mercury = true;
+    this._uniqueId = Math.random().toString(36).substr(2, 9);
+    this.render();
+  }
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    fireEvent(this, "hass-action", { config: this.config, action: kind });
+  }
+  _calculateTickInterval(min, max) {
+    const range = max - min;
+    if (range <= 10) return 1;
+    if (range <= 20) return 2;
+    if (range <= 50) return 5;
+    if (range <= 100) return 10;
+    if (range <= 200) return 20;
+    return 50;
+  }
+  // Map value to Y coordinate (pixels relative to SVG)
+  // Adjusted alignment: 
+  // yTop=35 (Lower than 25 to avoid cutoff)
+  // yBottom=265 (Lower than 235 to close gap with bulb)
+  _valueToY(val) {
+    const yTop = 55;
+    const yBottom = 285;
+    const min = this.config.min !== void 0 ? this.config.min : -40;
+    const max = this.config.max !== void 0 ? this.config.max : 120;
+    const pct = (val - min) / (max - min);
+    return yBottom - pct * (yBottom - yTop);
+  }
+  drawScale() {
+    const group = this.shadowRoot.getElementById("scale-group");
+    if (!group) return;
+    const min = this.config.min !== void 0 ? this.config.min : -40;
+    const max = this.config.max !== void 0 ? this.config.max : 120;
+    const range = max - min;
+    let step = 20;
+    if (range <= 20) step = 2;
+    else if (range <= 50) step = 5;
+    else if (range <= 100) step = 10;
+    const subStep = step / 2;
+    let svgContent = "";
+    for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
+      const y = this._valueToY(v);
+      svgContent += `<line x1="39" y1="${y}" x2="51" y2="${y}" stroke="#333" stroke-width="1.5" />`;
+      svgContent += `<text x="37" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="#333" font-weight="bold">${v}</text>`;
+    }
+    for (let v = Math.ceil(min / subStep) * subStep; v <= max; v += subStep) {
+      if (v % step === 0) continue;
+      const y = this._valueToY(v);
+      svgContent += `<line x1="45" y1="${y}" x2="51" y2="${y}" stroke="#555" stroke-width="1" />`;
+    }
+    group.innerHTML = svgContent;
+  }
+  drawSegments() {
+    const segments = this.config.segments || [];
+    const group = this.shadowRoot.getElementById("segments-group");
+    if (!group || !segments.length) return;
+    const behindMercury = this.config.segments_under_mercury === true;
+    const xPos = behindMercury ? 53 : 78;
+    const width = behindMercury ? 20 : 10;
+    const opacity = behindMercury ? 0.35 : 0.8;
+    let svgContent = "";
+    segments.forEach((seg) => {
+      const from = seg.from !== void 0 ? seg.from : 0;
+      const to = seg.to !== void 0 ? seg.to : 0;
+      if (from >= to) return;
+      const yTop = this._valueToY(to);
+      const yBottom = this._valueToY(from);
+      const height = Math.max(0, yBottom - yTop);
+      svgContent += `<rect x="${xPos}" y="${yTop}" width="${width}" height="${height}" rx="2" ry="2" fill="${seg.color}" opacity="${opacity}" stroke="rgba(0,0,0,0.2)" stroke-width="0.5" />`;
+    });
+    group.innerHTML = svgContent;
+  }
+  updateCard() {
+    if (!this._hass || !this.config) return;
+    const entity = this._hass.states[this.config.entity];
+    if (!entity) return;
+    const val = parseFloat(entity.state);
+    if (isNaN(val)) return;
+    const yTop = 55;
+    const yBottom = 285;
+    const zeroY = this._valueToY(this.config.min);
+    const valY = this._valueToY(val);
+    const height = yBottom - valY;
+    const liquidCol = this.shadowRoot.getElementById("liquid-col");
+    if (liquidCol) {
+      const liquidBottom = 295;
+      const currentHeight = Math.max(0, liquidBottom - valY);
+      liquidCol.setAttribute("y", valY);
+      liquidCol.setAttribute("height", currentHeight);
+      liquidCol.style.transition = `y ${this.config.animation_duration || 1.5}s ease-out, height ${this.config.animation_duration || 1.5}s ease-out`;
+    }
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-thermostat-editor");
+  }
+  static getStubConfig() {
+    return {
+      entity: "sensor.temperature",
+      min: 0,
+      max: 100,
+      ring_style: "brass",
+      title: "Temperature",
+      mercury_width: 50,
+      segments_under_mercury: true,
+      animation_duration: 1.5,
+      segments: [
+        { from: 0, to: 33, color: "#4CAF50" },
+        { from: 33, to: 66, color: "#FFC107" },
+        { from: 66, to: 100, color: "#F44336" }
+      ]
+    };
+  }
+};
+customElements.define("foundry-thermostat-card", FoundryThermostatCard);
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-thermostat-card",
+  name: "Foundry Thermostat Card",
+  preview: true,
+  description: "A vintage industrial style thermostat card"
+});
+
+// src/cards/foundry-thermostat-editor.js
+var FoundryThermostatEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+  setConfig(config) {
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
+    this.render();
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      const style = document.createElement("style");
+      style.textContent = `
+        .card-config { display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Segment Styles */
+        .segments-section {
+          margin: 8px 0;
+          padding: 16px;
+          background: var(--card-background-color, #fff);
+          border: 1px solid var(--divider-color, #e0e0e0);
+          border-radius: 4px;
+        }
+        .section-header {
+          font-weight: 500;
+          margin-bottom: 12px;
+          color: var(--primary-text-color);
+          font-size: 16px;
+        }
+        .segment-row {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+          margin-bottom: 12px;
+          background: var(--secondary-background-color, #f9f9f9);
+          padding: 10px;
+          border-radius: 4px;
+        }
+        .input-group {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .input-group label {
+          font-size: 11px;
+          color: var(--secondary-text-color);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+        .input-group input {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid var(--divider-color, #ccc);
+          border-radius: 4px;
+          background: var(--card-background-color, #fff);
+          color: var(--primary-text-color);
+        }
+        .input-group input[type="color"] {
+          height: 36px;
+          padding: 2px;
+          cursor: pointer;
+        }
+        .remove-btn {
+          background: none;
+          border: none;
+          color: var(--error-color, #db4437);
+          cursor: pointer;
+          padding: 8px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+        }
+        .add-btn {
+          background-color: var(--primary-color, #03a9f4);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 14px;
+          margin-top: 4px;
+        }
+      `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+      this._form1 = document.createElement("ha-form");
+      this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._root.appendChild(this._form1);
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._root.appendChild(this._segmentsContainer);
+      this._form2 = document.createElement("ha-form");
+      this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._root.appendChild(this._form2);
+    }
+    if (this._form1) this._form1.hass = this._hass;
+    if (this._form2) this._form2.hass = this._hass;
+    this._form1.schema = [
+      { name: "entity", selector: { entity: { domain: "sensor" } } },
+      { name: "title", selector: { text: {} } },
+      { name: "unit", selector: { text: {} } },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "min", selector: { number: { mode: "box" } } },
+          { name: "max", selector: { number: { mode: "box" } } },
+          { name: "segments_under_mercury", label: "Segments Behind Liquid", default: true, selector: { boolean: {} } },
+          {
+            name: "mercury_width",
+            label: "Mercury Width (%)",
+            default: 50,
+            selector: { number: { min: 5, max: 100, mode: "slider" } }
+          },
+          {
+            name: "animation_duration",
+            label: "Animation Duration (s)",
+            default: 1.5,
+            selector: { number: { min: 0.1, max: 10, step: 0.1, mode: "box" } }
+          }
+        ]
+      }
+    ];
+    this._form1.data = this._config;
+    this._form1.computeLabel = (s) => s.label || s.name;
+    this._renderSegments();
+    this._form2.schema = [
+      {
+        name: "ring_style",
+        label: "Casing Style",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "brass", label: "Brass" },
+              { value: "silver", label: "Silver" },
+              { value: "copper", label: "Copper" },
+              { value: "black", label: "Black" },
+              { value: "white", label: "White" },
+              { value: "blue", label: "Blue" },
+              { value: "green", label: "Green" },
+              { value: "red", label: "Red" }
+            ]
+          }
+        }
+      },
+      { name: "liquid_color", label: "Mercury Color", selector: { color_rgb: {} } },
+      { name: "tap_action", selector: { "ui-action": {} } }
+    ];
+    this._form2.data = this._config;
+    this._form2.computeLabel = (s) => s.label || s.name;
+  }
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = `<div class="section-header">Color Ranges (Right Side)</div>`;
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((seg, index) => {
+      const fromVal = seg.from !== void 0 ? seg.from : 0;
+      const toVal = seg.to !== void 0 ? seg.to : 0;
+      const colVal = seg.color || "#000000";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromVal}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toVal}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colVal}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">\u274C</button>
+        </div>
+      `;
+    });
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const key = e.target.dataset.key;
+        let val = e.target.value;
+        if (key !== "color") val = Number(val);
+        this._updateSegment(idx, key, val);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => this._removeSegment(parseInt(e.target.dataset.idx)));
+    });
+    const addBtn = this._segmentsContainer.querySelector("#add-btn");
+    if (addBtn) addBtn.addEventListener("click", () => this._addSegment());
+  }
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const last = segments[segments.length - 1];
+    const from = last ? last.to : this._config.min || 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
+  }
+  _handleFormChanged(ev) {
+    const newConfig = { ...this._config, ...ev.detail.value };
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._updateConfig(newConfig);
+    }
+  }
+};
+customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
 
 // src/foundry-cards.js
 var FOUNDRY_CARDS_VERSION = "1.0";
