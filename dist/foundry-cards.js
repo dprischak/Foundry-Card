@@ -3178,17 +3178,17 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     const entity = this._config.entity;
     this._updateConfig({
       entity,
-      title: "",
+      title: "Local Time",
       time_zone: "",
-      second_hand_enabled: false,
+      second_hand_enabled: true,
       title_font_size: 12,
       ring_style: "brass",
-      rivet_color: "#6d5d4b",
-      plate_color: "#f5f5f5",
+      rivet_color: "#6a5816",
+      plate_color: "#8c7626",
       plate_transparent: false,
       wear_level: 50,
       glass_effect_enabled: true,
-      aged_texture: "glass_only",
+      aged_texture: "everywhere",
       aged_texture_intensity: 50,
       tap_action: { action: "more-info" },
       hold_action: { action: "more-info" },
@@ -3213,8 +3213,8 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75],
-      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [106, 88, 22],
+      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [140, 118, 38],
       plate_transparent: config.plate_transparent,
       wear_level: config.wear_level,
       glass_effect_enabled: config.glass_effect_enabled,
@@ -3238,8 +3238,8 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
   _formToConfig(formData) {
     const config = { ...this._config };
     const defaults = {
-      rivet_color: this._config?.rivet_color ?? "#6d5d4b",
-      plate_color: this._config?.plate_color ?? "#f5f5f5"
+      rivet_color: this._config?.rivet_color ?? "#6a5816",
+      plate_color: this._config?.plate_color ?? "#8c7626"
     };
     Object.keys(formData).forEach((key) => {
       if (["appearance", "layout", "actions"].includes(key)) return;
