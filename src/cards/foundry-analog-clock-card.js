@@ -501,8 +501,17 @@ class FoundryAnalogClockCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      entity: "sun.sun", // just as a placeholder
+      entity: "sun.sun",
       title: "Local Time",
+      title_font_size: 12,
+      ring_style: 'brass',
+      rivet_color: '#6a5816',
+      plate_color: '#8c7626',
+      plate_transparent: false,
+      wear_level: 50,
+      glass_effect_enabled: true,
+      aged_texture: 'everywhere',
+      aged_texture_intensity: 50,
       second_hand_enabled: true
     }
   }
