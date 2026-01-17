@@ -3079,6 +3079,9 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       }
     }
   }
+  static getConfigElement() {
+    return document.createElement("foundry-analog-clock-editor");
+  }
   static getStubConfig() {
     return {
       entity: "sun.sun",
