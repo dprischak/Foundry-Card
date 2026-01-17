@@ -2685,6 +2685,8 @@ var FoundryChartCard = class extends HTMLElement {
     this._chartAnimationFrame = null;
     this._historicalDataLoaded = false;
     this._isLoadingHistory = false;
+    this._penPositions = {};
+    this._penAnimations = {};
     this._boundHandleClick = () => this._handleAction("tap");
     this._boundHandleDblClick = () => this._handleAction("double_tap");
     this._boundHandleContextMenu = (e) => {
@@ -2859,6 +2861,15 @@ var FoundryChartCard = class extends HTMLElement {
         this.config.pen_thickness = Math.min(Math.max(thickness, 0.5), 5);
       }
     }
+    if (config.transition_time !== void 0) {
+      const transitionTime = parseFloat(config.transition_time);
+      if (isNaN(transitionTime) || transitionTime < 0) {
+        console.warn("Foundry Chart Card: transition_time must be non-negative. Using 0.5.");
+        this.config.transition_time = 0.5;
+      } else {
+        this.config.transition_time = Math.min(transitionTime, 5);
+      }
+    }
   }
   set hass(hass) {
     const firstRun = !this._hass;
@@ -2949,15 +2960,8 @@ var FoundryChartCard = class extends HTMLElement {
           stroke-linecap: round;
           stroke-linejoin: round;
         }
-        .pen-arm {
-          transition: y1 0.5s ease-out, y2 0.5s ease-out;
-        }
-        .pen-tip {
-          transition: cy 0.5s ease-out;
-        }
         .pen-pivot {
           transform-origin: center;
-          transition: transform 0.3s ease-out;
         }
         .entity-label {
           font-family: 'Georgia', serif;
@@ -3163,6 +3167,34 @@ var FoundryChartCard = class extends HTMLElement {
       return `<circle cx="${mark.cx}" cy="${mark.cy}" r="${mark.r}" fill="${mark.fill}" opacity="${opacity}"/>`;
     }).join("\n              ");
   }
+  _animatePen(entityId, penArmId, penTipId, startY, endY, duration) {
+    if (this._penAnimations[entityId]) {
+      cancelAnimationFrame(this._penAnimations[entityId]);
+    }
+    const startTime = performance.now();
+    const durationMs = duration * 1e3;
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / durationMs, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const currentY = startY + (endY - startY) * easeOut;
+      const penArm = this.shadowRoot?.getElementById(penArmId);
+      const penTip = this.shadowRoot?.getElementById(penTipId);
+      if (penArm) {
+        penArm.setAttribute("y1", currentY);
+      }
+      if (penTip) {
+        penTip.setAttribute("cy", currentY);
+      }
+      if (progress < 1) {
+        this._penAnimations[entityId] = requestAnimationFrame(animate);
+      } else {
+        this._penPositions[entityId] = endY;
+        delete this._penAnimations[entityId];
+      }
+    };
+    this._penAnimations[entityId] = requestAnimationFrame(animate);
+  }
   _drawChart() {
     if (!this.shadowRoot) return;
     const chartArea = this.shadowRoot.getElementById("chartArea");
@@ -3238,26 +3270,39 @@ var FoundryChartCard = class extends HTMLElement {
       chartArea.appendChild(path);
       const lastValue = data[data.length - 1].value;
       const normalizedValue = (lastValue - minValue) / valueRange;
-      const penY = trackY + trackHeight - normalizedValue * trackHeight * 0.8 - trackHeight * 0.1;
+      const targetPenY = trackY + trackHeight - normalizedValue * trackHeight * 0.8 - trackHeight * 0.1;
       const penX = margin.left + width + 10;
+      const transitionTime = this.config.transition_time !== void 0 ? this.config.transition_time : 0.5;
+      if (!this._penPositions[entityId]) {
+        this._penPositions[entityId] = targetPenY;
+      }
+      const penArmId = `pen-arm-${entityId}`;
+      const penTipId = `pen-tip-${entityId}`;
       const penArm = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      penArm.setAttribute("id", penArmId);
       penArm.setAttribute("class", "pen-arm");
       penArm.setAttribute("x1", margin.left + width);
-      penArm.setAttribute("y1", penY);
+      penArm.setAttribute("y1", this._penPositions[entityId]);
       penArm.setAttribute("x2", penX + 40);
       penArm.setAttribute("y2", trackCenter);
       penArm.setAttribute("stroke", color);
       penArm.setAttribute("stroke-width", penThickness);
       pensArea.appendChild(penArm);
       const penTip = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      penTip.setAttribute("id", penTipId);
       penTip.setAttribute("class", "pen-tip");
       penTip.setAttribute("cx", margin.left + width);
-      penTip.setAttribute("cy", penY);
+      penTip.setAttribute("cy", this._penPositions[entityId]);
       penTip.setAttribute("r", Math.max(2, penThickness * 1.5));
       penTip.setAttribute("fill", color);
       penTip.setAttribute("stroke", "#3e2723");
       penTip.setAttribute("stroke-width", "0.5");
       pensArea.appendChild(penTip);
+      if (Math.abs(this._penPositions[entityId] - targetPenY) > 0.1 && transitionTime > 0) {
+        this._animatePen(entityId, penArmId, penTipId, this._penPositions[entityId], targetPenY, transitionTime);
+      } else {
+        this._penPositions[entityId] = targetPenY;
+      }
       const pivot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       pivot.setAttribute("cx", penX + 40);
       pivot.setAttribute("cy", trackCenter);
@@ -3422,6 +3467,11 @@ var FoundryChartCardEditor = class extends HTMLElement {
         name: "pen_thickness",
         label: "Pen Thickness",
         selector: { number: { min: 0.5, max: 5, step: 0.1, mode: "box" } }
+      },
+      {
+        name: "transition_time",
+        label: "Pen Transition Time (seconds)",
+        selector: { number: { min: 0, max: 5, step: 0.1, mode: "box" } }
       },
       {
         name: "color",

@@ -126,6 +126,11 @@ class FoundryChartCardEditor extends HTMLElement {
                 selector: { number: { min: 0.5, max: 5, step: 0.1, mode: "box" } }
             },
             {
+                name: "transition_time",
+                label: "Pen Transition Time (seconds)",
+                selector: { number: { min: 0, max: 5, step: 0.1, mode: "box" } }
+            },
+            {
                 name: "color",
                 label: "Entity 1 Color",
                 selector: { text: {} }
