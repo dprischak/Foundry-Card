@@ -2949,6 +2949,12 @@ var FoundryChartCard = class extends HTMLElement {
           stroke-linecap: round;
           stroke-linejoin: round;
         }
+        .pen-arm {
+          transition: y1 0.5s ease-out, y2 0.5s ease-out;
+        }
+        .pen-tip {
+          transition: cy 0.5s ease-out;
+        }
         .pen-pivot {
           transform-origin: center;
           transition: transform 0.3s ease-out;
@@ -3213,8 +3219,13 @@ var FoundryChartCard = class extends HTMLElement {
       const minValue = Math.min(...values);
       const maxValue = Math.max(...values);
       const valueRange = maxValue - minValue || 1;
+      const timestamps = data.map((d) => d.timestamp);
+      const oldestTime = Math.min(...timestamps);
+      const newestTime = Math.max(...timestamps);
+      const timeRange = newestTime - oldestTime || 1;
       const pathData = data.map((point, i) => {
-        const x = margin.left + i / (this._maxDataPoints - 1) * width;
+        const timeOffset = newestTime - point.timestamp;
+        const x = margin.left + width - timeOffset / timeRange * width;
         const normalizedValue2 = (point.value - minValue) / valueRange;
         const y = trackY + trackHeight - normalizedValue2 * trackHeight * 0.8 - trackHeight * 0.1;
         return `${i === 0 ? "M" : "L"} ${x} ${y}`;
@@ -3230,6 +3241,7 @@ var FoundryChartCard = class extends HTMLElement {
       const penY = trackY + trackHeight - normalizedValue * trackHeight * 0.8 - trackHeight * 0.1;
       const penX = margin.left + width + 10;
       const penArm = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      penArm.setAttribute("class", "pen-arm");
       penArm.setAttribute("x1", margin.left + width);
       penArm.setAttribute("y1", penY);
       penArm.setAttribute("x2", penX + 40);
@@ -3238,6 +3250,7 @@ var FoundryChartCard = class extends HTMLElement {
       penArm.setAttribute("stroke-width", penThickness);
       pensArea.appendChild(penArm);
       const penTip = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      penTip.setAttribute("class", "pen-tip");
       penTip.setAttribute("cx", margin.left + width);
       penTip.setAttribute("cy", penY);
       penTip.setAttribute("r", Math.max(2, penThickness * 1.5));

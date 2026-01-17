@@ -343,6 +343,12 @@ class FoundryChartCard extends HTMLElement {
           stroke-linecap: round;
           stroke-linejoin: round;
         }
+        .pen-arm {
+          transition: y1 0.5s ease-out, y2 0.5s ease-out;
+        }
+        .pen-tip {
+          transition: cy 0.5s ease-out;
+        }
         .pen-pivot {
           transform-origin: center;
           transition: transform 0.3s ease-out;
@@ -657,9 +663,18 @@ class FoundryChartCard extends HTMLElement {
       const maxValue = Math.max(...values);
       const valueRange = maxValue - minValue || 1;
       
-      // Create path for the chart line
+      // Calculate time range for horizontal positioning
+      const timestamps = data.map(d => d.timestamp);
+      const oldestTime = Math.min(...timestamps);
+      const newestTime = Math.max(...timestamps);
+      const timeRange = newestTime - oldestTime || 1;
+      
+      // Create path for the chart line - newest data on the right
       const pathData = data.map((point, i) => {
-        const x = margin.left + ((i / (this._maxDataPoints - 1)) * width);
+        // Position based on time, with newest point at the right edge
+        const timeOffset = newestTime - point.timestamp;
+        const x = margin.left + width - (timeOffset / timeRange * width);
+        
         // Map value to track height (inverted because SVG y increases downward)
         const normalizedValue = (point.value - minValue) / valueRange;
         const y = trackY + trackHeight - (normalizedValue * trackHeight * 0.8) - (trackHeight * 0.1);
@@ -674,14 +689,15 @@ class FoundryChartCard extends HTMLElement {
       path.setAttribute('stroke-width', penThickness);
       chartArea.appendChild(path);
       
-      // Draw pen pivot on the right side
+      // Draw pen pivot on the right side - pen follows the newest data point
       const lastValue = data[data.length - 1].value;
       const normalizedValue = (lastValue - minValue) / valueRange;
       const penY = trackY + trackHeight - (normalizedValue * trackHeight * 0.8) - (trackHeight * 0.1);
       const penX = margin.left + width + 10;
       
-      // Pen arm (horizontal line from chart to pivot point)
+      // Pen arm connects from the newest data point (right edge) to pivot point
       const penArm = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      penArm.setAttribute('class', 'pen-arm');
       penArm.setAttribute('x1', margin.left + width);
       penArm.setAttribute('y1', penY);
       penArm.setAttribute('x2', penX + 40);
@@ -692,6 +708,7 @@ class FoundryChartCard extends HTMLElement {
       
       // Pen tip (circle at the chart end) - scale radius based on thickness
       const penTip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      penTip.setAttribute('class', 'pen-tip');
       penTip.setAttribute('cx', margin.left + width);
       penTip.setAttribute('cy', penY);
       penTip.setAttribute('r', Math.max(2, penThickness * 1.5));
