@@ -17,6 +17,15 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 
 <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
 
+### 📊 Foundry Chart Card
+Display historical data with a vintage polygraph-style chart recorder featuring:
+- Support for up to 4 entities simultaneously
+- Vintage "paper scroll" chart with grid lines
+- Pivoting pen indicators on the right side
+- Real-time data collection and display
+- Customizable colors for each entity
+- Same vintage aesthetic as other Foundry cards
+
 ## Installation
 
 ### HACS (Recommended)
@@ -290,6 +299,107 @@ The gauge features a realistic aged texture system that adds vintage character t
   - `50`: Moderate texture (default) - balanced vintage appearance
   - `100`: Maximum texture - heavily aged, weathered appearance
   - Higher values make the texture more prominent and visible
+
+### Foundry Chart Card
+
+Add the card to your dashboard:
+
+```yaml
+type: custom:foundry-chart-card
+entity: sensor.temperature
+entity2: sensor.humidity
+title: "Environmental Monitor"
+chart_height: 300
+time_range: 2
+```
+
+### Design Features
+
+The Foundry Chart Card features a vintage polygraph-style recorder design:
+
+- **Vintage Aesthetic**: Aged paper background with grid lines simulating chart paper
+- **Multiple Entities**: Support for up to 4 entities charted simultaneously
+- **Pivoting Pens**: Mechanical pen arms that pivot from the right side, following the chart lines
+- **Real-time Updates**: Data collected every 2 seconds for smooth, continuous charting
+- **Scrolling Effect**: Chart lines flow from right to left like paper moving through a recorder
+- **Color Coding**: Each entity has its own customizable color for easy identification
+- **Entity Labels**: Automatic display of entity names and current values on the right side
+- **Shared Styling**: Uses the same brass rim, rivets, and aged texture options as other Foundry cards
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | **Yes** | - | First entity ID to chart |
+| `entity2` | string | No | - | Second entity ID to chart |
+| `entity3` | string | No | - | Third entity ID to chart |
+| `entity4` | string | No | - | Fourth entity ID to chart |
+| `title` | string | No | 'Chart Recorder' | Card title |
+| `chart_height` | number | No | 300 | Height of the chart in pixels (100-800) |
+| `time_range` | number | No | 2 | Time range to display in minutes (1-60) |
+| `color` | string | No | '#C41E3A' | Color for entity 1 (hex color code) |
+| `color2` | string | No | '#1E3AC4' | Color for entity 2 (hex color code) |
+| `color3` | string | No | '#1EC43A' | Color for entity 3 (hex color code) |
+| `color4` | string | No | '#C4A61E' | Color for entity 4 (hex color code) |
+| `ring_style` | string | No | 'brass' | Decorative ring style: 'none', 'brass', 'silver', or 'black' |
+| `rivet_color` | string | No | '#6d5d4b' | Color of the decorative rivets (hex color code) |
+| `plate_color` | string | No | '#f0ebe1' | Color of the background plate (hex color code) |
+| `plate_transparent` | boolean | No | false | Make the plate transparent (shows background) |
+| `wear_level` | number | No | 50 | Amount of wear marks and age spots (0-100) |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', or 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold |
+| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap |
+
+#### Example Configurations
+
+**Multi-Sensor Environmental Monitor:**
+```yaml
+type: custom:foundry-chart-card
+entity: sensor.living_room_temperature
+entity2: sensor.living_room_humidity
+entity3: sensor.living_room_pressure
+title: "Living Room Environment"
+chart_height: 400
+time_range: 5
+color: "#C41E3A"
+color2: "#1E3AC4"
+color3: "#1EC43A"
+ring_style: brass
+wear_level: 60
+```
+
+**Energy Monitoring:**
+```yaml
+type: custom:foundry-chart-card
+entity: sensor.house_power_consumption
+entity2: sensor.solar_power_production
+title: "Power Monitor"
+chart_height: 300
+time_range: 10
+color: "#F44336"
+color2: "#4CAF50"
+ring_style: black
+aged_texture: everywhere
+aged_texture_intensity: 70
+```
+
+**Temperature Comparison:**
+```yaml
+type: custom:foundry-chart-card
+entity: sensor.indoor_temperature
+entity2: sensor.outdoor_temperature
+entity3: sensor.basement_temperature
+entity4: sensor.attic_temperature
+title: "Temperature Zones"
+chart_height: 350
+time_range: 3
+color: "#C41E3A"
+color2: "#1E3AC4"
+color3: "#1EC43A"
+color4: "#C4A61E"
+```
 
 ## Development
 
