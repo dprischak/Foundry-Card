@@ -310,7 +310,7 @@ entity: sensor.temperature
 entity2: sensor.humidity
 title: "Environmental Monitor"
 chart_height: 300
-time_range: 2
+hours_to_show: 1
 ```
 
 ### Design Features
@@ -319,9 +319,10 @@ The Foundry Chart Card features a vintage polygraph-style recorder design:
 
 - **Vintage Aesthetic**: Aged paper background with grid lines simulating chart paper
 - **Multiple Entities**: Support for up to 4 entities charted simultaneously
+- **Historical Data**: Automatically loads historical data from Home Assistant
 - **Pivoting Pens**: Mechanical pen arms that pivot from the right side, following the chart lines
-- **Real-time Updates**: Data collected every 2 seconds for smooth, continuous charting
-- **Scrolling Effect**: Chart lines flow from right to left like paper moving through a recorder
+- **Real-time Updates**: Data collected every 2 seconds and merged with historical data
+- **Scrolling Effect**: Chart displays the configured time range with smooth transitions
 - **Color Coding**: Each entity has its own customizable color for easy identification
 - **Entity Labels**: Automatic display of entity names and current values on the right side
 - **Shared Styling**: Uses the same brass rim, rivets, and aged texture options as other Foundry cards
@@ -336,7 +337,8 @@ The Foundry Chart Card features a vintage polygraph-style recorder design:
 | `entity4` | string | No | - | Fourth entity ID to chart |
 | `title` | string | No | 'Chart Recorder' | Card title |
 | `chart_height` | number | No | 300 | Height of the chart in pixels (100-800) |
-| `time_range` | number | No | 2 | Time range to display in minutes (1-60) |
+| `hours_to_show` | number | No | 1 | Hours of historical data to display (0.25-24) |
+| `pen_thickness` | number | No | 1.5 | Thickness of the pen lines (0.5-5) |
 | `color` | string | No | '#C41E3A' | Color for entity 1 (hex color code) |
 | `color2` | string | No | '#1E3AC4' | Color for entity 2 (hex color code) |
 | `color3` | string | No | '#1EC43A' | Color for entity 3 (hex color code) |
@@ -362,7 +364,7 @@ entity2: sensor.living_room_humidity
 entity3: sensor.living_room_pressure
 title: "Living Room Environment"
 chart_height: 400
-time_range: 5
+hours_to_show: 2
 color: "#C41E3A"
 color2: "#1E3AC4"
 color3: "#1EC43A"
@@ -377,7 +379,7 @@ entity: sensor.house_power_consumption
 entity2: sensor.solar_power_production
 title: "Power Monitor"
 chart_height: 300
-time_range: 10
+hours_to_show: 6
 color: "#F44336"
 color2: "#4CAF50"
 ring_style: black
@@ -394,7 +396,7 @@ entity3: sensor.basement_temperature
 entity4: sensor.attic_temperature
 title: "Temperature Zones"
 chart_height: 350
-time_range: 3
+hours_to_show: 4
 color: "#C41E3A"
 color2: "#1E3AC4"
 color3: "#1EC43A"

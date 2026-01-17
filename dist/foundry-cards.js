@@ -405,6 +405,16 @@ var FoundryGaugeCard = class extends HTMLElement {
                   <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
                 </radialGradient>
                 
+                <!-- Gradient for needle - metallic red with depth -->
+                <linearGradient id="needleGradient-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+                  <stop offset="15%" style="stop-color:#A01010;stop-opacity:1" />
+                  <stop offset="40%" style="stop-color:#C41E3A;stop-opacity:1" />
+                  <stop offset="60%" style="stop-color:#E63946;stop-opacity:1" />
+                  <stop offset="85%" style="stop-color:#C41E3A;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#8B0000;stop-opacity:1" />
+                </linearGradient>
+                
                 <!-- Gradient for brass rim -->
                 <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
@@ -554,17 +564,29 @@ var FoundryGaugeCard = class extends HTMLElement {
               <!-- Needle (rendered after odometer so it's on top) -->
               <g id="needle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
                 <!-- Needle shadow -->
-                <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="rgba(0,0,0,0.3)" 
-                      transform="translate(2,2)"/>
-                <!-- Needle body -->
-                <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="#C41E3A" 
+                <path d="M 100 100 L 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28 L 100 22 L 104 28 L 105.5 40 L 106 90 L 105.5 95 L 104 98 Z" 
+                      fill="rgba(0,0,0,0.4)" 
+                      transform="translate(2.5,2.5)"/>
+                <!-- Needle base (wider part near center) -->
+                <path d="M 100 100 L 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28 L 100 22 L 104 28 L 105.5 40 L 106 90 L 105.5 95 L 104 98 Z" 
+                      fill="url(#needleGradient-${uid})" 
                       stroke="#8B0000" 
                       stroke-width="0.5"/>
-                <!-- Needle highlight -->
-                <path d="M 100 100 L 98 95 L 99 30 L 100 25 L 99.5 30 Z" 
-                      fill="rgba(255,255,255,0.3)"/>
+                <!-- Needle centerline highlight -->
+                <path d="M 100 100 L 98.5 97 L 98 92 L 98 40 L 99 28 L 100 22" 
+                      fill="none"
+                      stroke="rgba(255,255,255,0.4)" 
+                      stroke-width="1"
+                      stroke-linecap="round"/>
+                <!-- Needle tip shine -->
+                <ellipse cx="100" cy="26" rx="2" ry="3" 
+                         fill="rgba(255,255,255,0.5)"/>
+                <!-- Left edge shadow -->
+                <path d="M 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28" 
+                      fill="none"
+                      stroke="rgba(0,0,0,0.3)" 
+                      stroke-width="0.8"
+                      stroke-linecap="round"/>
               </g>
               
               <!-- Needle stoppers -->
@@ -777,22 +799,30 @@ var FoundryGaugeCard = class extends HTMLElement {
     const baseLength = 75;
     const actualLength = baseLength * (lengthPercent / 100);
     const tipY = 100 - actualLength;
-    const nearTipY = tipY + 5;
+    const baseY = 100;
+    const taperStartY = tipY + actualLength * 0.6;
+    const midY = tipY + actualLength * 0.4;
     return `
               <g id="highNeedle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
                 <!-- High needle shadow -->
-                <path d="M 100 100 L 95 95 L 97 ${nearTipY} L 100 ${tipY} L 103 ${nearTipY} L 105 95 Z" 
-                      fill="rgba(0,0,0,0.3)" 
-                      transform="translate(2,2)"/>
+                <path d="M 100 ${baseY} L 96 ${baseY - 2} L 94.5 ${baseY - 5} L 94 ${taperStartY} L 94.5 ${midY} L 96 ${tipY + 6} L 100 ${tipY} L 104 ${tipY + 6} L 105.5 ${midY} L 106 ${taperStartY} L 105.5 ${baseY - 5} L 104 ${baseY - 2} Z" 
+                      fill="rgba(0,0,0,0.4)" 
+                      transform="translate(2.5,2.5)"/>
                 <!-- High needle body -->
-                <path d="M 100 100 L 95 95 L 97 ${nearTipY} L 100 ${tipY} L 103 ${nearTipY} L 105 95 Z" 
+                <path d="M 100 ${baseY} L 96 ${baseY - 2} L 94.5 ${baseY - 5} L 94 ${taperStartY} L 94.5 ${midY} L 96 ${tipY + 6} L 100 ${tipY} L 104 ${tipY + 6} L 105.5 ${midY} L 106 ${taperStartY} L 105.5 ${baseY - 5} L 104 ${baseY - 2} Z" 
                       fill="${color}" 
                       stroke="${this.darkenColor(color, 0.3)}" 
                       stroke-width="0.5"
-                      opacity="1.0"/>
-                <!-- High needle highlight -->
-                <path d="M 100 100 L 98 95 L 99 ${nearTipY} L 100 ${tipY} L 99.5 ${nearTipY} Z" 
-                      fill="rgba(255,255,255,0.3)"/>
+                      opacity="0.9"/>
+                <!-- High needle centerline highlight -->
+                <path d="M 100 ${baseY} L 98.5 ${baseY - 3} L 98 ${taperStartY} L 98 ${midY} L 99 ${tipY + 6} L 100 ${tipY}" 
+                      fill="none"
+                      stroke="rgba(255,255,255,0.4)" 
+                      stroke-width="1"
+                      stroke-linecap="round"/>
+                <!-- High needle tip shine -->
+                <ellipse cx="100" cy="${tipY + 4}" rx="2" ry="3" 
+                         fill="rgba(255,255,255,0.5)"/>
               </g>
     `;
   }
@@ -2653,6 +2683,8 @@ var FoundryChartCard = class extends HTMLElement {
     this._maxDataPoints = 60;
     this._updateInterval = null;
     this._chartAnimationFrame = null;
+    this._historicalDataLoaded = false;
+    this._isLoadingHistory = false;
     this._boundHandleClick = () => this._handleAction("tap");
     this._boundHandleDblClick = () => this._handleAction("double_tap");
     this._boundHandleContextMenu = (e) => {
@@ -2662,7 +2694,11 @@ var FoundryChartCard = class extends HTMLElement {
     this._boundHandleKeyDown = (e) => this._handleKeyDown(e);
   }
   connectedCallback() {
-    this._startDataCollection();
+    if (this._hass && this.config) {
+      this._loadHistoricalData().then(() => {
+        this._startDataCollection();
+      });
+    }
   }
   disconnectedCallback() {
     this._stopDataCollection();
@@ -2683,10 +2719,61 @@ var FoundryChartCard = class extends HTMLElement {
       this._updateInterval = null;
     }
   }
+  async _loadHistoricalData() {
+    if (!this._hass || !this.config || this._isLoadingHistory) return;
+    this._isLoadingHistory = true;
+    this._historicalDataLoaded = false;
+    const entities = this._getEntityList();
+    const hoursBack = this.config.hours_to_show !== void 0 ? this.config.hours_to_show : 1;
+    const endTime = /* @__PURE__ */ new Date();
+    const startTime = new Date(endTime.getTime() - hoursBack * 60 * 60 * 1e3);
+    console.log(`Loading ${hoursBack} hours of history for`, entities);
+    try {
+      const entityIds = entities.filter((e) => e);
+      if (entityIds.length === 0) {
+        this._isLoadingHistory = false;
+        return;
+      }
+      const history2 = await this._hass.callWS({
+        type: "history/history_during_period",
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        entity_ids: entityIds,
+        minimal_response: true,
+        significant_changes_only: false
+      });
+      console.log("History loaded:", history2);
+      if (history2 && Array.isArray(history2)) {
+        entityIds.forEach((entityId, index) => {
+          if (history2[index] && Array.isArray(history2[index])) {
+            const dataPoints = history2[index].map((item) => ({
+              timestamp: new Date(item.last_changed).getTime(),
+              value: parseFloat(item.state)
+            })).filter((point) => !isNaN(point.value));
+            console.log(`Entity ${entityId}: ${dataPoints.length} data points`);
+            if (dataPoints.length > this._maxDataPoints) {
+              const step = Math.ceil(dataPoints.length / this._maxDataPoints);
+              this._historicalData[entityId] = dataPoints.filter((_, i) => i % step === 0).slice(-this._maxDataPoints);
+            } else {
+              this._historicalData[entityId] = dataPoints;
+            }
+          }
+        });
+      }
+      this._historicalDataLoaded = true;
+      this._drawChart();
+    } catch (error) {
+      console.error("Error loading historical data:", error);
+    } finally {
+      this._isLoadingHistory = false;
+    }
+  }
   _collectDataPoint() {
     if (!this._hass || !this.config) return;
     const entities = this._getEntityList();
     const timestamp = Date.now();
+    const hoursBack = this.config.hours_to_show !== void 0 ? this.config.hours_to_show : 1;
+    const cutoffTime = timestamp - hoursBack * 60 * 60 * 1e3;
     entities.forEach((entityId) => {
       if (!entityId) return;
       const entity = this._hass.states[entityId];
@@ -2697,8 +2784,12 @@ var FoundryChartCard = class extends HTMLElement {
         this._historicalData[entityId] = [];
       }
       this._historicalData[entityId].push({ timestamp, value });
-      if (this._historicalData[entityId].length > this._maxDataPoints) {
-        this._historicalData[entityId].shift();
+      this._historicalData[entityId] = this._historicalData[entityId].filter(
+        (point) => point.timestamp >= cutoffTime
+      );
+      if (this._historicalData[entityId].length > this._maxDataPoints * 2) {
+        const step = Math.floor(this._historicalData[entityId].length / this._maxDataPoints);
+        this._historicalData[entityId] = this._historicalData[entityId].filter((_, index) => index % step === 0);
       }
     });
     this._drawChart();
@@ -2727,23 +2818,27 @@ var FoundryChartCard = class extends HTMLElement {
     }
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     this._historicalData = {};
+    this._historicalDataLoaded = false;
     this.render();
     if (this._hass) {
       requestAnimationFrame(() => {
-        this._collectDataPoint();
-        this._drawChart();
+        this._loadHistoricalData().then(() => {
+          if (!this._updateInterval) {
+            this._startDataCollection();
+          }
+        });
       });
     }
   }
   _validateConfig() {
     const config = this.config;
-    if (config.time_range !== void 0) {
-      const range = parseFloat(config.time_range);
-      if (isNaN(range) || range <= 0) {
-        console.warn("Foundry Chart Card: time_range must be positive. Using 2 minutes.");
-        this.config.time_range = 2;
+    if (config.hours_to_show !== void 0) {
+      const hours = parseFloat(config.hours_to_show);
+      if (isNaN(hours) || hours <= 0) {
+        console.warn("Foundry Chart Card: hours_to_show must be positive. Using 1 hour.");
+        this.config.hours_to_show = 1;
       } else {
-        this.config.time_range = Math.min(range, 60);
+        this.config.hours_to_show = Math.min(hours, 24);
       }
     }
     if (config.chart_height !== void 0) {
@@ -2755,12 +2850,30 @@ var FoundryChartCard = class extends HTMLElement {
         this.config.chart_height = Math.min(height, 800);
       }
     }
+    if (config.pen_thickness !== void 0) {
+      const thickness = parseFloat(config.pen_thickness);
+      if (isNaN(thickness) || thickness <= 0) {
+        console.warn("Foundry Chart Card: pen_thickness must be positive. Using 1.5.");
+        this.config.pen_thickness = 1.5;
+      } else {
+        this.config.pen_thickness = Math.min(Math.max(thickness, 0.5), 5);
+      }
+    }
   }
   set hass(hass) {
+    const firstRun = !this._hass;
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
-    this._drawChart();
+    if (firstRun && !this._historicalDataLoaded && !this._isLoadingHistory) {
+      this._loadHistoricalData().then(() => {
+        if (!this._updateInterval) {
+          this._startDataCollection();
+        }
+      });
+    } else {
+      this._drawChart();
+    }
   }
   render() {
     const config = this.config;
@@ -2833,7 +2946,6 @@ var FoundryChartCard = class extends HTMLElement {
         }
         .chart-line {
           fill: none;
-          stroke-width: 1.5;
           stroke-linecap: round;
           stroke-linejoin: round;
         }
@@ -3096,6 +3208,7 @@ var FoundryChartCard = class extends HTMLElement {
       const color = this.config[`color${index === 0 ? "" : index + 1}`] || defaultColors[index];
       const trackY = margin.top + index * trackHeight;
       const trackCenter = trackY + trackHeight / 2;
+      const penThickness = this.config.pen_thickness !== void 0 ? this.config.pen_thickness : 1.5;
       const values = data.map((d) => d.value);
       const minValue = Math.min(...values);
       const maxValue = Math.max(...values);
@@ -3110,6 +3223,7 @@ var FoundryChartCard = class extends HTMLElement {
       path.setAttribute("d", pathData);
       path.setAttribute("class", "chart-line");
       path.setAttribute("stroke", color);
+      path.setAttribute("stroke-width", penThickness);
       chartArea.appendChild(path);
       const lastValue = data[data.length - 1].value;
       const normalizedValue = (lastValue - minValue) / valueRange;
@@ -3121,12 +3235,12 @@ var FoundryChartCard = class extends HTMLElement {
       penArm.setAttribute("x2", penX + 40);
       penArm.setAttribute("y2", trackCenter);
       penArm.setAttribute("stroke", color);
-      penArm.setAttribute("stroke-width", "1.5");
+      penArm.setAttribute("stroke-width", penThickness);
       pensArea.appendChild(penArm);
       const penTip = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       penTip.setAttribute("cx", margin.left + width);
       penTip.setAttribute("cy", penY);
-      penTip.setAttribute("r", "3");
+      penTip.setAttribute("r", Math.max(2, penThickness * 1.5));
       penTip.setAttribute("fill", color);
       penTip.setAttribute("stroke", "#3e2723");
       penTip.setAttribute("stroke-width", "0.5");
@@ -3165,7 +3279,8 @@ var FoundryChartCard = class extends HTMLElement {
       entity: "",
       title: "Chart Recorder",
       chart_height: 300,
-      time_range: 2
+      hours_to_show: 1,
+      pen_thickness: 1.5
     };
   }
 };
@@ -3286,9 +3401,14 @@ var FoundryChartCardEditor = class extends HTMLElement {
         selector: { number: { min: 100, max: 800, mode: "box" } }
       },
       {
-        name: "time_range",
-        label: "Time Range (minutes)",
-        selector: { number: { min: 1, max: 60, mode: "box" } }
+        name: "hours_to_show",
+        label: "Hours to Show",
+        selector: { number: { min: 0.25, max: 24, step: 0.25, mode: "box" } }
+      },
+      {
+        name: "pen_thickness",
+        label: "Pen Thickness",
+        selector: { number: { min: 0.5, max: 5, step: 0.1, mode: "box" } }
       },
       {
         name: "color",

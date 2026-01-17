@@ -5,7 +5,9 @@
   "main": "dist/foundry-cards.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "if exist dist rmdir /s /q dist && mkdir dist",
     "build": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js",
+    "rebuild": "npm run clean && npm run build",
     "watch": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js --sourcemap --watch"
   },
   "repository": {

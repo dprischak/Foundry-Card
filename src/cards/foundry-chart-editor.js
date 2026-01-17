@@ -116,9 +116,14 @@ class FoundryChartCardEditor extends HTMLElement {
                 selector: { number: { min: 100, max: 800, mode: "box" } }
             },
             {
-                name: "time_range",
-                label: "Time Range (minutes)",
-                selector: { number: { min: 1, max: 60, mode: "box" } }
+                name: "hours_to_show",
+                label: "Hours to Show",
+                selector: { number: { min: 0.25, max: 24, step: 0.25, mode: "box" } }
+            },
+            {
+                name: "pen_thickness",
+                label: "Pen Thickness",
+                selector: { number: { min: 0.5, max: 5, step: 0.1, mode: "box" } }
             },
             {
                 name: "color",

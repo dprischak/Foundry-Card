@@ -454,6 +454,16 @@ class FoundryGaugeCard extends HTMLElement {
                   <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
                 </radialGradient>
                 
+                <!-- Gradient for needle - metallic red with depth -->
+                <linearGradient id="needleGradient-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+                  <stop offset="15%" style="stop-color:#A01010;stop-opacity:1" />
+                  <stop offset="40%" style="stop-color:#C41E3A;stop-opacity:1" />
+                  <stop offset="60%" style="stop-color:#E63946;stop-opacity:1" />
+                  <stop offset="85%" style="stop-color:#C41E3A;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#8B0000;stop-opacity:1" />
+                </linearGradient>
+                
                 <!-- Gradient for brass rim -->
                 <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
@@ -603,17 +613,29 @@ class FoundryGaugeCard extends HTMLElement {
               <!-- Needle (rendered after odometer so it's on top) -->
               <g id="needle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
                 <!-- Needle shadow -->
-                <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="rgba(0,0,0,0.3)" 
-                      transform="translate(2,2)"/>
-                <!-- Needle body -->
-                <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="#C41E3A" 
+                <path d="M 100 100 L 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28 L 100 22 L 104 28 L 105.5 40 L 106 90 L 105.5 95 L 104 98 Z" 
+                      fill="rgba(0,0,0,0.4)" 
+                      transform="translate(2.5,2.5)"/>
+                <!-- Needle base (wider part near center) -->
+                <path d="M 100 100 L 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28 L 100 22 L 104 28 L 105.5 40 L 106 90 L 105.5 95 L 104 98 Z" 
+                      fill="url(#needleGradient-${uid})" 
                       stroke="#8B0000" 
                       stroke-width="0.5"/>
-                <!-- Needle highlight -->
-                <path d="M 100 100 L 98 95 L 99 30 L 100 25 L 99.5 30 Z" 
-                      fill="rgba(255,255,255,0.3)"/>
+                <!-- Needle centerline highlight -->
+                <path d="M 100 100 L 98.5 97 L 98 92 L 98 40 L 99 28 L 100 22" 
+                      fill="none"
+                      stroke="rgba(255,255,255,0.4)" 
+                      stroke-width="1"
+                      stroke-linecap="round"/>
+                <!-- Needle tip shine -->
+                <ellipse cx="100" cy="26" rx="2" ry="3" 
+                         fill="rgba(255,255,255,0.5)"/>
+                <!-- Left edge shadow -->
+                <path d="M 96 98 L 94.5 95 L 94 90 L 94.5 40 L 96 28" 
+                      fill="none"
+                      stroke="rgba(0,0,0,0.3)" 
+                      stroke-width="0.8"
+                      stroke-linecap="round"/>
               </g>
               
               <!-- Needle stoppers -->
@@ -902,23 +924,31 @@ class FoundryGaugeCard extends HTMLElement {
     const baseLength = 75;
     const actualLength = baseLength * (lengthPercent / 100);
     const tipY = 100 - actualLength; // Center is at 100, needle points up
-    const nearTipY = tipY + 5; // 5 units from tip for the taper
-
+    const baseY = 100; // Base at center
+    const taperStartY = tipY + (actualLength * 0.6); // Start tapering at 60% from tip
+    const midY = tipY + (actualLength * 0.4); // Mid-point for smooth taper
+    
     return `
               <g id="highNeedle" style="transform-origin: 100px 100px; transition: transform ${animationDuration}s ease-out;">
                 <!-- High needle shadow -->
-                <path d="M 100 100 L 95 95 L 97 ${nearTipY} L 100 ${tipY} L 103 ${nearTipY} L 105 95 Z" 
-                      fill="rgba(0,0,0,0.3)" 
-                      transform="translate(2,2)"/>
+                <path d="M 100 ${baseY} L 96 ${baseY - 2} L 94.5 ${baseY - 5} L 94 ${taperStartY} L 94.5 ${midY} L 96 ${tipY + 6} L 100 ${tipY} L 104 ${tipY + 6} L 105.5 ${midY} L 106 ${taperStartY} L 105.5 ${baseY - 5} L 104 ${baseY - 2} Z" 
+                      fill="rgba(0,0,0,0.4)" 
+                      transform="translate(2.5,2.5)"/>
                 <!-- High needle body -->
-                <path d="M 100 100 L 95 95 L 97 ${nearTipY} L 100 ${tipY} L 103 ${nearTipY} L 105 95 Z" 
+                <path d="M 100 ${baseY} L 96 ${baseY - 2} L 94.5 ${baseY - 5} L 94 ${taperStartY} L 94.5 ${midY} L 96 ${tipY + 6} L 100 ${tipY} L 104 ${tipY + 6} L 105.5 ${midY} L 106 ${taperStartY} L 105.5 ${baseY - 5} L 104 ${baseY - 2} Z" 
                       fill="${color}" 
                       stroke="${this.darkenColor(color, 0.3)}" 
                       stroke-width="0.5"
-                      opacity="1.0"/>
-                <!-- High needle highlight -->
-                <path d="M 100 100 L 98 95 L 99 ${nearTipY} L 100 ${tipY} L 99.5 ${nearTipY} Z" 
-                      fill="rgba(255,255,255,0.3)"/>
+                      opacity="0.9"/>
+                <!-- High needle centerline highlight -->
+                <path d="M 100 ${baseY} L 98.5 ${baseY - 3} L 98 ${taperStartY} L 98 ${midY} L 99 ${tipY + 6} L 100 ${tipY}" 
+                      fill="none"
+                      stroke="rgba(255,255,255,0.4)" 
+                      stroke-width="1"
+                      stroke-linecap="round"/>
+                <!-- High needle tip shine -->
+                <ellipse cx="100" cy="${tipY + 4}" rx="2" ry="3" 
+                         fill="rgba(255,255,255,0.5)"/>
               </g>
     `;
   }

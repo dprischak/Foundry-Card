@@ -12,6 +12,8 @@ class FoundryChartCard extends HTMLElement {
     this._maxDataPoints = 60; // Number of data points to display
     this._updateInterval = null;
     this._chartAnimationFrame = null;
+    this._historicalDataLoaded = false;
+    this._isLoadingHistory = false;
     
     this._boundHandleClick = () => this._handleAction("tap");
     this._boundHandleDblClick = () => this._handleAction("double_tap");
@@ -23,8 +25,12 @@ class FoundryChartCard extends HTMLElement {
   }
 
   connectedCallback() {
-    // Start periodic data collection
-    this._startDataCollection();
+    // Load historical data and start periodic data collection
+    if (this._hass && this.config) {
+      this._loadHistoricalData().then(() => {
+        this._startDataCollection();
+      });
+    }
   }
 
   disconnectedCallback() {
@@ -53,11 +59,80 @@ class FoundryChartCard extends HTMLElement {
     }
   }
 
+  async _loadHistoricalData() {
+    if (!this._hass || !this.config || this._isLoadingHistory) return;
+    
+    this._isLoadingHistory = true;
+    this._historicalDataLoaded = false;
+    
+    const entities = this._getEntityList();
+    const hoursBack = this.config.hours_to_show !== undefined ? this.config.hours_to_show : 1;
+    
+    // Calculate start time
+    const endTime = new Date();
+    const startTime = new Date(endTime.getTime() - (hoursBack * 60 * 60 * 1000));
+    
+    console.log(`Loading ${hoursBack} hours of history for`, entities);
+    
+    try {
+      // Fetch history for all entities in one call
+      const entityIds = entities.filter(e => e);
+      
+      if (entityIds.length === 0) {
+        this._isLoadingHistory = false;
+        return;
+      }
+      
+      const history = await this._hass.callWS({
+        type: 'history/history_during_period',
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        entity_ids: entityIds,
+        minimal_response: true,
+        significant_changes_only: false
+      });
+      
+      console.log('History loaded:', history);
+      
+      if (history && Array.isArray(history)) {
+        entityIds.forEach((entityId, index) => {
+          if (history[index] && Array.isArray(history[index])) {
+            const dataPoints = history[index]
+              .map(item => ({
+                timestamp: new Date(item.last_changed).getTime(),
+                value: parseFloat(item.state)
+              }))
+              .filter(point => !isNaN(point.value));
+            
+            console.log(`Entity ${entityId}: ${dataPoints.length} data points`);
+            
+            // Sample data points to fit _maxDataPoints
+            if (dataPoints.length > this._maxDataPoints) {
+              const step = Math.ceil(dataPoints.length / this._maxDataPoints);
+              this._historicalData[entityId] = dataPoints.filter((_, i) => i % step === 0).slice(-this._maxDataPoints);
+            } else {
+              this._historicalData[entityId] = dataPoints;
+            }
+          }
+        });
+      }
+      
+      this._historicalDataLoaded = true;
+      this._drawChart();
+    } catch (error) {
+      console.error('Error loading historical data:', error);
+    } finally {
+      this._isLoadingHistory = false;
+    }
+  }
+
   _collectDataPoint() {
     if (!this._hass || !this.config) return;
     
     const entities = this._getEntityList();
     const timestamp = Date.now();
+    const hoursBack = this.config.hours_to_show !== undefined ? this.config.hours_to_show : 1;
+    const cutoffTime = timestamp - (hoursBack * 60 * 60 * 1000);
     
     entities.forEach(entityId => {
       if (!entityId) return;
@@ -72,11 +147,19 @@ class FoundryChartCard extends HTMLElement {
         this._historicalData[entityId] = [];
       }
       
+      // Add new data point
       this._historicalData[entityId].push({ timestamp, value });
       
-      // Keep only the last _maxDataPoints
-      if (this._historicalData[entityId].length > this._maxDataPoints) {
-        this._historicalData[entityId].shift();
+      // Remove old data points that are outside the time range
+      this._historicalData[entityId] = this._historicalData[entityId].filter(
+        point => point.timestamp >= cutoffTime
+      );
+      
+      // Also enforce max data points limit
+      if (this._historicalData[entityId].length > this._maxDataPoints * 2) {
+        // Sample down to _maxDataPoints
+        const step = Math.floor(this._historicalData[entityId].length / this._maxDataPoints);
+        this._historicalData[entityId] = this._historicalData[entityId].filter((_, index) => index % step === 0);
       }
     });
     
@@ -115,12 +198,16 @@ class FoundryChartCard extends HTMLElement {
     
     // Reset historical data when config changes
     this._historicalData = {};
+    this._historicalDataLoaded = false;
     
     this.render();
     if (this._hass) {
       requestAnimationFrame(() => {
-        this._collectDataPoint();
-        this._drawChart();
+        this._loadHistoricalData().then(() => {
+          if (!this._updateInterval) {
+            this._startDataCollection();
+          }
+        });
       });
     }
   }
@@ -128,14 +215,14 @@ class FoundryChartCard extends HTMLElement {
   _validateConfig() {
     const config = this.config;
 
-    // Validate time range (in minutes)
-    if (config.time_range !== undefined) {
-      const range = parseFloat(config.time_range);
-      if (isNaN(range) || range <= 0) {
-        console.warn('Foundry Chart Card: time_range must be positive. Using 2 minutes.');
-        this.config.time_range = 2;
+    // Validate hours to show
+    if (config.hours_to_show !== undefined) {
+      const hours = parseFloat(config.hours_to_show);
+      if (isNaN(hours) || hours <= 0) {
+        console.warn('Foundry Chart Card: hours_to_show must be positive. Using 1 hour.');
+        this.config.hours_to_show = 1;
       } else {
-        this.config.time_range = Math.min(range, 60); // Cap at 60 minutes
+        this.config.hours_to_show = Math.min(hours, 24); // Cap at 24 hours
       }
     }
 
@@ -149,15 +236,36 @@ class FoundryChartCard extends HTMLElement {
         this.config.chart_height = Math.min(height, 800); // Cap at 800px
       }
     }
+
+    // Validate pen thickness
+    if (config.pen_thickness !== undefined) {
+      const thickness = parseFloat(config.pen_thickness);
+      if (isNaN(thickness) || thickness <= 0) {
+        console.warn('Foundry Chart Card: pen_thickness must be positive. Using 1.5.');
+        this.config.pen_thickness = 1.5;
+      } else {
+        this.config.pen_thickness = Math.min(Math.max(thickness, 0.5), 5); // Cap between 0.5 and 5
+      }
+    }
   }
 
   set hass(hass) {
+    const firstRun = !this._hass;
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
     
-    // Update chart with new values
-    this._drawChart();
+    // Load historical data on first run
+    if (firstRun && !this._historicalDataLoaded && !this._isLoadingHistory) {
+      this._loadHistoricalData().then(() => {
+        if (!this._updateInterval) {
+          this._startDataCollection();
+        }
+      });
+    } else {
+      // Update chart with new values
+      this._drawChart();
+    }
   }
 
   render() {
@@ -232,7 +340,6 @@ class FoundryChartCard extends HTMLElement {
         }
         .chart-line {
           fill: none;
-          stroke-width: 1.5;
           stroke-linecap: round;
           stroke-linejoin: round;
         }
@@ -542,6 +649,7 @@ class FoundryChartCard extends HTMLElement {
       const color = this.config[`color${index === 0 ? '' : index + 1}`] || defaultColors[index];
       const trackY = margin.top + (index * trackHeight);
       const trackCenter = trackY + (trackHeight / 2);
+      const penThickness = this.config.pen_thickness !== undefined ? this.config.pen_thickness : 1.5;
       
       // Calculate min/max for this entity
       const values = data.map(d => d.value);
@@ -563,6 +671,7 @@ class FoundryChartCard extends HTMLElement {
       path.setAttribute('d', pathData);
       path.setAttribute('class', 'chart-line');
       path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', penThickness);
       chartArea.appendChild(path);
       
       // Draw pen pivot on the right side
@@ -578,14 +687,14 @@ class FoundryChartCard extends HTMLElement {
       penArm.setAttribute('x2', penX + 40);
       penArm.setAttribute('y2', trackCenter);
       penArm.setAttribute('stroke', color);
-      penArm.setAttribute('stroke-width', '1.5');
+      penArm.setAttribute('stroke-width', penThickness);
       pensArea.appendChild(penArm);
       
-      // Pen tip (circle at the chart end)
+      // Pen tip (circle at the chart end) - scale radius based on thickness
       const penTip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       penTip.setAttribute('cx', margin.left + width);
       penTip.setAttribute('cy', penY);
-      penTip.setAttribute('r', '3');
+      penTip.setAttribute('r', Math.max(2, penThickness * 1.5));
       penTip.setAttribute('fill', color);
       penTip.setAttribute('stroke', '#3e2723');
       penTip.setAttribute('stroke-width', '0.5');
@@ -632,7 +741,8 @@ class FoundryChartCard extends HTMLElement {
       entity: "",
       title: "Chart Recorder",
       chart_height: 300,
-      time_range: 2
+      hours_to_show: 1,
+      pen_thickness: 1.5
     };
   }
 }
