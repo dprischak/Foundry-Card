@@ -3286,7 +3286,36 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
         name: "",
         schema: [
           { name: "title", selector: { text: {} } },
-          { name: "time_zone", label: "Time Zone (e.g. America/New_York)", selector: { text: {} } }
+          {
+            name: "time_zone",
+            label: "Time Zone",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "", label: "Local Time" },
+                  { value: "Etc/UTC", label: "UTC" },
+                  { value: "America/New_York", label: "New York (Eastern)" },
+                  { value: "America/Chicago", label: "Chicago (Central)" },
+                  { value: "America/Denver", label: "Denver (Mountain)" },
+                  { value: "America/Los_Angeles", label: "Los Angeles (Pacific)" },
+                  { value: "America/Phoenix", label: "Phoenix (MST)" },
+                  { value: "America/Anchorage", label: "Anchorage (Alaska)" },
+                  { value: "Pacific/Honolulu", label: "Honolulu (Hawaii)" },
+                  { value: "Europe/London", label: "London (GMT/BST)" },
+                  { value: "Europe/Paris", label: "Paris (CET/CEST)" },
+                  { value: "Europe/Berlin", label: "Berlin (CET/CEST)" },
+                  { value: "Europe/Moscow", label: "Moscow (MSK)" },
+                  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+                  { value: "Asia/Shanghai", label: "Shanghai (CST)" },
+                  { value: "Asia/Hong_Kong", label: "Hong Kong (HKT)" },
+                  { value: "Asia/Singapore", label: "Singapore (SGT)" },
+                  { value: "Australia/Sydney", label: "Sydney (AEST/AEDT)" },
+                  { value: "Pacific/Auckland", label: "Auckland (NZST/NZDT)" }
+                ]
+              }
+            }
+          }
         ]
       }
     ];
