@@ -3572,20 +3572,16 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const hours = hoursNum.toString().padStart(2, "0");
     let minutes = time.getMinutes().toString().padStart(2, "0");
     let seconds = time.getSeconds().toString().padStart(2, "0");
-    if (this.config.use_24h_format === false && isPm) {
-      if (this.config.show_seconds !== false) {
-        seconds += ".";
-      } else {
-        minutes += ".";
-      }
-    }
+    const showPm = this.config.use_24h_format === false && isPm;
     const timeFull = this.config.show_seconds !== false ? `${hours}:${minutes}:${seconds}` : `${hours}:${minutes}`;
     const timeHours = this.shadowRoot.getElementById("timeHours");
     const timeMinutes = this.shadowRoot.getElementById("timeMinutes");
     const timeSeconds = this.shadowRoot.getElementById("timeSeconds");
+    const pmIndicator = this.shadowRoot.getElementById("pmIndicator");
     if (timeHours) timeHours.textContent = hours;
     if (timeMinutes) timeMinutes.textContent = minutes;
     if (timeSeconds) timeSeconds.textContent = seconds;
+    if (pmIndicator) pmIndicator.textContent = showPm ? "." : "";
   }
   render() {
     const config = this.config;
@@ -3712,6 +3708,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
                     <text id="timeMinutes" x="130" y="75" text-anchor="middle">--</text>
                     <text id="timeSep2"    x="160" y="73" text-anchor="middle">:</text>
                     <text id="timeSeconds" x="168" y="75" text-anchor="start">--</text>
+                    <text id="pmIndicator" x="214" y="75" text-anchor="start"></text>
                   </g>
                 ` : `
                   <!-- Layout without Seconds: H:M -->
@@ -3720,6 +3717,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
                     <text id="timeHours"   x="122" y="75" text-anchor="end">--</text>
                     <text id="timeSep1"    x="130" y="73" text-anchor="middle">:</text>
                     <text id="timeMinutes" x="138" y="75" text-anchor="start">--</text>
+                    <text id="pmIndicator" x="184" y="75" text-anchor="start"></text>
                   </g>
                 `}
               
