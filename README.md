@@ -312,68 +312,6 @@ The gauge features a realistic aged texture system that adds vintage character t
   - `100`: Maximum texture - heavily aged, weathered appearance
   - Higher values make the texture more prominent and visible
 
-## Development
-
-Want to contribute or customize the cards?
-
-### Prerequisites
-
-1. **Install Node.js**
-   - Download and install Node.js from [nodejs.org](https://nodejs.org/), which includes `npm`.
-
-
-### Setting Up Your Development Environment
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/dprischak/Foundry-Card.git
-   cd Foundry-Card
-   ```
-   
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-### Development Workflow
-
-1. **Create a branch and make the changes into that branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   # or
-   git checkout -b fix/your-bug-fix
-   ```
-
-2. Make Your Changes:
-   - Write clean, readable code
-   - Follow the existing code style
-   - Add comments for complex logic
-   - Update documentation if needed 
-
-3. **Build the Project**
-   ```bash
-   npm run build
-   ```
-
-4. Commit your changes
-   ```bash
-   git add .
-   git commit -m "feat: add new feature" # or "fix: resolve bug"
-   ```
-   
-5. Push and Create a Pull Request:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-Then open a pull request on GitHub with a clear description of your changes.
-
-### Ways to Contribute
-
-- **Report Bugs:** Open an issue with detailed steps to reproduce
-- **Suggest Features:** Share your ideas for improvements
-- **Fix Issues:** Look for open issues and submit fixes
-- **Improve Documentation:** Help make the docs clearer and more comprehensive
-
 ### Foundry Analog Clock
 
 Add a vintage analog clock to your dashboard:
@@ -457,6 +395,71 @@ segments:
 | `mercury_width` | number | 50 | Width of liquid column (percentage) |
 | `segments` | array | [] | Color zones (from/to/color) |
 | `animation_duration` | number | 1.5 | Animation speed in seconds |
+
+
+## Development
+
+Want to contribute or customize the cards?
+
+### Prerequisites
+
+1. **Install Node.js**
+   - Download and install Node.js from [nodejs.org](https://nodejs.org/), which includes `npm`.
+
+
+### Setting Up Your Development Environment
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/dprischak/Foundry-Card.git
+   cd Foundry-Card
+   ```
+   
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+### Development Workflow
+
+1. **Create a branch and make the changes into that branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/your-bug-fix
+   ```
+
+2. Make Your Changes:
+   - Write clean, readable code
+   - Follow the existing code style
+   - Add comments for complex logic
+   - Update documentation if needed 
+
+3. **Build the Project**
+   ```bash
+   npm run build
+   ```
+
+4. Commit your changes
+   ```bash
+   git add .
+   git commit -m "feat: add new feature" # or "fix: resolve bug"
+   ```
+   
+5. Push and Create a Pull Request:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+Then open a pull request on GitHub with a clear description of your changes.
+
+### Ways to Contribute
+
+- **Report Bugs:** Open an issue with detailed steps to reproduce
+- **Suggest Features:** Share your ideas for improvements
+- **Fix Issues:** Look for open issues and submit fixes
+- **Improve Documentation:** Help make the docs clearer and more comprehensive
+
+
 
 ## Roadmap
 
