@@ -3520,6 +3520,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
     this.config.font_color = this.config.font_color || "#000000";
+    this.config.use_24h_format = this.config.use_24h_format !== void 0 ? this.config.use_24h_format : true;
     this.config.show_seconds = this.config.show_seconds !== void 0 ? this.config.show_seconds : true;
     this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
     this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
@@ -3562,9 +3563,22 @@ var FoundryDigitalClockCard = class extends HTMLElement {
         console.warn("Invalid time zone:", this.config.time_zone);
       }
     }
-    const hours = time.getHours().toString().padStart(2, "0");
-    const minutes = time.getMinutes().toString().padStart(2, "0");
-    const seconds = time.getSeconds().toString().padStart(2, "0");
+    let hoursNum = time.getHours();
+    let isPm = hoursNum >= 12;
+    if (this.config.use_24h_format === false) {
+      hoursNum = hoursNum % 12;
+      hoursNum = hoursNum ? hoursNum : 12;
+    }
+    const hours = hoursNum.toString().padStart(2, "0");
+    let minutes = time.getMinutes().toString().padStart(2, "0");
+    let seconds = time.getSeconds().toString().padStart(2, "0");
+    if (this.config.use_24h_format === false && isPm) {
+      if (this.config.show_seconds !== false) {
+        seconds += ".";
+      } else {
+        minutes += ".";
+      }
+    }
     const timeFull = this.config.show_seconds !== false ? `${hours}:${minutes}:${seconds}` : `${hours}:${minutes}`;
     const timeHours = this.shadowRoot.getElementById("timeHours");
     const timeMinutes = this.shadowRoot.getElementById("timeMinutes");
@@ -3907,6 +3921,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       plate_transparent: false,
       font_bg_color: "#ffffff",
       font_color: "#000000",
+      use_24h_format: true,
       show_seconds: true,
       wear_level: 50,
       glass_effect_enabled: true,
@@ -4010,6 +4025,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     };
     data.layout = {
       title_font_size: config.title_font_size ?? 14,
+      use_24h_format: config.use_24h_format ?? true,
       show_seconds: config.show_seconds ?? true
     };
     return data;
@@ -4072,6 +4088,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
         title: "Layout & Text",
         schema: [
           { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
+          { name: "use_24h_format", label: "Use 24h Format", selector: { boolean: {} } },
           { name: "show_seconds", label: "Show Seconds", selector: { boolean: {} } }
         ]
       }

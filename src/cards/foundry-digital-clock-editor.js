@@ -93,6 +93,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
         };
         data.layout = {
             title_font_size: config.title_font_size ?? 14,
+            use_24h_format: config.use_24h_format ?? true,
             show_seconds: config.show_seconds ?? true
         };
 
@@ -166,6 +167,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
                 title: "Layout & Text",
                 schema: [
                     { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
+                    { name: "use_24h_format", label: "Use 24h Format", selector: { boolean: {} } },
                     { name: "show_seconds", label: "Show Seconds", selector: { boolean: {} } }
                 ]
             }

@@ -41,6 +41,7 @@ class FoundryDigitalClockCard extends HTMLElement {
     this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
     this.config.font_color = this.config.font_color || '#000000';
+    this.config.use_24h_format = this.config.use_24h_format !== undefined ? this.config.use_24h_format : true;
 
     this.config.show_seconds = this.config.show_seconds !== undefined ? this.config.show_seconds : true;
     this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
@@ -96,9 +97,26 @@ class FoundryDigitalClockCard extends HTMLElement {
       }
     }
 
-    const hours = time.getHours().toString().padStart(2, '0');
-    const minutes = time.getMinutes().toString().padStart(2, '0');
-    const seconds = time.getSeconds().toString().padStart(2, '0');
+    let hoursNum = time.getHours();
+    let isPm = hoursNum >= 12;
+
+    if (this.config.use_24h_format === false) {
+      hoursNum = hoursNum % 12;
+      hoursNum = hoursNum ? hoursNum : 12; // the hour '0' should be '12'
+    }
+
+    const hours = hoursNum.toString().padStart(2, '0');
+    let minutes = time.getMinutes().toString().padStart(2, '0');
+    let seconds = time.getSeconds().toString().padStart(2, '0');
+
+    // If 12h format and PM, append dot to seconds (or minutes if seconds hidden)
+    if (this.config.use_24h_format === false && isPm) {
+      if (this.config.show_seconds !== false) {
+        seconds += ".";
+      } else {
+        minutes += ".";
+      }
+    }
 
     const timeFull = (this.config.show_seconds !== false)
       ? `${hours}:${minutes}:${seconds}`
@@ -476,6 +494,7 @@ class FoundryDigitalClockCard extends HTMLElement {
       plate_transparent: false,
       font_bg_color: '#ffffff',
       font_color: '#000000',
+      use_24h_format: true,
       show_seconds: true,
       wear_level: 50,
       glass_effect_enabled: true,
