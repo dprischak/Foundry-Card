@@ -276,4 +276,7 @@ class FoundryThermostatEditor extends HTMLElement {
   }
 }
 
-customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
+if (!customElements.get("foundry-thermostat-editor")) {
+  customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
+}
+

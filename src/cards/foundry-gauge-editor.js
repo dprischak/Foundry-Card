@@ -719,4 +719,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
 }
 
 
-customElements.define('foundry-gauge-card-editor', FoundryGaugeCardEditor);
+if (!customElements.get('foundry-gauge-card-editor')) {
+    customElements.define('foundry-gauge-card-editor', FoundryGaugeCardEditor);
+}
+

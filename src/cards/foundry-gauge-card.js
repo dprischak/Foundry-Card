@@ -1745,7 +1745,10 @@ class FoundryGaugeCard extends HTMLElement {
 }
 
 
-customElements.define('foundry-gauge-card', FoundryGaugeCard);
+if (!customElements.get('foundry-gauge-card')) {
+  customElements.define('foundry-gauge-card', FoundryGaugeCard);
+}
+
 
 window.customCards = window.customCards || [];
 window.customCards.push({

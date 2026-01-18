@@ -194,4 +194,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
     }
 }
 
-customElements.define('foundry-digital-clock-editor', FoundryDigitalClockCardEditor);
+if (!customElements.get('foundry-digital-clock-editor')) {
+    customElements.define('foundry-digital-clock-editor', FoundryDigitalClockCardEditor);
+}
+

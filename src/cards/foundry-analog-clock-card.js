@@ -517,7 +517,10 @@ class FoundryAnalogClockCard extends HTMLElement {
   }
 }
 
-customElements.define('foundry-analog-clock-card', FoundryAnalogClockCard);
+if (!customElements.get('foundry-analog-clock-card')) {
+  customElements.define('foundry-analog-clock-card', FoundryAnalogClockCard);
+}
+
 
 window.customCards = window.customCards || [];
 window.customCards.push({
