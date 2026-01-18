@@ -3473,15 +3473,41 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._timer = null;
   }
+  ensureLedFont() {
+    const FONT_STYLE_ID = "foundry-digital-led-font";
+    if (document.getElementById(FONT_STYLE_ID)) return;
+    const style = document.createElement("style");
+    style.id = FONT_STYLE_ID;
+    style.textContent = `
+      @font-face {
+        font-family: 'ds-digitalnormal';
+        src: url("data:font/woff2;base64,${FOUNDRY_DIGITAL_FONT}") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    `;
+    document.head.appendChild(style);
+  }
   setConfig(config) {
     this.config = { ...config };
     if (!this.config.tap_action) {
       this.config.tap_action = { action: "more-info" };
     }
-    if (this.config.ring_style === void 0) {
-      this.config.ring_style = "brass";
-    }
+    this.config.ring_style = this.config.ring_style || "brass";
+    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+    this.config.plate_color = this.config.plate_color || "#f5f5f5";
+    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+    this.config.font_color = this.config.font_color || "#000000";
+    this.config.show_seconds = this.config.show_seconds !== void 0 ? this.config.show_seconds : true;
+    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
     this._uniqueId = Math.random().toString(36).substr(2, 9);
+    this.ensureLedFont();
     this.render();
     this._startClock();
   }
@@ -3520,7 +3546,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     const seconds = time.getSeconds().toString().padStart(2, "0");
-    const timeFull = `${hours}:${minutes}:${seconds}`;
+    const timeFull = this.config.show_seconds !== false ? `${hours}:${minutes}:${seconds}` : `${hours}:${minutes}`;
     const timeElement = this.shadowRoot.getElementById("timeText");
     if (timeElement) {
       timeElement.textContent = timeFull;
@@ -3530,21 +3556,36 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const config = this.config;
     const title = config.title || "";
     const uid = this._uniqueId;
-    const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 14;
-    const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
-    const rimData = this.getRimStyleData(ringStyle, uid);
-    const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
-    const plateColor = config.plate_color !== void 0 ? config.plate_color : "#f5f5f5";
-    const fontBgColor = config.font_bg_color !== void 0 ? config.font_bg_color : "#222222";
-    const timeFontFamily = config.time_font_family || "ds-digitalnormal, monospace";
-    const titleFontFamily = config.title_font_family || "Georgia, serif";
+    const titleFontSize = config.title_font_size;
+    const ringStyle = config.ring_style;
+    const rivetColor = config.rivet_color;
+    const plateColor = config.plate_color;
+    const plateTransparent = config.plate_transparent;
+    const fontBgColor = config.font_bg_color;
+    const fontColor = config.font_color;
+    const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
+    const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const titleFontFamily = "Georgia, serif";
     this.shadowRoot.innerHTML = `
       <style>
         @font-face {
-            font-family: 'ds-digitalnormal';
-            src: url(data:application/font-woff2;charset=utf-8;base64,${FOUNDRY_DIGITAL_FONT}) format('woff2');
-            font-weight: normal;
-            font-style: normal;
+          font-family: 'ds-digitalnormal';
+          src: url("data:font/woff2;base64,${FOUNDRY_DIGITAL_FONT}") format("woff2");
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+        }
+        .flip-digit {
+          font-family: 'ds-digitalnormal', monospace; 
+        }
+
+        .digit-item {
+          font-family: 'ds-digitalnormal', monospace;
         }
         :host {
           display: block;
@@ -3562,13 +3603,14 @@ var FoundryDigitalClockCard = class extends HTMLElement {
         .clock-container {
           position: relative;
           width: 100%;
-          max-width: 400px;
+          max-width: 520px; /* Allowed to be wider */
           margin: 0 auto;
           container-type: inline-size;
+          aspect-ratio: 26 / 15;
         }
         .clock-svg {
           width: 100%;
-          height: auto;
+          height: 100%;
           filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
         }
         .rivet {
@@ -3584,7 +3626,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       <ha-card role="img" aria-label="${title ? title : "Foundry Digital Clock"}" tabindex="0">
         <div class="card" id="actionRoot">
           <div class="clock-container" role="presentation">
-            <svg class="clock-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+            <svg class="clock-svg" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
               <defs>
                 <!-- Gradient for clock face/background -->
                 <radialGradient id="clockFace-${uid}" cx="50%" cy="50%">
@@ -3592,37 +3634,48 @@ var FoundryDigitalClockCard = class extends HTMLElement {
                   <stop offset="100%" style="stop-color:${this.adjustColor(fontBgColor, -20)};stop-opacity:1" />
                 </radialGradient>
                 
-                <!-- Gradients for Rims (Square compatible) -->
+                <!-- Gradients for Rims -->
                 ${this.renderGradients(uid)}
+
+                <!-- Aged texture -->
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feComponentTransfer result="grainTexture">
+                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  </feComponentTransfer>
+                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
+                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                </filter>
               </defs>
               
-              <!-- Draw Square Frame/Ring using rect with rx/ry -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor)}
+              <!-- 1. The Plate (Base) -->
+              <!-- Wider and shorter: 260x140 (ViewBox 260) -->
+              <rect x="5" y="10" width="250" height="130" rx="20" ry="20" 
+                    fill="${plateTransparent ? "none" : plateColor}" 
+                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
+                    filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
+
+              <!-- 2. The Rivets -->
+              ${this.renderRivets()}
+
+              <!-- 3. The Ring (Wider) -->
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
               
               <!-- Title text -->
-              ${title ? `<text x="100" y="70" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>` : ""}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
               
               <!-- Digital Time -->
-              <!-- LED Effect: Text shadow for glow -->
-              <text id="timeText" x="100" y="115" text-anchor="middle" dominant-baseline="middle" 
-                    font-size="48" font-family="${timeFontFamily}" fill="#00ff00" 
-                    style="text-shadow: 0 0 5px rgba(0, 255, 0, 0.7);">
-                12:00:00
+              <text id="timeText" x="130" y="75" text-anchor="middle" dominant-baseline="middle" 
+                    font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" 
+                    style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                --:--:--
               </text>
-                            
-              <!-- Corner rivets for square -->
-              <circle cx="20" cy="20" r="4" class="rivet"/>
-              <circle cx="20" cy="20" r="2.5" class="screw-detail"/>
-              <line x1="17" y1="20" x2="23" y2="20" class="screw-detail"/>
-              <circle cx="180" cy="20" r="4" class="rivet"/>
-              <circle cx="180" cy="20" r="2.5" class="screw-detail"/>
-              <line x1="177" y1="20" x2="183" y2="20" class="screw-detail"/>
-              <circle cx="20" cy="180" r="4" class="rivet"/>
-              <circle cx="20" cy="180" r="2.5" class="screw-detail"/>
-              <line x1="17" y1="180" x2="23" y2="180" class="screw-detail"/>
-              <circle cx="180" cy="180" r="4" class="rivet"/>
-              <circle cx="180" cy="180" r="2.5" class="screw-detail"/>
-              <line x1="177" y1="180" x2="183" y2="180" class="screw-detail"/>
+              
+              <!-- Wear Marks -->
+              ${this.renderWearMarks(wearLevel)}
 
             </svg>
           </div>
@@ -3631,12 +3684,55 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     `;
     this._attachActionListeners();
   }
+  renderRivets() {
+    const rivets = [
+      { cx: 20, cy: 25 },
+      { cx: 240, cy: 25 },
+      { cx: 20, cy: 125 },
+      { cx: 240, cy: 125 }
+    ];
+    return rivets.map((r) => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `).join("");
+  }
+  renderWearMarks(wearLevel) {
+    if (wearLevel === 0) return "";
+    const baseOpacity = wearLevel / 100 * 0.25;
+    const allMarks = [
+      { type: "circle", cx: 50, cy: 45, r: 2, fill: "#8B7355", baseOpacity: 0.2 },
+      { type: "circle", cx: 210, cy: 56, r: 1.5, fill: "#8B7355", baseOpacity: 0.15 },
+      { type: "circle", cx: 77, cy: 90, r: 1, fill: "#6d5d4b", baseOpacity: 0.2 },
+      { type: "ellipse", cx: 163, cy: 37, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.1 },
+      { type: "circle", cx: 38, cy: 105, r: 1.2, fill: "#8B7355", baseOpacity: 0.12 },
+      { type: "circle", cx: 220, cy: 97, r: 1.8, fill: "#6d5d4b", baseOpacity: 0.18 },
+      { type: "ellipse", cx: 55, cy: 67, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.08 },
+      { type: "circle", cx: 152, cy: 108, r: 0.8, fill: "#6d5d4b", baseOpacity: 0.15 },
+      { type: "circle", cx: 238, cy: 48, r: 1.3, fill: "#8B7355", baseOpacity: 0.1 },
+      { type: "ellipse", cx: 27, cy: 75, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.09 }
+    ];
+    const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
+    const marksToShow = allMarks.slice(0, markCount);
+    return marksToShow.map((mark) => {
+      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+      return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+    }).join("");
+  }
   // ... helper methods for color, common gradients etc ...
   adjustColor(color, percent) {
+    if (!color) return color;
+    if (color.startsWith("#")) {
+      let num = parseInt(color.replace("#", ""), 16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 255) + amt, B = (num & 255) + amt;
+      return "#" + (16777216 + (R < 255 ? R < 1 ? 0 : R : 255) * 65536 + (G < 255 ? G < 1 ? 0 : G : 255) * 256 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
     return color;
   }
   renderGradients(uid) {
     return `
+        <!-- Brass -->
         <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
           <stop offset="25%" style="stop-color:#ddc68f;stop-opacity:1" />
@@ -3644,6 +3740,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
           <stop offset="75%" style="stop-color:#d4b877;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#a68038;stop-opacity:1" />
         </linearGradient>
+        <!-- Silver/Chrome -->
         <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
           <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
@@ -3651,26 +3748,67 @@ var FoundryDigitalClockCard = class extends HTMLElement {
           <stop offset="75%" style="stop-color:#e0e0e0;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#b0b0b0;stop-opacity:1" />
         </linearGradient>
+        <!-- White -->
         <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
            <stop offset="0%"   style="stop-color:#f6f6f6;stop-opacity:1" />
            <stop offset="100%" style="stop-color:#cfcfcf;stop-opacity:1" />
         </linearGradient>
-         <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+         <!-- Black -->
+        <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
            <stop offset="0%"   style="stop-color:#3a3a3a;stop-opacity:1" />
            <stop offset="100%" style="stop-color:#141414;stop-opacity:1" />
         </linearGradient>
+        <!-- Copper -->
+        <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   style="stop-color:#c77c43;stop-opacity:1" />
+          <stop offset="25%"  style="stop-color:#e1a06a;stop-opacity:1" />
+          <stop offset="50%"  style="stop-color:#9a5c2a;stop-opacity:1" />
+          <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+        </linearGradient>
+        <!-- Blue -->
+        <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
+          <stop offset="25%"  style="stop-color:#5ea2ff;stop-opacity:1" />
+          <stop offset="50%"  style="stop-color:#1f4f9e;stop-opacity:1" />
+          <stop offset="75%"  style="stop-color:#4f8fe6;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#163b76;stop-opacity:1" />
+        </linearGradient>
+        <!-- Green -->
+        <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   style="stop-color:#2fbf71;stop-opacity:1" />
+          <stop offset="25%"  style="stop-color:#6fe0a6;stop-opacity:1" />
+          <stop offset="50%"  style="stop-color:#1f7a49;stop-opacity:1" />
+          <stop offset="75%"  style="stop-color:#53cf8e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#165a36;stop-opacity:1" />
+        </linearGradient>
+        <!-- Red -->
+        <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   style="stop-color:#e53935;stop-opacity:1" />
+          <stop offset="25%"  style="stop-color:#ff6f6c;stop-opacity:1" />
+          <stop offset="50%"  style="stop-color:#9e1f1c;stop-opacity:1" />
+          <stop offset="75%"  style="stop-color:#e85a57;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+        </linearGradient>
       `;
   }
-  renderSquareRim(ringStyle, uid, bgColor) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     return `
-      <!-- Outer Frame -->
-      <rect x="5" y="5" width="190" height="190" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="2"/>
-      <!-- Inner Frame (Inset) -->
-      <rect x="15" y="15" width="170" height="170" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
-      <!-- Face Background -->
-      <rect x="25" y="25" width="150" height="150" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+      <!-- Outer Frame (The Ring) -->
+      <rect x="20" y="35" width="220" height="80" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
+            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+      
+      <!-- Inner Bevel (Inset) -->
+      <rect x="28" y="43" width="204" height="64" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+      
+      <!-- Face Background (Screen) -->
+      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
+             style="box-shadow: inset 0 0 10px #000;"/>
+      
+      <!-- Glass Glare on Screen -->
+      ${glassEffectEnabled ? `<path d="M 35 50 Q 130 70 225 50 L 225 90 Q 130 100 35 90 Z" fill="white" opacity="0.05" clip-path="inset(0px round 10px)" />` : ""}
     `;
   }
   getRimStyleData(ringStyle, uid) {
@@ -3684,6 +3822,14 @@ var FoundryDigitalClockCard = class extends HTMLElement {
         return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
       case "black":
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
+      case "copper":
+        return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "blue":
+        return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
+      case "green":
+        return { grad: `greenRim-${uid}`, stroke: "#006400" };
+      case "red":
+        return { grad: `redRim-${uid}`, stroke: "#8B0000" };
       default:
         return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
     }
@@ -3719,10 +3865,18 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     return {
       entity: "sun.sun",
       title: "Local Time",
-      title_font_size: 14,
+      title_font_size: 12,
       ring_style: "brass",
       rivet_color: "#6a5816",
-      font_bg_color: "#222222"
+      plate_color: "#8c7626",
+      plate_transparent: false,
+      font_bg_color: "#ffffff",
+      font_color: "#000000",
+      show_seconds: true,
+      wear_level: 50,
+      glass_effect_enabled: true,
+      aged_texture: "everywhere",
+      aged_texture_intensity: 50
     };
   }
 };
@@ -3808,26 +3962,39 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
   _configToForm(config) {
     const data = { ...config };
     data.appearance = {
-      ring_style: config.ring_style,
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#222222") ?? [34, 34, 34]
+      ring_style: config.ring_style ?? "brass",
+      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255],
+      font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75],
+      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245],
+      plate_transparent: config.plate_transparent ?? false,
+      wear_level: config.wear_level ?? 50,
+      glass_effect_enabled: config.glass_effect_enabled ?? true,
+      aged_texture: config.aged_texture ?? "everywhere",
+      aged_texture_intensity: config.aged_texture_intensity ?? 50
     };
-    data.fonts = {
-      time_font_family: config.time_font_family ?? "ds-digitalnormal, monospace",
-      title_font_family: config.title_font_family ?? "Georgia, serif"
+    data.layout = {
+      title_font_size: config.title_font_size ?? 14,
+      show_seconds: config.show_seconds ?? true
     };
     return data;
   }
   _formToConfig(formData) {
     const config = { ...this._config };
     Object.keys(formData).forEach((key) => {
-      if (["appearance", "fonts"].includes(key)) return;
+      if (["appearance", "layout"].includes(key)) return;
       config[key] = formData[key];
     });
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
+      config.font_color = this._rgbToHex(config.font_color);
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+      config.plate_color = this._rgbToHex(config.plate_color);
     }
-    if (formData.fonts) Object.assign(config, formData.fonts);
+    if (formData.layout) {
+      Object.assign(config, formData.layout);
+    }
     return config;
   }
   _getSchemaTop(formData) {
@@ -3843,11 +4010,35 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
             options: [
               { value: "", label: "Local Time" },
               { value: "Etc/UTC", label: "UTC" },
-              { value: "America/New_York", label: "New York" },
-              { value: "Europe/London", label: "London" }
+              { value: "America/New_York", label: "New York (Eastern)" },
+              { value: "America/Chicago", label: "Chicago (Central)" },
+              { value: "America/Denver", label: "Denver (Mountain)" },
+              { value: "America/Los_Angeles", label: "Los Angeles (Pacific)" },
+              { value: "America/Phoenix", label: "Phoenix (MST)" },
+              { value: "America/Anchorage", label: "Anchorage (Alaska)" },
+              { value: "Pacific/Honolulu", label: "Honolulu (Hawaii)" },
+              { value: "Europe/London", label: "London (GMT/BST)" },
+              { value: "Europe/Paris", label: "Paris (CET/CEST)" },
+              { value: "Europe/Berlin", label: "Berlin (CET/CEST)" },
+              { value: "Europe/Moscow", label: "Moscow (MSK)" },
+              { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+              { value: "Asia/Shanghai", label: "Shanghai (CST)" },
+              { value: "Asia/Hong_Kong", label: "Hong Kong (HKT)" },
+              { value: "Asia/Singapore", label: "Singapore (SGT)" },
+              { value: "Australia/Sydney", label: "Sydney (AEST/AEDT)" },
+              { value: "Pacific/Auckland", label: "Auckland (NZST/NZDT)" }
             ]
           }
         }
+      },
+      {
+        name: "layout",
+        type: "expandable",
+        title: "Layout & Text",
+        schema: [
+          { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
+          { name: "show_seconds", label: "Show Seconds", selector: { boolean: {} } }
+        ]
       }
     ];
   }
@@ -3867,22 +4058,45 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
                 options: [
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
+                  { value: "copper", label: "Copper" },
                   { value: "black", label: "Black" },
-                  { value: "white", label: "White" }
+                  { value: "white", label: "White" },
+                  { value: "blue", label: "Blue" },
+                  { value: "green", label: "Green" },
+                  { value: "red", label: "Red" }
                 ]
               }
             }
           },
-          { name: "font_bg_color", label: "Background Color", selector: { color_rgb: {} } }
-        ]
-      },
-      {
-        name: "fonts",
-        type: "expandable",
-        title: "Fonts",
-        schema: [
-          { name: "time_font_family", label: "Time Font Family", selector: { text: {} } },
-          { name: "title_font_family", label: "Title Font Family", selector: { text: {} } }
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              { name: "font_bg_color", label: "Screen Background", selector: { color_rgb: {} } },
+              { name: "font_color", label: "Digital Font Color", selector: { color_rgb: {} } },
+              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
+              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }
+            ]
+          },
+          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
+          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
+          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          {
+            name: "aged_texture",
+            label: "Aged Texture Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
         ]
       }
     ];
