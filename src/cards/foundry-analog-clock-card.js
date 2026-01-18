@@ -5,6 +5,11 @@ class FoundryAnalogClockCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this._timer = null;
+    this._handState = {
+      s: { v: -1, off: 0 },
+      m: { v: -1, off: 0 },
+      h: { v: -1, off: 0 }
+    };
   }
 
   setConfig(config) {
@@ -75,15 +80,35 @@ class FoundryAnalogClockCard extends HTMLElement {
     const minutes = time.getMinutes();
     const hours = time.getHours();
 
-    // Calculate angles
-    // Seconds: 6 degrees per second
-    const secondAngle = seconds * 6;
+    // Track rotations to avoid "rewind" effect when passing 0 (12 o'clock)
 
-    // Minutes: 6 degrees per minute + adjustment for seconds
-    const minuteAngle = (minutes * 6) + (seconds * 0.1);
+    // Seconds
+    if (this._handState.s.v !== -1 && seconds < this._handState.s.v) {
+      this._handState.s.off += 360;
+    }
+    this._handState.s.v = seconds;
+    const secondAngle = (seconds * 6) + this._handState.s.off;
 
-    // Hours: 30 degrees per hour + adjustment for minutes
-    const hourAngle = ((hours % 12) * 30) + (minutes * 0.5);
+    // Minutes
+    // Minute hand moves partially with seconds: (minutes * 6) + (seconds * 0.1)
+    // Wrap detection logic: compare base minute value
+    if (this._handState.m.v !== -1 && minutes < this._handState.m.v) {
+      this._handState.m.off += 360;
+    }
+    this._handState.m.v = minutes;
+    const minuteAngle = (minutes * 6) + (seconds * 0.1) + this._handState.m.off;
+
+    // Hours
+    // Hour hand moves partially with minutes: ((hours % 12) * 30) + (minutes * 0.5)
+    // Wrap detection relies on display hour (0-11)
+    const displayHour = hours % 12;
+    const prevDisplayHour = this._handState.h.v !== -1 ? (this._handState.h.v % 12) : displayHour;
+
+    if (this._handState.h.v !== -1 && displayHour < prevDisplayHour) {
+      this._handState.h.off += 360;
+    }
+    this._handState.h.v = hours;
+    const hourAngle = (displayHour * 30) + (minutes * 0.5) + this._handState.h.off;
 
     this._updateHand('secondHand', secondAngle);
     this._updateHand('minuteHand', minuteAngle);

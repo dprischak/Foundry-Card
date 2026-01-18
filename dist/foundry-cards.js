@@ -2657,6 +2657,11 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._timer = null;
+    this._handState = {
+      s: { v: -1, off: 0 },
+      m: { v: -1, off: 0 },
+      h: { v: -1, off: 0 }
+    };
   }
   setConfig(config) {
     this.config = { ...config };
@@ -2705,9 +2710,23 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     const seconds = time.getSeconds();
     const minutes = time.getMinutes();
     const hours = time.getHours();
-    const secondAngle = seconds * 6;
-    const minuteAngle = minutes * 6 + seconds * 0.1;
-    const hourAngle = hours % 12 * 30 + minutes * 0.5;
+    if (this._handState.s.v !== -1 && seconds < this._handState.s.v) {
+      this._handState.s.off += 360;
+    }
+    this._handState.s.v = seconds;
+    const secondAngle = seconds * 6 + this._handState.s.off;
+    if (this._handState.m.v !== -1 && minutes < this._handState.m.v) {
+      this._handState.m.off += 360;
+    }
+    this._handState.m.v = minutes;
+    const minuteAngle = minutes * 6 + seconds * 0.1 + this._handState.m.off;
+    const displayHour = hours % 12;
+    const prevDisplayHour = this._handState.h.v !== -1 ? this._handState.h.v % 12 : displayHour;
+    if (this._handState.h.v !== -1 && displayHour < prevDisplayHour) {
+      this._handState.h.off += 360;
+    }
+    this._handState.h.v = hours;
+    const hourAngle = displayHour * 30 + minutes * 0.5 + this._handState.h.off;
     this._updateHand("secondHand", secondAngle);
     this._updateHand("minuteHand", minuteAngle);
     this._updateHand("hourHand", hourAngle);
