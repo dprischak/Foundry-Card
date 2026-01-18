@@ -36,8 +36,6 @@ An industrial liquid thermometer card:
 - Vintage glass tube effects
 - Customizable range and units
 
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
-
 ## Installation
 
 ### HACS (Recommended)
