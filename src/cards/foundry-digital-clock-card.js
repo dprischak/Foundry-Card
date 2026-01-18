@@ -104,10 +104,13 @@ class FoundryDigitalClockCard extends HTMLElement {
       ? `${hours}:${minutes}:${seconds}`
       : `${hours}:${minutes}`;
 
-    const timeElement = this.shadowRoot.getElementById('timeText');
-    if (timeElement) {
-      timeElement.textContent = timeFull;
-    }
+    const timeHours = this.shadowRoot.getElementById('timeHours');
+    const timeMinutes = this.shadowRoot.getElementById('timeMinutes');
+    const timeSeconds = this.shadowRoot.getElementById('timeSeconds');
+
+    if (timeHours) timeHours.textContent = hours;
+    if (timeMinutes) timeMinutes.textContent = minutes;
+    if (timeSeconds) timeSeconds.textContent = seconds;
   }
 
   render() {
@@ -233,11 +236,28 @@ class FoundryDigitalClockCard extends HTMLElement {
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Digital Time -->
-              <text id="timeText" x="130" y="75" text-anchor="middle" dominant-baseline="middle" 
-                    font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" 
-                    style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
-                --:--:--
-              </text>
+              ${this.config.show_seconds !== false
+        ? `
+                  <!-- Layout with Seconds: H:M:S -->
+                  <!-- Center 130. Minutes centered at 130. Tightened spacing. -->
+                  <g font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                    <text id="timeHours"   x="92"  y="75" text-anchor="end">--</text>
+                    <text id="timeSep1"    x="100" y="73" text-anchor="middle">:</text>
+                    <text id="timeMinutes" x="130" y="75" text-anchor="middle">--</text>
+                    <text id="timeSep2"    x="160" y="73" text-anchor="middle">:</text>
+                    <text id="timeSeconds" x="168" y="75" text-anchor="start">--</text>
+                  </g>
+                `
+        : `
+                  <!-- Layout without Seconds: H:M -->
+                  <!-- Center 130. Colon at 130. -->
+                  <g font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                    <text id="timeHours"   x="122" y="75" text-anchor="end">--</text>
+                    <text id="timeSep1"    x="130" y="73" text-anchor="middle">:</text>
+                    <text id="timeMinutes" x="138" y="75" text-anchor="start">--</text>
+                  </g>
+                `
+      }
               
               <!-- Wear Marks -->
               ${this.renderWearMarks(wearLevel)}
