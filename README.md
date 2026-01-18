@@ -15,6 +15,27 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Theme-aware colors
 - Responsive design
 
+### 🕰️ Foundry Analog Clock
+A skeuomorphic analog clock with:
+- Realistic hand movements
+- Multiple ring styles (Brass, Silver, Copper, etc.)
+- Time zone support
+- Second hand toggling
+
+### 📟 Foundry Digital Clock
+A vintage industrial digital display featuring:
+- Retro LCD/LED aesthetics
+- 12h/24h formats
+- Custom backlight and digit colors
+- Wear and age effects
+
+### 🌡️ Foundry Thermostat
+An industrial liquid thermometer card:
+- Realistic liquid column animation
+- Color-coded temperature segments
+- Vintage glass tube effects
+- Customizable range and units
+
 <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/preview.png?raw=true" width="300" alt="Preview"/>
 
 ## Installation
@@ -353,17 +374,99 @@ Then open a pull request on GitHub with a clear description of your changes.
 - **Fix Issues:** Look for open issues and submit fixes
 - **Improve Documentation:** Help make the docs clearer and more comprehensive
 
+### Foundry Analog Clock
+
+Add a vintage analog clock to your dashboard:
+
+```yaml
+type: custom:foundry-analog-clock-card
+title: "New York"
+time_zone: "America/New_York"
+ring_style: "copper"
+second_hand_enabled: true
+wear_level: 30
+```
+
+#### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `title` | string | "Local Time" | Card title |
+| `time_zone` | string | - | Time zone (e.g., "America/New_York") |
+| `ring_style` | string | 'brass' | Ring style: 'brass', 'silver', 'copper', 'black', etc. |
+| `second_hand_enabled` | boolean | true | Show/hide the second hand |
+| `wear_level` | number | 50 | Intensity of wear marks (0-100) |
+| `plate_color` | string | '#f5f5f5' | Background plate color |
+| `rivet_color` | string | '#6d5d4b' | Color of rivets |
+
+### Foundry Digital Clock
+
+A retro digital timepiece:
+
+```yaml
+type: custom:foundry-digital-clock-card
+title: "Server Time"
+use_24h_format: true
+font_color: "#ff0000"
+font_bg_color: "#000000"
+ring_style: "black"
+```
+
+#### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `title` | string | "Local Time" | Card title |
+| `use_24h_format` | boolean | true | Use 24-hour format (false for 12h) |
+| `show_seconds` | boolean | true | Show seconds display |
+| `font_color` | string | '#000000' | Color of the digital digits |
+| `font_bg_color` | string | '#ffffff' | Background color of the display area |
+| `time_zone` | string | - | Time zone to display |
+| `ring_style` | string | 'brass' | Ring style |
+
+### Foundry Thermostat Card
+
+An industrial liquid-in-glass thermometer:
+
+```yaml
+type: custom:foundry-thermostat-card
+entity: sensor.temperature
+title: "Inside"
+min: 60
+max: 90
+mercury_width: 60
+segments:
+  - from: 60
+    to: 70
+    color: "#4CAF50"
+  - from: 70
+    to: 80
+    color: "#FFC107"
+  - from: 80
+    to: 90
+    color: "#F44336"
+```
+
+#### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `entity` | string | **Required** | Temperature entity |
+| `min` | number | -40 | Minimum value |
+| `max` | number | 120 | Maximum value |
+| `mercury_width` | number | 50 | Width of liquid column (percentage) |
+| `segments` | array | [] | Color zones (from/to/color) |
+| `animation_duration` | number | 1.5 | Animation speed in seconds |
+
 ## Roadmap
 
 Future cards planned for the Foundry Card collection:
-- Analog Clock Card
-- Vintage Thermometer Card
 - Industrial Button Card
 - Retro Sliders
 - Seismic Graph Card
 - Industrial Uptime Card
 - Industrial Energy Map
-- Industrical Climate Card
+- Industrial Climate Card
 
 
 ## Support
