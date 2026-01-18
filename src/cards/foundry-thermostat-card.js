@@ -449,7 +449,10 @@ class FoundryThermostatCard extends HTMLElement {
   }
 }
 
-customElements.define("foundry-thermostat-card", FoundryThermostatCard);
+if (!customElements.get("foundry-thermostat-card")) {
+  customElements.define("foundry-thermostat-card", FoundryThermostatCard);
+}
+
 
 window.customCards = window.customCards || [];
 window.customCards.push({

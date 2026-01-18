@@ -385,4 +385,7 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     }
 }
 
-customElements.define('foundry-analog-clock-editor', FoundryAnalogClockCardEditor);
+if (!customElements.get('foundry-analog-clock-editor')) {
+    customElements.define('foundry-analog-clock-editor', FoundryAnalogClockCardEditor);
+}
+
