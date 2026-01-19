@@ -4189,7 +4189,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.max = this.config.max !== void 0 ? this.config.max : 100;
     this.config.step = this.config.step !== void 0 ? this.config.step : 1;
     this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
-    this.config.orientation = this.config.orientation || "vertical";
+    this.config.orientation = this.config.orientation || "horizontal";
     this.config.value_position = this.config.value_position || "above";
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.plate_color = this.config.plate_color || "#f5f5f5";
@@ -4276,7 +4276,7 @@ var FoundrySliderCard = class extends HTMLElement {
         <div class="card" id="actionRoot">
           <div class="plate">
             <div class="container ${isVertical ? "vertical" : "horizontal"}">
-              ${cfg.value_position === "left" && cfg.show_value ? `<div class="value-display" id="valueDisplay">${cfg.value}</div>` : ""}
+              ${cfg.value_position === "left" && cfg.show_value ? `<div class="value-display" id="valueDisplay">--</div>` : ""}
               <div class="slider-wrap">
                 <div class="rivet" style="margin-right:8px"></div>
                 <div class="slider ${isVertical ? "slider-vertical" : "slider-horizontal"}">
@@ -4284,15 +4284,16 @@ var FoundrySliderCard = class extends HTMLElement {
                 </div>
                 <div class="rivet" style="margin-left:8px"></div>
               </div>
-              ${cfg.value_position === "right" && cfg.show_value ? `<div class="value-display" id="valueDisplay">${cfg.value}</div>` : ""}
+              ${cfg.value_position === "right" && cfg.show_value ? `<div class="value-display" id="valueDisplay">--</div>` : ""}
             </div>
-            ${cfg.value_position === "above" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">${cfg.value}</div></div>` : ""}
-            ${cfg.value_position === "below" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">${cfg.value}</div></div>` : ""}
+            ${cfg.value_position === "above" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">--</div></div>` : ""}
+            ${cfg.value_position === "below" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">--</div></div>` : ""}
           </div>
         </div>
       </ha-card>
     `;
     this._attachListeners();
+    this._updateValueDisplays(this.config.value);
   }
   _attachListeners() {
     const slider = this.shadowRoot.getElementById("slider");
@@ -4314,11 +4315,33 @@ var FoundrySliderCard = class extends HTMLElement {
     fireEvent(this, "foundry-slider-change", { value: Number(v) });
   }
   _updateValueDisplays(v) {
+    const formatted = this._formatValue(v);
     const ids = ["valueDisplay", "valueDisplayA", "valueDisplayB"];
     ids.forEach((id) => {
       const el = this.shadowRoot.getElementById(id);
-      if (el) el.textContent = v;
+      if (el) el.textContent = formatted;
     });
+  }
+  _formatValue(v) {
+    const cfg = this.config || {};
+    const step = Number(cfg.step) || 1;
+    const min = Number(cfg.min) || 0;
+    const max = Number(cfg.max) || 0;
+    const decimalPlaces = (() => {
+      const s = String(step);
+      if (s.indexOf(".") === -1) return 0;
+      return s.split(".")[1].length;
+    })();
+    const num = Number(v);
+    const sign = num < 0 ? "-" : " ";
+    const abs = Math.abs(num);
+    const maxAbs = Math.max(Math.abs(min), Math.abs(max), 0);
+    const intDigits = Math.max(String(Math.floor(maxAbs)).length, 1);
+    const fixed = decimalPlaces > 0 ? abs.toFixed(decimalPlaces) : String(Math.floor(abs));
+    const parts = String(fixed).split(".");
+    const intPart = parts[0].padStart(intDigits, "0");
+    const fracPart = parts[1] ? "." + parts[1] : "";
+    return `${sign}${intPart}${fracPart}`;
   }
   _handleAction(kind) {
     if (!this.config) return;
@@ -4353,7 +4376,7 @@ var FoundrySliderCard = class extends HTMLElement {
       max: 100,
       step: 1,
       value: 50,
-      orientation: "vertical",
+      orientation: "horizontal",
       value_position: "above",
       ring_style: "brass",
       slider_color: "#444444",
