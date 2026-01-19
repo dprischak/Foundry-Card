@@ -7,7 +7,7 @@ import "./cards/foundry-analog-clock-editor.js";
 import "./cards/foundry-digital-clock-card.js";
 import "./cards/foundry-digital-clock-editor.js";
 
-const FOUNDRY_CARDS_VERSION = "1.0";
+const FOUNDRY_CARDS_VERSION = "2.0";
 
 console.info(
     `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,

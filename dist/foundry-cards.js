@@ -4177,7 +4177,7 @@ if (!customElements.get("foundry-digital-clock-editor")) {
 }
 
 // src/foundry-cards.js
-var FOUNDRY_CARDS_VERSION = "1.0";
+var FOUNDRY_CARDS_VERSION = "2.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
