@@ -4176,6 +4176,330 @@ if (!customElements.get("foundry-digital-clock-editor")) {
   customElements.define("foundry-digital-clock-editor", FoundryDigitalClockCardEditor);
 }
 
+// src/cards/foundry-slider-card.js
+var FoundrySliderCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._uniqueId = Math.random().toString(36).substr(2, 9);
+  }
+  setConfig(config) {
+    this.config = { ...config };
+    this.config.min = this.config.min !== void 0 ? this.config.min : 0;
+    this.config.max = this.config.max !== void 0 ? this.config.max : 100;
+    this.config.step = this.config.step !== void 0 ? this.config.step : 1;
+    this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
+    this.config.orientation = this.config.orientation || "vertical";
+    this.config.value_position = this.config.value_position || "above";
+    this.config.ring_style = this.config.ring_style || "brass";
+    this.config.plate_color = this.config.plate_color || "#f5f5f5";
+    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+    this.config.slider_color = this.config.slider_color || "#444444";
+    this.config.knob_color = this.config.knob_color || "#c9a961";
+    this.config.font_color = this.config.font_color || "#000000";
+    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+    this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
+    ensureLedFont();
+    this.render();
+  }
+  set hass(hass) {
+    this._hass = hass;
+  }
+  render() {
+    const cfg = this.config;
+    const uid = this._uniqueId;
+    const orientation = cfg.orientation === "horizontal" ? "horizontal" : "vertical";
+    const isVertical = orientation === "vertical";
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display:block; padding:0; }
+        ha-card { overflow: visible; }
+        .card { cursor: pointer; padding: 8px; }
+        .container { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .vertical { flex-direction: row; }
+        .horizontal { flex-direction: column; }
+
+        .plate {
+          background: ${cfg.plate_transparent ? "transparent" : cfg.plate_color};
+          padding: 8px;
+          border-radius: 10px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .slider-wrap { display:flex; align-items:center; justify-content:center; }
+        .slider-vertical { height: 160px; width: 48px; }
+        .slider-horizontal { width: 220px; height: 48px; }
+
+        input[type="range"] {
+          -webkit-appearance: none;
+          background: transparent;
+        }
+
+        /* Track */
+        input[type="range"].vertical { writing-mode: bt-lr; width: 160px; height: 36px; transform: rotate(-90deg); }
+        input[type="range"].horizontal { width: 200px; height: 36px; }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+          height: 12px;
+          background: linear-gradient(90deg, ${this.adjustColor(cfg.slider_color, 30)}, ${cfg.slider_color});
+          border-radius: 8px;
+        }
+        input[type="range"]::-moz-range-track {
+          height: 12px;
+          background: linear-gradient(90deg, ${this.adjustColor(cfg.slider_color, 30)}, ${cfg.slider_color});
+          border-radius: 8px;
+        }
+
+        /* Thumb */
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 32px; height: 32px; border-radius: 50%;
+          background: ${cfg.knob_color}; border: 2px solid ${this.adjustColor(cfg.knob_color, -20)}; box-shadow: 0 2px 2px rgba(0,0,0,0.4);
+          margin-top: -10px;
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 32px; height: 32px; border-radius: 50%;
+          background: ${cfg.knob_color}; border: 2px solid ${this.adjustColor(cfg.knob_color, -20)}; box-shadow: 0 2px 2px rgba(0,0,0,0.4);
+        }
+
+        .value-display {
+          font-family: 'ds-digitalnormal', monospace; font-size: 28px; color: ${cfg.font_color}; background: ${cfg.font_bg_color}; padding: 6px 10px; border-radius:6px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.08);
+        }
+
+        .rivet { width:8px; height:8px; background: ${cfg.rivet_color}; border-radius:50%; box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+      </style>
+      <ha-card tabindex="0">
+        <div class="card" id="actionRoot">
+          <div class="plate">
+            <div class="container ${isVertical ? "vertical" : "horizontal"}">
+              ${cfg.value_position === "left" && cfg.show_value ? `<div class="value-display" id="valueDisplay">${cfg.value}</div>` : ""}
+              <div class="slider-wrap">
+                <div class="rivet" style="margin-right:8px"></div>
+                <div class="slider ${isVertical ? "slider-vertical" : "slider-horizontal"}">
+                  <input id="slider" type="range" class="${isVertical ? "vertical" : "horizontal"}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.value}" />
+                </div>
+                <div class="rivet" style="margin-left:8px"></div>
+              </div>
+              ${cfg.value_position === "right" && cfg.show_value ? `<div class="value-display" id="valueDisplay">${cfg.value}</div>` : ""}
+            </div>
+            ${cfg.value_position === "above" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">${cfg.value}</div></div>` : ""}
+            ${cfg.value_position === "below" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">${cfg.value}</div></div>` : ""}
+          </div>
+        </div>
+      </ha-card>
+    `;
+    this._attachListeners();
+  }
+  _attachListeners() {
+    const slider = this.shadowRoot.getElementById("slider");
+    if (!slider) return;
+    slider.oninput = (e) => this._onSliderInput(e);
+    slider.onchange = (e) => this._onSliderChange(e);
+    const root = this.shadowRoot.getElementById("actionRoot");
+    if (root) root.onclick = () => this._handleAction("tap");
+  }
+  _onSliderInput(e) {
+    const v = e.target.value;
+    this._updateValueDisplays(v);
+    fireEvent(this, "foundry-slider-input", { value: Number(v) });
+  }
+  _onSliderChange(e) {
+    const v = e.target.value;
+    this.config.value = Number(v);
+    this._updateValueDisplays(v);
+    fireEvent(this, "foundry-slider-change", { value: Number(v) });
+  }
+  _updateValueDisplays(v) {
+    const ids = ["valueDisplay", "valueDisplayA", "valueDisplayB"];
+    ids.forEach((id) => {
+      const el = this.shadowRoot.getElementById(id);
+      if (el) el.textContent = v;
+    });
+  }
+  _handleAction(kind) {
+    if (!this.config) return;
+    const act = getActionConfig(this.config, "tap_action", { action: "none" });
+    if (!act || act.action === "none") return;
+    if (act.action === "more-info" && this.config.entity) {
+      fireEvent(this, "hass-more-info", { entityId: this.config.entity });
+    }
+  }
+  // Helper color routines (copied lightweight versions)
+  adjustColor(color, percent) {
+    if (!color) return color;
+    if (color.startsWith("#")) {
+      let num = parseInt(color.replace("#", ""), 16), amt = Math.round(2.55 * percent);
+      let R = (num >> 16) + amt;
+      let G = (num >> 8 & 255) + amt;
+      let B = (num & 255) + amt;
+      R = Math.max(0, Math.min(255, R));
+      G = Math.max(0, Math.min(255, G));
+      B = Math.max(0, Math.min(255, B));
+      return "#" + R.toString(16).padStart(2, "0") + G.toString(16).padStart(2, "0") + B.toString(16).padStart(2, "0");
+    }
+    return color;
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-slider-editor");
+  }
+  static getStubConfig() {
+    return {
+      title: "Slider",
+      min: 0,
+      max: 100,
+      step: 1,
+      value: 50,
+      orientation: "vertical",
+      value_position: "above",
+      ring_style: "brass",
+      slider_color: "#444444",
+      knob_color: "#c9a961",
+      font_bg_color: "#ffffff",
+      font_color: "#000000",
+      plate_color: "#f5f5f5",
+      rivet_color: "#6d5d4b",
+      show_value: true
+    };
+  }
+};
+if (!customElements.get("foundry-slider-card")) {
+  customElements.define("foundry-slider-card", FoundrySliderCard);
+}
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-slider-card",
+  name: "Foundry Slider",
+  preview: true,
+  description: "An industrial-style slider with configurable orientation and value display."
+});
+
+// src/cards/foundry-slider-editor.js
+var FoundrySliderEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+  setConfig(config) {
+    this._config = { ...config };
+    this.render();
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (this._form) this._form.hass = hass;
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      const style = document.createElement("style");
+      style.textContent = `
+        .card-config { display:flex; flex-direction:column; gap:12px; }
+      `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+      this._form = document.createElement("ha-form");
+      this._form.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._root.appendChild(this._form);
+    }
+    if (this._form) this._form.hass = this._hass;
+    const formData = this._configToForm(this._config);
+    this._form.schema = this._getSchema();
+    this._form.data = formData;
+    this._form.computeLabel = (s) => s.label || s.name;
+  }
+  _handleFormChanged(ev) {
+    const newConfig = this._formToConfig(ev.detail.value);
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._config = newConfig;
+      this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
+    }
+  }
+  _configToForm(config) {
+    const data = { ...config };
+    data.appearance = {
+      ring_style: config.ring_style ?? "brass",
+      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255],
+      font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75],
+      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245],
+      slider_color: this._hexToRgb(config.slider_color ?? "#444444") ?? [68, 68, 68],
+      knob_color: this._hexToRgb(config.knob_color ?? "#c9a961") ?? [201, 169, 97],
+      plate_transparent: config.plate_transparent ?? false,
+      show_value: config.show_value ?? true
+    };
+    return data;
+  }
+  _formToConfig(formData) {
+    const config = { ...this._config };
+    Object.keys(formData).forEach((k) => {
+      if (k === "appearance") return;
+      config[k] = formData[k];
+    });
+    if (formData.appearance) {
+      Object.assign(config, formData.appearance);
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+      config.font_color = this._rgbToHex(config.font_color);
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+      config.plate_color = this._rgbToHex(config.plate_color);
+      config.slider_color = this._rgbToHex(config.slider_color);
+      config.knob_color = this._rgbToHex(config.knob_color);
+    }
+    return config;
+  }
+  _getSchema() {
+    return [
+      { name: "entity", selector: { entity: {} } },
+      { name: "title", selector: { text: {} } },
+      { name: "min", label: "Minimum", selector: { number: { mode: "box" } } },
+      { name: "max", label: "Maximum", selector: { number: { mode: "box" } } },
+      { name: "step", label: "Step", selector: { number: { mode: "box" } } },
+      { name: "value", label: "Initial Value", selector: { number: { mode: "box" } } },
+      { name: "orientation", label: "Orientation", selector: { select: { options: [{ value: "vertical", label: "Vertical" }, { value: "horizontal", label: "Horizontal" }] } } },
+      { name: "value_position", label: "Value Position", selector: { select: { options: [{ value: "above", label: "Above" }, { value: "below", label: "Below" }, { value: "left", label: "Left" }, { value: "right", label: "Right" }] } } },
+      {
+        name: "appearance",
+        type: "expandable",
+        title: "Appearance",
+        schema: [
+          { name: "ring_style", label: "Ring Style", selector: { select: { options: [{ value: "brass", label: "Brass" }, { value: "silver", label: "Silver" }, { value: "chrome", label: "Chrome" }, { value: "copper", label: "Copper" }, { value: "black", label: "Black" }, { value: "white", label: "White" }, { value: "blue", label: "Blue" }, { value: "green", label: "Green" }, { value: "red", label: "Red" }] } } },
+          { type: "grid", name: "", schema: [{ name: "font_bg_color", label: "Value Background", selector: { color_rgb: {} } }, { name: "font_color", label: "Value Color", selector: { color_rgb: {} } }, { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } }, { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }] },
+          { type: "grid", name: "", schema: [{ name: "slider_color", label: "Track Color", selector: { color_rgb: {} } }, { name: "knob_color", label: "Knob Color", selector: { color_rgb: {} } }] },
+          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
+          { name: "show_value", label: "Show Value", selector: { boolean: {} } }
+        ]
+      }
+    ];
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    const h = hex.replace("#", "").trim();
+    if (h.length !== 6) return null;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    if ([r, g, b].some(Number.isNaN)) return null;
+    return [r, g, b];
+  }
+  _rgbToHex(input) {
+    let rgb = input;
+    if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
+      if (Array.isArray(rgb.color)) rgb = rgb.color;
+      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+    }
+    if (!Array.isArray(rgb) || rgb.length !== 3) return null;
+    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+};
+if (!customElements.get("foundry-slider-editor")) {
+  customElements.define("foundry-slider-editor", FoundrySliderEditor);
+}
+
 // src/foundry-cards.js
 var FOUNDRY_CARDS_VERSION = "2.0";
 console.info(
