@@ -6,6 +6,20 @@
 
 A collection of custom dashboard cards for Home Assistant, designed with industrial and vintage aesthetics.
 
+## Table of Contents
+1. [Cards Included](#cards-included)
+2. [Installation](#installation)
+3. [Usage](#usage)
+    - [Foundry Gauge Card](#foundry-gauge-card)
+    - [Foundry Analog Clock](#foundry-analog-clock)
+    - [Foundry Digital Clock](#foundry-digital-clock)
+    - [Foundry Thermostat](#foundry-thermostat)
+4. [Development](#development)
+5. [Roadmap](#roadmap)
+6. [Support](#support)
+7. [License](#license)
+8. [Credits](#credits)
+
 ## Cards Included
 
 ### 🌡️ Foundry Gauge Card
@@ -131,8 +145,13 @@ unit: "°C"
 | `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap (see Actions below) |
 
 #### Example Configurations
+<details>
+  <summary>Click to see examples</summary>
 
 **Temperature Sensor:**
+
+Using the gauge as a temperature sensor
+
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.living_room_temperature
@@ -212,6 +231,8 @@ segments:
 ```
 <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
 
+</details>
+
 ### Segment Options
 
 Each segment in the `segments` array can have:
@@ -251,6 +272,10 @@ The card supports tap, hold, and double-tap actions like standard Home Assistant
 - `none`: No action
 
 **Shake Action Example:**
+<details>
+  <summary>Click to see examples</summary>
+
+
 ```yaml
 type: custom:steam-gauge-card
 entity: sensor.temperature
@@ -260,8 +285,14 @@ tap_action:
 ```
 
 The shake action creates a fun visual effect where the needle moves 10-50% away from the current value and then smoothly returns to the actual value over 3 seconds.
+</details>
+
 
 **Standard Action Examples:**
+<details>
+  <summary>Click to see examples</summary>
+
+
 ```yaml
 # Navigate to another view
 tap_action:
@@ -283,6 +314,7 @@ tap_action:
 tap_action:
   action: none
 ```
+</details>
 
 ### High Needle Tracking
 
@@ -314,85 +346,171 @@ The gauge features a realistic aged texture system that adds vintage character t
 
 Add a vintage analog clock to your dashboard:
 
-```yaml
-type: custom:foundry-analog-clock-card
-title: "New York"
-time_zone: "America/New_York"
-ring_style: "copper"
-second_hand_enabled: true
-wear_level: 30
-```
-
 #### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `title` | string | "Local Time" | Card title |
-| `time_zone` | string | - | Time zone (e.g., "America/New_York") |
-| `ring_style` | string | 'brass' | Ring style: 'brass', 'silver', 'copper', 'black', etc. |
-| `second_hand_enabled` | boolean | true | Show/hide the second hand |
-| `wear_level` | number | 50 | Intensity of wear marks (0-100) |
-| `plate_color` | string | '#f5f5f5' | Background plate color |
-| `rivet_color` | string | '#6d5d4b' | Color of rivets |
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | No | - | Entity ID (optional, for tap action context) |
+| `title` | string | No | "Local Time" | Card title (supports multi-line with `\n`) |
+| `title_font_size` | number | No | 12 | Font size for the title text |
+| `time_zone` | string | No | Local | Time zone (e.g., "America/New_York") |
+| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `second_hand_enabled` | boolean | No | true | Show/hide the second hand |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold |
+| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap |
+
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-analog-clock-card
+entity: sun.sun
+title: Local Time
+title_font_size: 12
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+second_hand_enabled: true
+tap_action:
+  action: more-info
+hold_action:
+  action: more-info
+double_tap_action:
+  action: more-info
+time_zone: America/New_York
+
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/analogclock.png?raw=true" width="300" alt="Preview"/>
+
+</details>
 
 ### Foundry Digital Clock
 
 A retro digital timepiece:
 
-```yaml
-type: custom:foundry-digital-clock-card
-title: "Server Time"
-use_24h_format: true
-font_color: "#ff0000"
-font_bg_color: "#000000"
-ring_style: "black"
-```
 
 #### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `title` | string | "Local Time" | Card title |
-| `use_24h_format` | boolean | true | Use 24-hour format (false for 12h) |
-| `show_seconds` | boolean | true | Show seconds display |
-| `font_color` | string | '#000000' | Color of the digital digits |
-| `font_bg_color` | string | '#ffffff' | Background color of the display area |
-| `time_zone` | string | - | Time zone to display |
-| `ring_style` | string | 'brass' | Ring style |
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | No | - | Entity ID (optional, for tap action context) |
+| `title` | string | No | "Local Time" | Card title |
+| `title_font_size` | number | No | 14 | Font size for the title text |
+| `use_24h_format` | boolean | No | true | Use 24-hour format (false for 12h) |
+| `show_seconds` | boolean | No | true | Show seconds display |
+| `time_zone` | string | No | Local | Time zone (e.g., "America/New_York") |
+| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `font_color` | string | No | '#000000' | Color of the digital digits |
+| `font_bg_color` | string | No | '#ffffff' | Background color of the display area |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold |
+| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap |
 
-### Foundry Thermostat Card
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-digital-clock-card
+entity: sun.sun
+title: Local
+title_font_size: 12
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+font_bg_color: "#ffffff"
+font_color: "#000000"
+show_seconds: true
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+use_24h_format: false
+time_zone: America/New_York
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/digitalclock.png?raw=true" width="300" alt="Preview"/>
+
+</details>
+
+
+### Foundry Thermostat
 
 An industrial liquid-in-glass thermometer:
 
-```yaml
-type: custom:foundry-thermostat-card
-entity: sensor.temperature
-title: "Inside"
-min: 60
-max: 90
-mercury_width: 60
-segments:
-  - from: 60
-    to: 70
-    color: "#4CAF50"
-  - from: 70
-    to: 80
-    color: "#FFC107"
-  - from: 80
-    to: 90
-    color: "#F44336"
-```
-
 #### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `entity` | string | **Required** | Temperature entity |
-| `min` | number | -40 | Minimum value |
-| `max` | number | 120 | Maximum value |
-| `mercury_width` | number | 50 | Width of liquid column (percentage) |
-| `segments` | array | [] | Color zones (from/to/color) |
-| `animation_duration` | number | 1.5 | Animation speed in seconds |
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | **Yes** | - | Temperature entity to monitor |
+| `title` | string | No | "Temperature" | Card title |
+| `min` | number | No | -40 | Minimum temperature value |
+| `max` | number | No | 120 | Maximum temperature value |
+| `unit` | string | No | - | Unit of measurement string to display |
+| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `liquid_color` | string/array | No | '#cc0000' | Color of the liquid (mercury) |
+| `mercury_width` | number | No | 50 | Width of liquid column (percentage of tube) |
+| `segments_under_mercury` | boolean | No | true | Render colored segments behind the liquid tube |
+| `segments` | array | No | [] | Color zones (from/to/color) |
+| `animation_duration` | number | No | 1.5 | Animation speed in seconds |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-thermostat-card
+entity: sensor.outside_temperature
+max: 100
+ring_style: brass
+title: Temperature
+grid_options:
+  columns: 6
+  rows: auto
+segments:
+  - from: 0
+    to: 33
+    color: "#4CAF50"
+  - from: 33
+    to: 66
+    color: "#FFC107"
+  - from: 66
+    to: 100
+    color: "#F44336"
+  - from: -100
+    to: 0
+    color: "#004cff"
+unit: "%"
+min: -100
+segments_under_mercury: true
+mercury_width: 50
+animation_duration: 1
+
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/tempsensor.png?raw=true" width="300" alt="Preview"/>
+
+</details>
 
 
 ## Development
@@ -450,8 +568,7 @@ Want to contribute or customize the cards?
 
 Then open a pull request on GitHub with a clear description of your changes.
 
-### Ways to Contribute
-
+## Ways to Contribute
 - **Report Bugs:** Open an issue with detailed steps to reproduce
 - **Suggest Features:** Share your ideas for improvements
 - **Fix Issues:** Look for open issues and submit fixes
@@ -483,7 +600,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Credits
 
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
-
----
 
 If you find this project useful, consider giving it a ⭐ on GitHub!
