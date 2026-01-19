@@ -4213,32 +4213,36 @@ var FoundrySliderCard = class extends HTMLElement {
     const isVertical = orientation === "vertical";
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display:block; padding:0; box-sizing: border-box; }
-        ha-card { overflow: visible; display: block; box-sizing: border-box; }
-        .card { cursor: pointer; padding: 8px; box-sizing: border-box; width:100%; height:100%; }
-        .container { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        :host { display:block; padding:0; box-sizing: border-box; height: 100%; }
+        ha-card { overflow: visible; display: block; box-sizing: border-box; height: 100%; }
+        .card { cursor: pointer; padding: 8px; box-sizing: border-box; width:100%; height:100%; display: flex; flex-direction: column; }
+        .container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 100%; }
         .vertical { flex-direction: row; }
         .horizontal { flex-direction: column; }
+
+        .rim { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
 
         .plate {
           background: ${cfg.plate_transparent ? "transparent" : cfg.plate_color};
           padding: 8px;
           border-radius: 10px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-          display: inline-flex;
+          display: flex;
           align-items: center;
           justify-content: center;
           box-sizing: border-box;
           width: 100%;
           height: 100%;
+          flex: 1;
         }
 
-        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; box-sizing:border-box; flex: 1 1 auto; }
-        .slider-vertical { height: 100%; max-height: 320px; width: 48px; box-sizing:border-box; flex: 0 0 auto; }
+        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; }
+        .slider-vertical { height: 100%; width: 48px; box-sizing:border-box; flex: 1 1 auto; }
         .slider-horizontal { width: 100%; max-width: 100%; height: 48px; box-sizing:border-box; flex: 1 1 auto; }
 
         .value-display { flex: 0 0 auto; }
         .rivet { flex: 0 0 auto; }
+        .value-rivet-wrap { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 
         input[type="range"] {
           -webkit-appearance: none;
@@ -4289,9 +4293,12 @@ var FoundrySliderCard = class extends HTMLElement {
                 <div class="slider ${isVertical ? "slider-vertical" : "slider-horizontal"}">
                   <input id="slider" type="range" class="${isVertical ? "vertical" : "horizontal"}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.value}" />
                 </div>
-                <div class="rivet" style="margin-left:8px"></div>
               </div>
-              ${cfg.value_position === "right" && cfg.show_value ? `<div class="value-display" id="valueDisplay">--</div>` : ""}
+              ${cfg.value_position === "right" && cfg.show_value ? `
+              <div class="value-rivet-wrap">
+                <div class="value-display" id="valueDisplay">--</div>
+                <div class="rivet"></div>
+              </div>` : ""}
             </div>
             ${cfg.value_position === "above" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">--</div></div>` : ""}
             ${cfg.value_position === "below" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">--</div></div>` : ""}
