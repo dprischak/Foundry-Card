@@ -110,8 +110,9 @@ class FoundrySliderCard extends HTMLElement {
       </style>
       <ha-card tabindex="0">
         <div class="card" id="actionRoot">
-          <div class="plate">
-            <div class="container ${isVertical ? 'vertical' : 'horizontal'}">
+          <div class="rim" style="background: ${this.getRimStyleCss(cfg.ring_style)}; padding:6px; border-radius:12px;">
+            <div class="plate">
+              <div class="container ${isVertical ? 'vertical' : 'horizontal'}">
               ${cfg.value_position === 'left' && cfg.show_value ? `<div class="value-display" id="valueDisplay">--</div>` : ''}
               <div class="slider-wrap">
                 <div class="rivet" style="margin-right:8px"></div>
@@ -124,6 +125,8 @@ class FoundrySliderCard extends HTMLElement {
             </div>
             ${cfg.value_position === 'above' && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">--</div></div>` : ''}
             ${cfg.value_position === 'below' && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">--</div></div>` : ''}
+              </div>
+            </div>
           </div>
         </div>
       </ha-card>
@@ -217,6 +220,30 @@ class FoundrySliderCard extends HTMLElement {
       return '#'+(R.toString(16).padStart(2,'0'))+(G.toString(16).padStart(2,'0'))+(B.toString(16).padStart(2,'0'));
     }
     return color;
+  }
+
+  getRimStyleCss(ringStyle) {
+    switch (ringStyle) {
+      case 'brass':
+        return 'linear-gradient(135deg,#c9a961 0%,#ddc68f 25%,#b8944d 50%,#d4b877 75%,#a68038 100%)';
+      case 'silver':
+      case 'chrome':
+        return 'linear-gradient(135deg,#e8e8e8 0%,#ffffff 25%,#c0c0c0 50%,#e0e0e0 75%,#b0b0b0 100%)';
+      case 'white':
+        return 'linear-gradient(135deg,#f6f6f6 0%,#ffffff 100%)';
+      case 'black':
+        return 'linear-gradient(135deg,#3a3a3a 0%,#141414 100%)';
+      case 'copper':
+        return 'linear-gradient(135deg,#c77c43 0%,#e1a06a 25%,#9a5c2a 50%,#d7925a 75%,#7b461f 100%)';
+      case 'blue':
+        return 'linear-gradient(135deg,#2a6fdb 0%,#5ea2ff 25%,#1f4f9e 50%,#4f8fe6 75%,#163b76 100%)';
+      case 'green':
+        return 'linear-gradient(135deg,#2fbf71 0%,#6fe0a6 25%,#1f7a49 50%,#53cf8e 75%,#165a36 100%)';
+      case 'red':
+        return 'linear-gradient(135deg,#e53935 0%,#ff6f6c 25%,#9e1f1c 50%,#e85a57 75%,#6f1513 100%)';
+      default:
+        return 'linear-gradient(135deg,#c9a961 0%,#ddc68f 25%,#b8944d 50%,#d4b877 75%,#a68038 100%)';
+    }
   }
 
   static getConfigElement() {
