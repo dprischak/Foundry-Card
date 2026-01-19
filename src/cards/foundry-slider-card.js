@@ -43,9 +43,9 @@ class FoundrySliderCard extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display:block; padding:0; }
-        ha-card { overflow: visible; }
-        .card { cursor: pointer; padding: 8px; }
+        :host { display:block; padding:0; box-sizing: border-box; }
+        ha-card { overflow: visible; display: block; box-sizing: border-box; }
+        .card { cursor: pointer; padding: 8px; box-sizing: border-box; width:100%; height:100%; }
         .container { display: flex; align-items: center; justify-content: center; gap: 8px; }
         .vertical { flex-direction: row; }
         .horizontal { flex-direction: column; }
@@ -58,11 +58,17 @@ class FoundrySliderCard extends HTMLElement {
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          box-sizing: border-box;
+          width: 100%;
+          height: 100%;
         }
 
-        .slider-wrap { display:flex; align-items:center; justify-content:center; }
-        .slider-vertical { height: 160px; width: 48px; }
-        .slider-horizontal { width: 220px; height: 48px; }
+        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; box-sizing:border-box; flex: 1 1 auto; }
+        .slider-vertical { height: 100%; max-height: 320px; width: 48px; box-sizing:border-box; flex: 0 0 auto; }
+        .slider-horizontal { width: 100%; max-width: 100%; height: 48px; box-sizing:border-box; flex: 1 1 auto; }
+
+        .value-display { flex: 0 0 auto; }
+        .rivet { flex: 0 0 auto; }
 
         input[type="range"] {
           -webkit-appearance: none;
@@ -70,8 +76,8 @@ class FoundrySliderCard extends HTMLElement {
         }
 
         /* Track */
-        input[type="range"].vertical { writing-mode: bt-lr; width: 160px; height: 36px; transform: rotate(-90deg); }
-        input[type="range"].horizontal { width: 200px; height: 36px; }
+        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 36px; transform: rotate(-90deg); }
+        input[type="range"].horizontal { width: 100%; height: 36px; }
 
         input[type="range"]::-webkit-slider-runnable-track {
           height: 12px;
