@@ -4333,7 +4333,8 @@ var FoundrySliderCard = class extends HTMLElement {
       return s.split(".")[1].length;
     })();
     const num = Number(v);
-    const sign = num < 0 ? "-" : " ";
+    const allowSign = Number(cfg.min) < 0 || Number(cfg.max) < 0;
+    const sign = allowSign ? num < 0 ? "-" : " " : "";
     const abs = Math.abs(num);
     const maxAbs = Math.max(Math.abs(min), Math.abs(max), 0);
     const intDigits = Math.max(String(Math.floor(maxAbs)).length, 1);
