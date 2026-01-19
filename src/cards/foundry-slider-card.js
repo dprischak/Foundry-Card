@@ -15,7 +15,7 @@ class FoundrySliderCard extends HTMLElement {
     this.config.max = this.config.max !== undefined ? this.config.max : 100;
     this.config.step = this.config.step !== undefined ? this.config.step : 1;
     this.config.value = this.config.value !== undefined ? this.config.value : this.config.min;
-    this.config.orientation = this.config.orientation || "vertical"; // or 'horizontal'
+    this.config.orientation = this.config.orientation || "horizontal"; // or 'vertical'
     this.config.value_position = this.config.value_position || "above"; // above, below, left, right
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.plate_color = this.config.plate_color || "#f5f5f5";
@@ -194,7 +194,7 @@ class FoundrySliderCard extends HTMLElement {
       max: 100,
       step: 1,
       value: 50,
-      orientation: 'vertical',
+      orientation: 'horizontal',
       value_position: 'above',
       ring_style: 'brass',
       slider_color: '#444444',
