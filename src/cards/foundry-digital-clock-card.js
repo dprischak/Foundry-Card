@@ -366,6 +366,10 @@ class FoundryDigitalClockCard extends HTMLElement {
           <stop offset="75%"  style="stop-color:#e85a57;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
         </linearGradient>
+        <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" />
+          <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
+        </linearGradient>
       `;
   }
 
@@ -386,16 +390,21 @@ class FoundryDigitalClockCard extends HTMLElement {
       <!-- Outer Frame (The Ring) -->
       <rect x="20" y="35" width="220" height="80" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-      
-      <!-- Inner Bevel (Inset) -->
-      <rect x="28" y="43" width="204" height="64" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
-      
-      <!-- Face Background (Screen) -->
-      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
+
+      <!-- Face Background (Screen Color) -->
+      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+
+      <!-- Glass Glare on Screen (Top 20% approx) -->
+      <!-- Screen: x=32, w=196. Top=47. -->
+      ${glassEffectEnabled ? `<path d="M 32 47 L 228 47 L 228 58 Q 130 62 32 58 Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
+
+      <!-- Screen Frame (Shadow & Border) - Drawn ON TOP -->
+      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" 
+            fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
              style="box-shadow: inset 0 0 10px #000;"/>
-      
-      <!-- Glass Glare on Screen -->
-      ${glassEffectEnabled ? `<path d="M 35 50 Q 130 70 225 50 L 225 90 Q 130 100 35 90 Z" fill="white" opacity="0.05" clip-path="inset(0px round 10px)" />` : ''}
+
+      <!-- Inner Bevel (Inset) - Drawn LAST to overlap edges -->
+      <rect x="28" y="43" width="204" height="64" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
     `;
   }
 

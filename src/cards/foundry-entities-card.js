@@ -321,16 +321,20 @@ class FoundryEntitiesCard extends HTMLElement {
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
+      <!-- Face Background (Screen Color) -->
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
+            fill="${bgColor}" stroke="none" />
+
+      <!-- Glass Glare (Top 20%) -->
+      ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
+
+      <!-- Screen Frame (Shadow & Border) - Drawn ON TOP -->
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
+            fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
+             style="box-shadow: inset 0 0 10px #000;"/>
+
       <!-- Inner Bevel -->
       <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
-      
-      <!-- Face Background (Screen) -->
-      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
-             style="box-shadow: inset 0 0 10px #000;"/>
-      
-      <!-- Glass Glare -->
-      ${glassEffectEnabled ? `<path d="M ${screenX + 3} ${screenY + 3} Q ${screenX + screenW / 2} ${screenY + 20} ${screenX + screenW - 3} ${screenY + 3} L ${screenX + screenW - 3} ${screenY + screenH * 0.4} Q ${screenX + screenW / 2} ${screenY + screenH * 0.5} ${screenX + 3} ${screenY + screenH * 0.4} Z" fill="white" opacity="0.05" clip-path="inset(0px round 10px)" />` : ''}
     `;
   }
 
@@ -423,6 +427,10 @@ class FoundryEntitiesCard extends HTMLElement {
           <stop offset="50%"  style="stop-color:#9e1f1c;stop-opacity:1" />
           <stop offset="75%"  style="stop-color:#e85a57;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" />
+          <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
         </linearGradient>
       `;
   }
