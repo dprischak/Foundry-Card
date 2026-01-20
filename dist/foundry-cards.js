@@ -4213,6 +4213,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._hass || !this.config) return;
+    const now = /* @__PURE__ */ new Date();
     this.config.entities.forEach((entityConf, index) => {
       let entityId = typeof entityConf === "string" ? entityConf : entityConf.entity;
       if (!entityId) return;
@@ -4222,6 +4223,30 @@ var FoundryEntitiesCard = class extends HTMLElement {
         const stateStr = stateObj ? stateObj.state : "N/A";
         const unit = stateObj && stateObj.attributes.unit_of_measurement ? stateObj.attributes.unit_of_measurement : "";
         stateEl.textContent = `${stateStr}${unit ? " " + unit : ""}`;
+      }
+      const secondaryEl = this.shadowRoot.getElementById(`secondary-${index}`);
+      const secondaryType = typeof entityConf === "object" ? entityConf.secondary_info : null;
+      if (secondaryEl && secondaryType && secondaryType !== "none") {
+        if (stateObj) {
+          if (secondaryType === "entity-id") {
+            secondaryEl.textContent = entityId;
+          } else if (secondaryType === "state") {
+            const unit = stateObj.attributes.unit_of_measurement || "";
+            secondaryEl.textContent = `${stateObj.state}${unit ? " " + unit : ""}`;
+          } else if (secondaryType === "last-updated" || secondaryType === "last-changed") {
+            const tsStr = secondaryType === "last-updated" ? stateObj.last_updated : stateObj.last_changed;
+            const ts = new Date(tsStr);
+            const diff = Math.floor((now - ts) / 1e3);
+            let secondary = "";
+            if (diff < 60) secondary = `${diff}s ago`;
+            else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
+            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
+            else secondary = `${Math.floor(diff / 86400)}d ago`;
+            secondaryEl.textContent = secondary;
+          }
+        } else {
+          secondaryEl.textContent = "";
+        }
       }
     });
   }
@@ -4234,7 +4259,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
-    const fontBgColor = config.font_bg_color;
+    const fontBgColor = config.config_bg_color || config.font_bg_color;
     const fontColor = config.font_color;
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
@@ -4243,9 +4268,28 @@ var FoundryEntitiesCard = class extends HTMLElement {
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const titleFontFamily = "Georgia, serif";
-    const rowHeight = 28;
-    const rows = config.entities.length;
-    const screenHeight = rows * rowHeight + 10;
+    const rowHeightSingle = 15;
+    const rowHeightDouble = 26;
+    let currentY = 12;
+    const rowLayouts = config.entities.map((ent) => {
+      const isString = typeof ent === "string";
+      const hasSecondary = !isString && ent.secondary_info && ent.secondary_info !== "none";
+      const height = hasSecondary ? rowHeightDouble : rowHeightSingle;
+      const y = currentY;
+      currentY += height;
+      return {
+        original: ent,
+        y,
+        height,
+        hasSecondary,
+        // Extract core data for easier usage
+        entityId: isString ? ent : ent.entity,
+        name: isString ? ent : ent.name || ent.entity,
+        secondaryInfo: hasSecondary ? ent.secondary_info : null
+      };
+    });
+    const totalContentHeight = currentY + 6;
+    const screenHeight = Math.max(totalContentHeight, 60);
     const rimHeight = screenHeight + 24;
     const plateHeight = rimHeight + 50;
     const viewBoxHeight = plateHeight + 20;
@@ -4333,7 +4377,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
               
               <!-- Entities List -->
               <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitalnormal" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
-                ${this.renderEntitiesLoop(rowHeight)}
+                ${this.renderEntitiesLoop(rowLayouts)}
               </g>
 
               <!-- Wear Marks -->
@@ -4344,40 +4388,33 @@ var FoundryEntitiesCard = class extends HTMLElement {
         </div>
       </ha-card>
     `;
+    this.shadowRoot.querySelectorAll(".entity-row").forEach((row) => {
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const entityId = row.getAttribute("data-entity-id");
+        if (entityId) {
+          fireEvent(this, "hass-more-info", { entityId });
+        }
+      });
+    });
     this._updateValues();
   }
-  renderEntitiesLoop(rowHeight) {
-    const now = /* @__PURE__ */ new Date();
-    return this.config.entities.map((ent, i) => {
-      let entityId = null;
-      let name = "Entity";
-      let secondary = "";
-      if (typeof ent === "string") {
-        entityId = ent;
-        name = ent;
-      } else {
-        entityId = ent.entity;
-        name = ent.name || entityId;
-        if (ent.secondary_info && ent.secondary_info !== "none" && this._hass) {
-          const stateObj = this._hass.states[entityId];
-          if (stateObj) {
-            const tsStr = ent.secondary_info === "last-updated" ? stateObj.last_updated : stateObj.last_changed;
-            const ts = new Date(tsStr);
-            const diff = Math.floor((now - ts) / 1e3);
-            if (diff < 60) secondary = `${diff}s ago`;
-            else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
-            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
-            else secondary = `${Math.floor(diff / 86400)}d ago`;
-          }
-        }
-      }
-      const yTop = i * rowHeight + 12;
-      const yBottom = yTop + 10;
-      const yCenter = yTop + 6;
+  renderEntitiesLoop(rowLayouts) {
+    return rowLayouts.map((layout, i) => {
+      const { entityId, name, hasSecondary, y, height } = layout;
+      const yTop = y;
+      const yText = hasSecondary ? yTop : yTop + 2;
+      const ySecondary = yTop + 10;
+      const yState = hasSecondary ? yTop + 6 : yTop + 2;
+      const hitWidth = 220;
       return `
-             <text x="10" y="${yTop}" text-anchor="start">${name}</text>
-             ${secondary ? `<text x="10" y="${yBottom}" text-anchor="start" font-size="8" opacity="0.7">${secondary}</text>` : ""}
-             <text id="state-${i}" x="190" y="${secondary ? yCenter : yTop}" text-anchor="end">--</text>
+             <g class="entity-row" data-entity-id="${entityId}" style="cursor: pointer;">
+                 <!-- Hit target for clicking -->
+                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" pointer-events="all"/>
+                 <text x="10" y="${yText}" text-anchor="start" style="pointer-events: none;">${name}</text>
+                 ${hasSecondary ? `<text id="secondary-${i}" x="22" y="${ySecondary}" text-anchor="start" font-size="8" opacity="0.7" style="pointer-events: none;"></text>` : ""}
+                 <text id="state-${i}" x="190" y="${yState}" text-anchor="end" style="pointer-events: none;">--</text>
+             </g>
           `;
     }).join("");
   }
@@ -4637,7 +4674,20 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     return data;
   }
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const existingEntities = this._config.entities || [];
+    const newEntities = formData.entities || [];
+    const lookup = /* @__PURE__ */ new Map();
+    existingEntities.forEach((e) => {
+      if (typeof e === "string") {
+        lookup.set(e, e);
+      } else if (e && e.entity) {
+        lookup.set(e.entity, e);
+      }
+    });
+    const mergedEntities = newEntities.map((id) => {
+      return lookup.get(id) || id;
+    });
+    const config = { ...this._config, ...formData, entities: mergedEntities };
     if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
     if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
     if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);

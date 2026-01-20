@@ -1,3 +1,4 @@
+
 import { fireEvent, getActionConfig } from "./utils.js";
 import { ensureLedFont } from "./fonts.js";
 
@@ -47,17 +48,48 @@ class FoundryEntitiesCard extends HTMLElement {
     if (!this.shadowRoot) return;
     if (!this._hass || !this.config) return;
 
+    const now = new Date();
+
     this.config.entities.forEach((entityConf, index) => {
       let entityId = (typeof entityConf === 'string') ? entityConf : entityConf.entity;
       if (!entityId) return;
 
       const stateObj = this._hass.states[entityId];
-      const stateEl = this.shadowRoot.getElementById(`state-${index}`);
 
+      // Update State
+      const stateEl = this.shadowRoot.getElementById(`state-${index}`);
       if (stateEl) {
         const stateStr = stateObj ? stateObj.state : "N/A";
         const unit = stateObj && stateObj.attributes.unit_of_measurement ? stateObj.attributes.unit_of_measurement : "";
         stateEl.textContent = `${stateStr}${unit ? ' ' + unit : ''}`;
+      }
+
+      // Update Secondary Info
+      const secondaryEl = this.shadowRoot.getElementById(`secondary-${index}`);
+      const secondaryType = (typeof entityConf === 'object') ? entityConf.secondary_info : null;
+
+      if (secondaryEl && secondaryType && secondaryType !== 'none') {
+        if (stateObj) {
+          if (secondaryType === 'entity-id') {
+            secondaryEl.textContent = entityId;
+          } else if (secondaryType === 'state') {
+            const unit = stateObj.attributes.unit_of_measurement || "";
+            secondaryEl.textContent = `${stateObj.state}${unit ? ' ' + unit : ''}`;
+          } else if (secondaryType === 'last-updated' || secondaryType === 'last-changed') {
+            const tsStr = secondaryType === 'last-updated' ? stateObj.last_updated : stateObj.last_changed;
+            const ts = new Date(tsStr);
+            const diff = Math.floor((now - ts) / 1000);
+            let secondary = "";
+            if (diff < 60) secondary = `${diff}s ago`;
+            else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
+            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
+            else secondary = `${Math.floor(diff / 86400)}d ago`;
+
+            secondaryEl.textContent = secondary;
+          }
+        } else {
+          secondaryEl.textContent = "";
+        }
       }
     });
   }
@@ -67,12 +99,11 @@ class FoundryEntitiesCard extends HTMLElement {
     const title = config.title || '';
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
-
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
-    const fontBgColor = config.font_bg_color;
+    const fontBgColor = config.config_bg_color || config.font_bg_color; // fallback
     const fontColor = config.font_color;
 
     // Appearance
@@ -86,9 +117,30 @@ class FoundryEntitiesCard extends HTMLElement {
     const titleFontFamily = 'Georgia, serif';
 
     // Height Calculation
-    const rowHeight = 28;
-    const rows = config.entities.length;
-    const screenHeight = rows * rowHeight + 10; // extra padding
+    const rowHeightSingle = 15;
+    const rowHeightDouble = 26;
+
+    let currentY = 12;
+    const rowLayouts = config.entities.map(ent => {
+      const isString = typeof ent === 'string';
+      const hasSecondary = !isString && ent.secondary_info && ent.secondary_info !== 'none';
+      const height = hasSecondary ? rowHeightDouble : rowHeightSingle;
+      const y = currentY;
+      currentY += height;
+      return {
+        original: ent,
+        y,
+        height,
+        hasSecondary,
+        // Extract core data for easier usage
+        entityId: isString ? ent : ent.entity,
+        name: isString ? ent : (ent.name || ent.entity),
+        secondaryInfo: hasSecondary ? ent.secondary_info : null
+      };
+    });
+
+    const totalContentHeight = currentY + 6; // padding
+    const screenHeight = Math.max(totalContentHeight, 60); // Min height
     const rimHeight = screenHeight + 24; // surrounding rim
     const plateHeight = rimHeight + 50; // surrounding plate
     const viewBoxHeight = plateHeight + 20;
@@ -181,7 +233,7 @@ class FoundryEntitiesCard extends HTMLElement {
               
               <!-- Entities List -->
               <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitalnormal" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
-                ${this.renderEntitiesLoop(rowHeight)}
+                ${this.renderEntitiesLoop(rowLayouts)}
               </g>
 
               <!-- Wear Marks -->
@@ -193,45 +245,39 @@ class FoundryEntitiesCard extends HTMLElement {
       </ha-card>
     `;
 
+    this.shadowRoot.querySelectorAll(".entity-row").forEach(row => {
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const entityId = row.getAttribute("data-entity-id");
+        if (entityId) {
+          fireEvent(this, "hass-more-info", { entityId });
+        }
+      });
+    });
+
     this._updateValues();
   }
 
-  renderEntitiesLoop(rowHeight) {
-    const now = new Date();
-    return this.config.entities.map((ent, i) => {
-      let entityId = null;
-      let name = "Entity";
-      let secondary = "";
+  renderEntitiesLoop(rowLayouts) {
+    return rowLayouts.map((layout, i) => {
+      const { entityId, name, hasSecondary, y, height } = layout;
 
-      if (typeof ent === 'string') {
-        entityId = ent;
-        name = ent;
-      } else {
-        entityId = ent.entity;
-        name = ent.name || entityId;
+      // Positioning logic
+      const yTop = y;
+      const yText = hasSecondary ? yTop : (yTop + 2); // Center single lines (approx)
+      const ySecondary = yTop + 10;
+      const yState = hasSecondary ? (yTop + 6) : (yTop + 2); // Align state
 
-        if (ent.secondary_info && ent.secondary_info !== 'none' && this._hass) {
-          const stateObj = this._hass.states[entityId];
-          if (stateObj) {
-            const tsStr = ent.secondary_info === 'last-updated' ? stateObj.last_updated : stateObj.last_changed;
-            const ts = new Date(tsStr);
-            const diff = Math.floor((now - ts) / 1000);
-            if (diff < 60) secondary = `${diff}s ago`;
-            else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
-            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
-            else secondary = `${Math.floor(diff / 86400)}d ago`;
-          }
-        }
-      }
-
-      const yTop = (i * rowHeight) + 12;
-      const yBottom = yTop + 10;
-      const yCenter = yTop + 6;
+      const hitWidth = 220;
 
       return `
-             <text x="10" y="${yTop}" text-anchor="start">${name}</text>
-             ${secondary ? `<text x="10" y="${yBottom}" text-anchor="start" font-size="8" opacity="0.7">${secondary}</text>` : ''}
-             <text id="state-${i}" x="190" y="${secondary ? yCenter : yTop}" text-anchor="end">--</text>
+             <g class="entity-row" data-entity-id="${entityId}" style="cursor: pointer;">
+                 <!-- Hit target for clicking -->
+                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" pointer-events="all"/>
+                 <text x="10" y="${yText}" text-anchor="start" style="pointer-events: none;">${name}</text>
+                 ${hasSecondary ? `<text id="secondary-${i}" x="22" y="${ySecondary}" text-anchor="start" font-size="8" opacity="0.7" style="pointer-events: none;"></text>` : ''}
+                 <text id="state-${i}" x="190" y="${yState}" text-anchor="end" style="pointer-events: none;">--</text>
+             </g>
           `;
     }).join('');
   }
@@ -291,8 +337,6 @@ class FoundryEntitiesCard extends HTMLElement {
   // Reuse from Digital Clock
   renderWearMarks(wearLevel, viewBoxHeight) {
     if (wearLevel === 0) return '';
-    // Generate some deterministic random marks based on height
-    // Simplified for now
     const baseOpacity = (wearLevel / 100) * 0.25;
     return `
         <circle cx="50" cy="45" r="2" fill="#8B7355" opacity="${Math.min(0.2 * (wearLevel / 50), 0.25)}"/>

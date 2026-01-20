@@ -100,7 +100,28 @@ class FoundryEntitiesEditor extends HTMLElement {
     }
 
     _formToConfig(formData) {
-        const config = { ...this._config, ...formData };
+        // preserve existing config objects
+        const existingEntities = this._config.entities || [];
+        const newEntities = formData.entities || [];
+
+        // Map existing config by entity ID for quick lookup
+        const lookup = new Map();
+        existingEntities.forEach(e => {
+            if (typeof e === 'string') {
+                lookup.set(e, e);
+            } else if (e && e.entity) {
+                lookup.set(e.entity, e);
+            }
+        });
+
+        // Reconstruct entities list
+        // If entity ID exists in old config, use the old object/string to keep custom fields
+        // If new, just use the string ID
+        const mergedEntities = newEntities.map(id => {
+            return lookup.get(id) || id;
+        });
+
+        const config = { ...this._config, ...formData, entities: mergedEntities };
 
         // Convert colors back to hex
         if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
