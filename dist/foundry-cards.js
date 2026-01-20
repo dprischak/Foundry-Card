@@ -4626,22 +4626,109 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       const style = document.createElement("style");
       style.textContent = `
                 .card-config { display: flex; flex-direction: column; gap: 16px; }
+                .sub-config { display: flex; flex-direction: column; gap: 8px; }
+                .toggle-button { 
+                    background: var(--primary-color); 
+                    color: var(--text-primary-color);
+                    border: none; 
+                    padding: 8px 16px; 
+                    border-radius: 4px; 
+                    cursor: pointer;
+                    align-self: flex-start;
+                    font-weight: 500;
+                    margin-top: -8px; 
+                    margin-bottom: 8px;
+                }
+                .toggle-button:hover {
+                    background: var(--primary-color-dark, var(--primary-color));
+                }
+                .header {
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin-bottom: 8px;
+                }
             `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
-      this._form = document.createElement("ha-form");
-      this._form.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
-      this._root.appendChild(this._form);
     }
-    this._form.hass = this._hass;
+    const targetMode = this._advancedMode ? "advanced" : "standard";
+    if (this._renderedMode !== targetMode) {
+      this._root.innerHTML = "";
+      this._renderedMode = targetMode;
+      if (this._advancedMode) {
+        this._buildAdvancedUI();
+      } else {
+        this._buildStandardUI();
+      }
+    }
+    if (this._advancedMode) {
+      this._updateAdvancedUI();
+    } else {
+      this._updateStandardUI();
+    }
+  }
+  _buildAdvancedUI() {
+    const btn = document.createElement("button");
+    btn.className = "toggle-button";
+    btn.textContent = "\u2190 Back to Settings";
+    btn.onclick = () => {
+      this._advancedMode = false;
+      this.render();
+    };
+    this._root.appendChild(btn);
+    const header = document.createElement("div");
+    header.className = "header";
+    header.textContent = "Edit Entity Details";
+    this._root.appendChild(header);
+    this._advancedForm = document.createElement("ha-form");
+    this._advancedForm.computeLabel = this._computeLabel;
+    this._advancedForm.addEventListener("value-changed", (ev) => this._handleFormChangedAdvanced(ev));
+    this._root.appendChild(this._advancedForm);
+  }
+  _updateAdvancedUI() {
+    if (this._advancedForm) {
+      this._advancedForm.hass = this._hass;
+      this._advancedForm.data = this._configToFormAdvanced(this._config);
+      this._advancedForm.schema = this._getSchemaAdvanced();
+    }
+  }
+  _buildStandardUI() {
+    this._entitiesForm = document.createElement("ha-form");
+    this._entitiesForm.computeLabel = this._computeLabel;
+    this._entitiesForm.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+    this._root.appendChild(this._entitiesForm);
+    this._toggleBtn = document.createElement("button");
+    this._toggleBtn.className = "toggle-button";
+    this._toggleBtn.textContent = "Edit Entity Details / Overrides \u2192";
+    this._toggleBtn.onclick = () => {
+      this._advancedMode = true;
+      this.render();
+    };
+    this._root.appendChild(this._toggleBtn);
+    this._settingsForm = document.createElement("ha-form");
+    this._settingsForm.computeLabel = this._computeLabel;
+    this._settingsForm.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+    this._root.appendChild(this._settingsForm);
+  }
+  _updateStandardUI() {
     const formData = this._configToForm(this._config);
-    const schema = [
-      ...this._getSchemaTop(formData),
-      ...this._getSchemaBottom(formData)
-    ];
-    this._form.schema = schema;
-    this._form.data = formData;
-    this._form.computeLabel = this._computeLabel;
+    if (this._entitiesForm) {
+      this._entitiesForm.hass = this._hass;
+      this._entitiesForm.data = formData;
+      this._entitiesForm.schema = [this._getSchemaTop()[0]];
+    }
+    if (this._toggleBtn) {
+      const hasEntities = this._config.entities && this._config.entities.length > 0;
+      this._toggleBtn.style.display = hasEntities ? "block" : "none";
+    }
+    if (this._settingsForm) {
+      this._settingsForm.hass = this._hass;
+      this._settingsForm.data = formData;
+      this._settingsForm.schema = [
+        this._getSchemaTop()[1],
+        ...this._getSchemaBottom()
+      ];
+    }
   }
   _handleFormChanged(ev) {
     const newConfig = this._formToConfig(ev.detail.value);
@@ -4649,6 +4736,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       this._config = newConfig;
       fireEvent2(this, "config-changed", { config: this._config });
     }
+  }
+  _handleFormChangedAdvanced(ev) {
+    const newConfig = this._formToConfigAdvanced(ev.detail.value);
+    this._config = newConfig;
+    fireEvent2(this, "config-changed", { config: this._config });
   }
   _configToForm(config) {
     const data = { ...config };
@@ -4674,32 +4766,63 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
     return data;
   }
+  _configToFormAdvanced(config) {
+    const data = {};
+    if (Array.isArray(config.entities)) {
+      config.entities.forEach((e, i) => {
+        const entityObj = typeof e === "string" ? { entity: e } : e;
+        data[`name_${i}`] = entityObj.name || "";
+        data[`info_${i}`] = entityObj.secondary_info || "none";
+      });
+    }
+    return data;
+  }
   _formToConfig(formData) {
     const existingEntities = this._config.entities || [];
-    const newEntities = formData.entities || [];
-    const lookup = /* @__PURE__ */ new Map();
-    existingEntities.forEach((e) => {
-      if (typeof e === "string") {
-        lookup.set(e, e);
-      } else if (e && e.entity) {
-        lookup.set(e.entity, e);
-      }
-    });
-    const mergedEntities = newEntities.map((id) => {
-      return lookup.get(id) || id;
-    });
-    const config = { ...this._config, ...formData, entities: mergedEntities };
+    let mergedEntities = existingEntities;
+    if (formData.entities !== void 0) {
+      const newEntities = formData.entities || [];
+      const lookup = /* @__PURE__ */ new Map();
+      existingEntities.forEach((e) => {
+        if (typeof e === "string") lookup.set(e, e);
+        else if (e && e.entity) lookup.set(e.entity, e);
+      });
+      mergedEntities = newEntities.map((id) => lookup.get(id) || id);
+    }
+    const config = { ...this._config, ...formData };
+    if (formData.entities !== void 0) {
+      config.entities = mergedEntities;
+    }
     if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
     if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
     if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
     if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
     return config;
   }
-  _getSchemaTop(formData) {
+  _formToConfigAdvanced(formData) {
+    const config = { ...this._config };
+    if (Array.isArray(config.entities)) {
+      config.entities = config.entities.map((e, i) => {
+        const currentEntityId = typeof e === "string" ? e : e.entity;
+        const newName = formData[`name_${i}`];
+        const newInfo = formData[`info_${i}`];
+        if ((!newName || newName === "") && (!newInfo || newInfo === "none")) {
+          return currentEntityId;
+        }
+        return {
+          entity: currentEntityId,
+          name: newName,
+          secondary_info: newInfo
+        };
+      });
+    }
+    return config;
+  }
+  _getSchemaTop() {
     return [
       {
         name: "entities",
-        label: "Entities",
+        label: "Entities (List Management)",
         selector: { entity: { multiple: true } }
       },
       {
@@ -4713,7 +4836,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       }
     ];
   }
-  _getSchemaBottom(formData) {
+  _getSchemaBottom() {
     return [
       {
         name: "",
@@ -4771,6 +4894,41 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         ]
       }
     ];
+  }
+  _getSchemaAdvanced() {
+    const entities = this._config.entities || [];
+    const schema = [];
+    entities.forEach((e, i) => {
+      const entId = typeof e === "string" ? e : e.entity;
+      schema.push({
+        name: "",
+        type: "expandable",
+        title: `${entId}`,
+        schema: [
+          { name: `name_${i}`, label: "Name Override", selector: { text: {} } },
+          {
+            name: `info_${i}`,
+            label: "Secondary Info",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "entity-id", label: "Entity ID" },
+                  { value: "state", label: "State" },
+                  { value: "last-updated", label: "Last Updated" },
+                  { value: "last-changed", label: "Last Changed" }
+                ]
+              }
+            }
+          }
+        ]
+      });
+    });
+    if (schema.length === 0) {
+      schema.push({ name: "", type: "constant", value: "No entities selected. Go back to add entities." });
+    }
+    return schema;
   }
   _hexToRgb(hex) {
     if (typeof hex !== "string") return null;
