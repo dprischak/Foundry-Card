@@ -5284,7 +5284,7 @@ var FoundryButtonCard = class extends HTMLElement {
              style="box-shadow: inset 0 0 10px #000;"/>
       
       <!-- Glass Glare -->
-      ${glassEffectEnabled ? `<path d="M ${screenX + 2} ${screenY + 2} Q ${screenX + screenW / 2} ${screenY + 15} ${screenX + screenW - 2} ${screenY + 2} L ${screenX + screenW - 2} ${screenY + screenH * 0.4} Q ${screenX + screenW / 2} ${screenY + screenH * 0.5} ${screenX + 2} ${screenY + screenH * 0.4} Z" fill="white" opacity="0.05" clip-path="inset(0px round 8px)" />` : ""}
+      ${glassEffectEnabled ? `<path d="M ${screenX + 8} ${screenY} L ${screenX + screenW - 8} ${screenY} Q ${screenX + screenW} ${screenY} ${screenX + screenW} ${screenY + 8} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} L ${screenX} ${screenY + 8} Q ${screenX} ${screenY} ${screenX + 8} ${screenY} Z" fill="url(#glassGrad-${uid})" style="pointer-events: none;" />` : ""}
     `;
   }
   // Reuse from Entities Card / Digital Clock
@@ -5377,6 +5377,10 @@ var FoundryButtonCard = class extends HTMLElement {
           <stop offset="50%"  style="stop-color:#9e1f1c;stop-opacity:1" />
           <stop offset="75%"  style="stop-color:#e85a57;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" />
+          <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
         </linearGradient>
       `;
   }
