@@ -3585,13 +3585,9 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     let seconds = time.getSeconds().toString().padStart(2, "0");
     const showPm = this.config.use_24h_format === false && isPm;
     const timeFull = this.config.show_seconds !== false ? `${hours}:${minutes}:${seconds}` : `${hours}:${minutes}`;
-    const timeHours = this.shadowRoot.getElementById("timeHours");
-    const timeMinutes = this.shadowRoot.getElementById("timeMinutes");
-    const timeSeconds = this.shadowRoot.getElementById("timeSeconds");
+    const timeDisplay = this.shadowRoot.getElementById("timeDisplay");
     const pmIndicator = this.shadowRoot.getElementById("pmIndicator");
-    if (timeHours) timeHours.textContent = hours;
-    if (timeMinutes) timeMinutes.textContent = minutes;
-    if (timeSeconds) timeSeconds.textContent = seconds;
+    if (timeDisplay) timeDisplay.textContent = timeFull;
     if (pmIndicator) pmIndicator.textContent = showPm ? "." : "";
   }
   render() {
@@ -3705,23 +3701,15 @@ var FoundryDigitalClockCard = class extends HTMLElement {
               <!-- Digital Time -->
               ${this.config.show_seconds !== false ? `
                   <!-- Layout with Seconds: H:M:S -->
-                  <!-- Center 130. Minutes centered at 130. Tightened spacing. -->
-                  <g font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
-                    <text id="timeHours"   x="92"  y="75" text-anchor="end">--</text>
-                    <text id="timeSep1"    x="100" y="73" text-anchor="middle">:</text>
-                    <text id="timeMinutes" x="130" y="75" text-anchor="middle">--</text>
-                    <text id="timeSep2"    x="160" y="73" text-anchor="middle">:</text>
-                    <text id="timeSeconds" x="168" y="75" text-anchor="start">--</text>
-                    <text id="pmIndicator" x="214" y="75" text-anchor="start"></text>
+                  <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                    <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--:--</text>
+                    <text id="pmIndicator" x="205" y="75" text-anchor="start"></text>
                   </g>
                 ` : `
                   <!-- Layout without Seconds: H:M -->
-                  <!-- Center 130. Colon at 130. -->
-                  <g font-size="44" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
-                    <text id="timeHours"   x="122" y="75" text-anchor="end">--</text>
-                    <text id="timeSep1"    x="130" y="73" text-anchor="middle">:</text>
-                    <text id="timeMinutes" x="138" y="75" text-anchor="start">--</text>
-                    <text id="pmIndicator" x="184" y="75" text-anchor="start"></text>
+                  <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                    <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--</text>
+                    <text id="pmIndicator" x="185" y="75" text-anchor="start"></text>
                   </g>
                 `}
               
