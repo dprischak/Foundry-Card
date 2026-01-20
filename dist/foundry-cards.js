@@ -4220,7 +4220,7 @@ var FoundrySliderCard = class extends HTMLElement {
         .vertical { flex-direction: row; }
         .horizontal { flex-direction: column; }
 
-        .rim { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+        .rim { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; position: relative; }
 
         .plate {
           background: ${cfg.plate_transparent ? "transparent" : cfg.plate_color};
@@ -4236,8 +4236,9 @@ var FoundrySliderCard = class extends HTMLElement {
           flex: 1;
         }
 
-        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; }
-        .slider-vertical { height: 100%; width: 48px; box-sizing:border-box; flex: 1 1 auto; }
+        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; position: relative; }
+        /* Vertical slider column: narrow overall area but the input will fill vertically */
+        .slider-vertical { height: 100%; width: 64px; box-sizing:border-box; flex: 1 1 auto; min-height: 180px; display:flex; align-items:center; justify-content:center; padding: 6px 0; }
         .slider-horizontal { width: 100%; max-width: 100%; height: 48px; box-sizing:border-box; flex: 1 1 auto; }
 
         .value-display { flex: 0 0 auto; }
@@ -4250,61 +4251,81 @@ var FoundrySliderCard = class extends HTMLElement {
         }
 
         /* Track */
-        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 36px; transform: rotate(-90deg); }
+        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 100%; transform: rotate(-90deg); }
         input[type="range"].horizontal { width: 100%; height: 36px; }
 
+        /* Stylized inset track to match reference: rounded, slightly recessed with an inner dark channel */
         input[type="range"]::-webkit-slider-runnable-track {
-          height: 12px;
-          background: linear-gradient(90deg, ${this.adjustColor(cfg.slider_color, 30)}, ${cfg.slider_color});
-          border-radius: 8px;
+          height: 18px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, ${this.adjustColor(cfg.slider_color, 25)} 0%, ${cfg.slider_color} 50%, ${this.adjustColor(cfg.slider_color, -8)} 100%);
+          box-shadow: inset 0 2px 6px rgba(0,0,0,0.45), inset 0 -6px 10px rgba(255,255,255,0.03);
+          border: 3px solid rgba(255,255,255,0.06);
         }
         input[type="range"]::-moz-range-track {
-          height: 12px;
-          background: linear-gradient(90deg, ${this.adjustColor(cfg.slider_color, 30)}, ${cfg.slider_color});
-          border-radius: 8px;
+          height: 18px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, ${this.adjustColor(cfg.slider_color, 25)} 0%, ${cfg.slider_color} 50%, ${this.adjustColor(cfg.slider_color, -8)} 100%);
+          box-shadow: inset 0 2px 6px rgba(0,0,0,0.45), inset 0 -6px 10px rgba(255,255,255,0.03);
+          border: 3px solid rgba(255,255,255,0.06);
         }
 
-        /* Thumb */
+        /* Thumb: square-ish rounded metallic knob */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 32px; height: 32px; border-radius: 50%;
-          background: ${cfg.knob_color}; border: 2px solid ${this.adjustColor(cfg.knob_color, -20)}; box-shadow: 0 2px 2px rgba(0,0,0,0.4);
-          margin-top: -10px;
+          width: 48px; height: 48px; border-radius: 10px;
+          background: linear-gradient(180deg, ${this.adjustColor(cfg.knob_color, 40)} 0%, ${cfg.knob_color} 50%, ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          border: 3px solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 6px 16px rgba(0,0,0,0.45), inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -6px 8px rgba(0,0,0,0.25);
+          margin-top: 0; /* handled by track height */
         }
         input[type="range"]::-moz-range-thumb {
-          width: 32px; height: 32px; border-radius: 50%;
-          background: ${cfg.knob_color}; border: 2px solid ${this.adjustColor(cfg.knob_color, -20)}; box-shadow: 0 2px 2px rgba(0,0,0,0.4);
+          width: 48px; height: 48px; border-radius: 10px;
+          background: linear-gradient(180deg, ${this.adjustColor(cfg.knob_color, 40)} 0%, ${cfg.knob_color} 50%, ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          border: 3px solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 6px 16px rgba(0,0,0,0.45), inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -6px 8px rgba(0,0,0,0.25);
         }
 
         .value-display {
           font-family: 'ds-digitalnormal', monospace; font-size: 28px; color: ${cfg.font_color}; background: ${cfg.font_bg_color}; padding: 6px 10px; border-radius:6px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.08);
         }
+        .value-display.absolute { position: absolute; z-index: 20; }
+        .value-display.above { top: 6px; left: 50%; transform: translateX(-50%); }
+        .value-display.below { bottom: 6px; left: 50%; transform: translateX(-50%); }
+        .value-display.left { left: 6px; top: 50%; transform: translateY(-50%); }
+        .value-display.right { right: 6px; top: 50%; transform: translateY(-50%); }
+
+        /* Tick marks area */
+        .ticks { position: absolute; pointer-events: none; z-index: 5; }
+        .ticks.vertical { right: -36px; top: 12px; bottom: 12px; width: 32px; background-image: repeating-linear-gradient(to bottom, rgba(0,0,0,0.22) 0 1px, transparent 1px 22px); background-repeat: repeat-y; background-position: left center; background-size: 100% 22px; }
+        .ticks.horizontal { left: 12px; right: 12px; bottom: -36px; height: 32px; background-image: repeating-linear-gradient(to right, rgba(0,0,0,0.22) 0 1px, transparent 1px 22px); background-repeat: repeat-x; background-position: center top; background-size: 22px 100%; }
 
         .rivet { width:8px; height:8px; background: ${cfg.rivet_color}; border-radius:50%; box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+        .corner-rivet { position: absolute; width: 10px; height: 10px; background: ${cfg.rivet_color}; border-radius: 50%; box-shadow: 0 2px 3px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; }
+        .corner-rivet.top-left { top: -5px; left: -5px; }
+        .corner-rivet.top-right { top: -5px; right: -5px; }
+        .corner-rivet.bottom-left { bottom: -5px; left: -5px; }
+        .corner-rivet.bottom-right { bottom: -5px; right: -5px; }
       </style>
       <ha-card tabindex="0">
         <div class="card" id="actionRoot">
           <div class="rim" style="background: ${this.getRimStyleCss(cfg.ring_style)}; padding:6px; border-radius:12px;">
+            <div class="corner-rivet top-left"></div>
+            <div class="corner-rivet top-right"></div>
+            <div class="corner-rivet bottom-left"></div>
+            <div class="corner-rivet bottom-right"></div>
+            ${cfg.show_value ? `<div class="value-display absolute ${cfg.value_position}" id="valueDisplay">--</div>` : ""}
             <div class="plate">
               <div class="container ${isVertical ? "vertical" : "horizontal"}">
-              ${cfg.value_position === "left" && cfg.show_value ? `<div class="value-display" id="valueDisplay">--</div>` : ""}
               <div class="slider-wrap">
-                <div class="rivet" style="margin-right:8px"></div>
                 <div class="slider ${isVertical ? "slider-vertical" : "slider-horizontal"}">
                   <input id="slider" type="range" class="${isVertical ? "vertical" : "horizontal"}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.value}" />
                 </div>
-              </div>
-              ${cfg.value_position === "right" && cfg.show_value ? `
-              <div class="value-rivet-wrap">
-                <div class="value-display" id="valueDisplay">--</div>
-                <div class="rivet"></div>
-              </div>` : ""}
-            </div>
-            ${cfg.value_position === "above" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayA">--</div></div>` : ""}
-            ${cfg.value_position === "below" && cfg.show_value ? `<div style="display:flex;justify-content:center;margin-top:6px"><div class="value-display" id="valueDisplayB">--</div></div>` : ""}
+                <div class="ticks ${isVertical ? "vertical" : "horizontal"}"></div>
               </div>
             </div>
-          </div>
+              </div>
+            </div>
         </div>
       </ha-card>
     `;
