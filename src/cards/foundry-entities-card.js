@@ -232,7 +232,7 @@ class FoundryEntitiesCard extends HTMLElement {
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Entities List -->
-              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitalnormal" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
+              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
                 ${this.renderEntitiesLoop(rowLayouts)}
               </g>
 
