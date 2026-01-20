@@ -4217,6 +4217,7 @@ var FoundrySliderCard = class extends HTMLElement {
         ha-card { overflow: visible; display: block; box-sizing: border-box; height: 100%; }
         .card { cursor: pointer; padding: 8px; box-sizing: border-box; width:100%; height:100%; display: flex; flex-direction: column; }
         .container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 100%; }
+        .container.vertical { align-items: stretch; }
         .vertical { flex-direction: row; }
         .horizontal { flex-direction: column; }
 
@@ -4236,9 +4237,9 @@ var FoundrySliderCard = class extends HTMLElement {
           flex: 1;
         }
 
-        .slider-wrap { display:flex; align-items:center; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; position: relative; }
-        /* Vertical slider column: narrow overall area but the input will fill vertically */
-        .slider-vertical { height: 100%; width: 64px; box-sizing:border-box; flex: 1 1 auto; min-height: 180px; display:flex; align-items:center; justify-content:center; padding: 6px 0; }
+        .slider-wrap { display:flex; align-items:stretch; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; position: relative; }
+        /* Vertical slider column: narrow overall area; fill available plate height */
+        .slider-vertical { height: 100%; width: 64px; box-sizing:border-box; flex: 1 1 auto; min-height: 0; display:flex; align-items:center; justify-content:center; padding: 0 6px; }
         .slider-horizontal { width: 100%; max-width: 100%; height: 48px; box-sizing:border-box; flex: 1 1 auto; }
 
         .value-display { flex: 0 0 auto; }
@@ -4251,7 +4252,7 @@ var FoundrySliderCard = class extends HTMLElement {
         }
 
         /* Track */
-        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 100%; transform: rotate(-90deg); }
+        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 100%; transform: rotate(-90deg); transform-origin: center; display: block; }
         input[type="range"].horizontal { width: 100%; height: 36px; }
 
         /* Stylized inset track to match reference: rounded, slightly recessed with an inner dark channel */
