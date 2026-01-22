@@ -10,22 +10,41 @@ class FoundrySliderCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
-    // Defaults
+    
+    // Basic Slider Settings
     this.config.min = this.config.min !== undefined ? this.config.min : 0;
     this.config.max = this.config.max !== undefined ? this.config.max : 100;
     this.config.step = this.config.step !== undefined ? this.config.step : 1;
     this.config.value = this.config.value !== undefined ? this.config.value : this.config.min;
-    this.config.orientation = this.config.orientation || "horizontal"; // or 'vertical'
-    this.config.value_position = this.config.value_position || "above"; // above, below, left, right
+    
+    // Brass Theme Defaults (from digital clock)
     this.config.ring_style = this.config.ring_style || "brass";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
+    this.config.plate_color = this.config.plate_color || "#8c7626";
     this.config.plate_transparent = this.config.plate_transparent !== undefined ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.slider_color = this.config.slider_color || "#444444";
+    this.config.rivet_color = this.config.rivet_color || "#6a5816";
     this.config.knob_color = this.config.knob_color || "#c9a961";
     this.config.font_color = this.config.font_color || "#000000";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+    
+    // Slider-specific colors
+    this.config.slider_color = this.config.slider_color || "#444444";
+    this.config.tick_color = this.config.tick_color || "rgba(0,0,0,0.22)";
+    
+    // Display Settings
     this.config.show_value = this.config.show_value !== undefined ? this.config.show_value : true;
+    this.config.led_position = this.config.led_position || "right"; // 'left' or 'right'
+    this.config.title_font_size = this.config.title_font_size !== undefined ? this.config.title_font_size : 14;
+    this.config.value_font_size = this.config.value_font_size !== undefined ? this.config.value_font_size : 36;
+    
+    // Knob Settings
+    this.config.knob_shape = this.config.knob_shape || "square"; // 'circular', 'square', 'rectangular'
+    this.config.knob_size = this.config.knob_size !== undefined ? this.config.knob_size : 48;
+    
+    // Visual Effects (from digital clock)
+    this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== undefined ? this.config.glass_effect_enabled : true;
+    this.config.aged_texture = this.config.aged_texture !== undefined ? this.config.aged_texture : 'everywhere';
+    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== undefined ? this.config.aged_texture_intensity : 50;
 
     ensureLedFont();
     this.render();
@@ -38,165 +57,511 @@ class FoundrySliderCard extends HTMLElement {
   render() {
     const cfg = this.config;
     const uid = this._uniqueId;
-    const orientation = cfg.orientation === "horizontal" ? "horizontal" : "vertical";
-    const isVertical = orientation === "vertical";
+    const title = cfg.title || '';
+    
+    // SVG SIZING CONSTANTS - Easy to customize
+    const SVG_WIDTH = 150;
+    const SVG_HEIGHT = 260;
+    const KNOB_BORDER_WIDTH = 3; // Fixed at 3px, but as a constant
+    const TRACK_WIDTH_MULTIPLIER = 0.375; // Track width = knob_size * this multiplier
+    
+    // Layout Constants
+    const PLATE_PADDING = 8;
+    const PLATE_X = 5;
+    const PLATE_Y = 10;
+    const PLATE_WIDTH = SVG_WIDTH - (PLATE_X * 2);
+    const PLATE_HEIGHT = SVG_HEIGHT - (PLATE_Y * 2);
+    
+    // Calculate knob dimensions based on shape
+    const knobSize = cfg.knob_size;
+    let knobWidth, knobHeight, knobBorderRadius;
+    
+    switch (cfg.knob_shape) {
+      case 'circular':
+        knobWidth = knobSize;
+        knobHeight = knobSize;
+        knobBorderRadius = '50%';
+        break;
+      case 'rectangular':
+        knobWidth = knobSize;
+        knobHeight = Math.round(knobSize * 1.33); // 3:4 ratio
+        knobBorderRadius = '10px';
+        break;
+      case 'square':
+      default:
+        knobWidth = knobSize;
+        knobHeight = knobSize;
+        knobBorderRadius = '10px';
+        break;
+    }
+    
+    // Track dimensions
+    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
+    const trackX = (SVG_WIDTH / 2) - (trackWidth / 2); // Center the track
+    const trackTopY = 50;
+    const trackBottomY = 230;
+    const trackHeight = trackBottomY - trackTopY;
+    
+    // LED Display positioning
+    const ledWidth = 60;
+    const ledHeight = 50;
+    const ledY = 20;
+    const ledLeftX = 15;
+    const ledRightX = SVG_WIDTH - ledWidth - 15;
+    const ledX = cfg.led_position === 'left' ? ledLeftX : ledRightX;
+    
+    // Tick mark positioning
+    const tickStartX = trackX + trackWidth + 5;
+    const tickMajorLength = 12;
+    const tickMinorLength = 6;
+    
+    // Visual effects
+    const wearLevel = cfg.wear_level;
+    const glassEffectEnabled = cfg.glass_effect_enabled;
+    const agedTexture = cfg.aged_texture;
+    const agedTextureIntensity = cfg.aged_texture_intensity;
+    const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
+    const effectiveAgedTexture = (cfg.plate_transparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display:block; padding:0; box-sizing: border-box; height: 100%; }
-        ha-card { overflow: visible; display: block; box-sizing: border-box; height: 100%; }
-        .card { cursor: pointer; padding: 8px; box-sizing: border-box; width:100%; height:100%; display: flex; flex-direction: column; }
-        .container { display: flex; align-items: center; justify-content: center; gap: 8px; height: 100%; }
-        .container.vertical { align-items: stretch; }
-        .vertical { flex-direction: row; }
-        .horizontal { flex-direction: column; }
-
-        .rim { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; position: relative; }
-
-        .plate {
-          background: ${cfg.plate_transparent ? 'transparent' : cfg.plate_color};
-          padding: 8px;
-          border-radius: 10px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-sizing: border-box;
+        :host {
+          display: block;
+          padding: 0;
+        }
+        ha-card {
+          container-type: inline-size;
+          overflow: visible;
+        }
+        .card {
+          background: transparent;
+          padding: 0;
+          position: relative;
+          cursor: pointer;
+        }
+        .slider-container {
+          position: relative;
+          width: 100%;
+          max-width: 200px;
+          min-width: 100px;
+          margin: 0 auto;
+          container-type: inline-size;
+          aspect-ratio: ${SVG_WIDTH} / ${SVG_HEIGHT};
+        }
+        .slider-svg {
           width: 100%;
           height: 100%;
-          flex: 1;
+          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
         }
-
-        .slider-wrap { display:flex; align-items:stretch; justify-content:center; width:100%; height: 100%; box-sizing:border-box; flex: 1 1 auto; position: relative; }
-        /* Vertical slider column: narrow overall area; fill available plate height */
-        .slider-vertical { height: 100%; width: 64px; box-sizing:border-box; flex: 1 1 auto; min-height: 0; display:flex; align-items:center; justify-content:center; padding: 0 6px; }
-        .slider-horizontal { width: 100%; max-width: 100%; height: 48px; box-sizing:border-box; flex: 1 1 auto; }
-
-        .value-display { flex: 0 0 auto; }
-        .rivet { flex: 0 0 auto; }
-        .value-rivet-wrap { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-
+        .rivet {
+          fill: ${cfg.rivet_color};
+          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+        }
+        .screw-detail {
+          stroke: #4a4034;
+          stroke-width: 0.5;
+          fill: none;
+        }
+        
+        /* HTML input range overlay */
+        .slider-input-container {
+          position: absolute;
+          top: ${trackTopY / SVG_HEIGHT * 100}%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: ${trackWidth / SVG_WIDTH * 100}%;
+          height: ${trackHeight / SVG_HEIGHT * 100}%;
+          pointer-events: all;
+        }
+        
         input[type="range"] {
           -webkit-appearance: none;
+          appearance: none;
           background: transparent;
+          width: 100%;
+          height: 100%;
+          writing-mode: bt-lr;
+          transform: rotate(-90deg);
+          transform-origin: center;
+          cursor: pointer;
         }
-
-        /* Track */
-        input[type="range"].vertical { writing-mode: bt-lr; width: 100%; height: 100%; transform: rotate(-90deg); transform-origin: center; display: block; }
-        input[type="range"].horizontal { width: 100%; height: 36px; }
-
-        /* Stylized inset track to match reference: rounded, slightly recessed with an inner dark channel */
+        
+        /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
-          height: 18px;
-          border-radius: 999px;
-          background: linear-gradient(180deg, ${this.adjustColor(cfg.slider_color, 25)} 0%, ${cfg.slider_color} 50%, ${this.adjustColor(cfg.slider_color, -8)} 100%);
-          box-shadow: inset 0 2px 6px rgba(0,0,0,0.45), inset 0 -6px 10px rgba(255,255,255,0.03);
-          border: 3px solid rgba(255,255,255,0.06);
+          background: transparent;
+          height: 100%;
         }
         input[type="range"]::-moz-range-track {
-          height: 18px;
-          border-radius: 999px;
-          background: linear-gradient(180deg, ${this.adjustColor(cfg.slider_color, 25)} 0%, ${cfg.slider_color} 50%, ${this.adjustColor(cfg.slider_color, -8)} 100%);
-          box-shadow: inset 0 2px 6px rgba(0,0,0,0.45), inset 0 -6px 10px rgba(255,255,255,0.03);
-          border: 3px solid rgba(255,255,255,0.06);
+          background: transparent;
+          height: 100%;
         }
-
-        /* Thumb: square-ish rounded metallic knob */
+        
+        /* Thumb/Knob styling */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 48px; height: 48px; border-radius: 10px;
-          background: linear-gradient(180deg, ${this.adjustColor(cfg.knob_color, 40)} 0%, ${cfg.knob_color} 50%, ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: 3px solid ${this.adjustColor(cfg.knob_color, -30)};
-          box-shadow: 0 6px 16px rgba(0,0,0,0.45), inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -6px 8px rgba(0,0,0,0.25);
-          margin-top: 0; /* handled by track height */
+          width: ${knobWidth}px;
+          height: ${knobHeight}px;
+          border-radius: ${knobBorderRadius};
+          background: linear-gradient(180deg, 
+            ${this.adjustColor(cfg.knob_color, 40)} 0%, 
+            ${cfg.knob_color} 50%, 
+            ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          border: ${KNOB_BORDER_WIDTH}px solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 6px 16px rgba(0,0,0,0.45), 
+                      inset 0 6px 10px rgba(255,255,255,0.12), 
+                      inset 0 -6px 8px rgba(0,0,0,0.25);
+          cursor: grab;
         }
+        
         input[type="range"]::-moz-range-thumb {
-          width: 48px; height: 48px; border-radius: 10px;
-          background: linear-gradient(180deg, ${this.adjustColor(cfg.knob_color, 40)} 0%, ${cfg.knob_color} 50%, ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: 3px solid ${this.adjustColor(cfg.knob_color, -30)};
-          box-shadow: 0 6px 16px rgba(0,0,0,0.45), inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -6px 8px rgba(0,0,0,0.25);
+          width: ${knobWidth}px;
+          height: ${knobHeight}px;
+          border-radius: ${knobBorderRadius};
+          background: linear-gradient(180deg, 
+            ${this.adjustColor(cfg.knob_color, 40)} 0%, 
+            ${cfg.knob_color} 50%, 
+            ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          border: ${KNOB_BORDER_WIDTH}px solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 6px 16px rgba(0,0,0,0.45), 
+                      inset 0 6px 10px rgba(255,255,255,0.12), 
+                      inset 0 -6px 8px rgba(0,0,0,0.25);
+          cursor: grab;
         }
-
-        .value-display {
-          font-family: 'ds-digitalnormal', monospace; font-size: 28px; color: ${cfg.font_color}; background: ${cfg.font_bg_color}; padding: 6px 10px; border-radius:6px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.08);
+        
+        input[type="range"]:active::-webkit-slider-thumb {
+          cursor: grabbing;
         }
-        .value-display.absolute { position: absolute; z-index: 20; }
-        .value-display.above { top: 6px; left: 50%; transform: translateX(-50%); }
-        .value-display.below { bottom: 6px; left: 50%; transform: translateX(-50%); }
-        .value-display.left { left: 6px; top: 50%; transform: translateY(-50%); }
-        .value-display.right { right: 6px; top: 50%; transform: translateY(-50%); }
-
-        /* Tick marks area */
-        .ticks { position: absolute; pointer-events: none; z-index: 5; }
-        .ticks.vertical { right: -36px; top: 12px; bottom: 12px; width: 32px; background-image: repeating-linear-gradient(to bottom, rgba(0,0,0,0.22) 0 1px, transparent 1px 22px); background-repeat: repeat-y; background-position: left center; background-size: 100% 22px; }
-        .ticks.horizontal { left: 12px; right: 12px; bottom: -36px; height: 32px; background-image: repeating-linear-gradient(to right, rgba(0,0,0,0.22) 0 1px, transparent 1px 22px); background-repeat: repeat-x; background-position: center top; background-size: 22px 100%; }
-
-        .rivet { width:8px; height:8px; background: ${cfg.rivet_color}; border-radius:50%; box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
-        .corner-rivet { position: absolute; width: 10px; height: 10px; background: ${cfg.rivet_color}; border-radius: 50%; box-shadow: 0 2px 3px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; }
-        .corner-rivet.top-left { top: -5px; left: -5px; }
-        .corner-rivet.top-right { top: -5px; right: -5px; }
-        .corner-rivet.bottom-left { bottom: -5px; left: -5px; }
-        .corner-rivet.bottom-right { bottom: -5px; right: -5px; }
+        
+        input[type="range"]:active::-moz-range-thumb {
+          cursor: grabbing;
+        }
       </style>
-      <ha-card tabindex="0">
+      
+      <ha-card role="img" aria-label="${title ? title : 'Foundry Slider'}" tabindex="0">
         <div class="card" id="actionRoot">
-          <div class="rim" style="background: ${this.getRimStyleCss(cfg.ring_style)}; padding:6px; border-radius:12px;">
-            <div class="corner-rivet top-left"></div>
-            <div class="corner-rivet top-right"></div>
-            <div class="corner-rivet bottom-left"></div>
-            <div class="corner-rivet bottom-right"></div>
-            ${cfg.show_value ? `<div class="value-display absolute ${cfg.value_position}" id="valueDisplay">--</div>` : ''}
-            <div class="plate">
-              <div class="container ${isVertical ? 'vertical' : 'horizontal'}">
-              <div class="slider-wrap">
-                <div class="slider ${isVertical ? 'slider-vertical' : 'slider-horizontal'}">
-                  <input id="slider" type="range" class="${isVertical ? 'vertical' : 'horizontal'}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.value}" />
-                </div>
-                <div class="ticks ${isVertical ? 'vertical' : 'horizontal'}"></div>
-              </div>
+          <div class="slider-container">
+            <svg class="slider-svg" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Radial gradient for LED display background -->
+                <radialGradient id="ledBg-${uid}" cx="50%" cy="50%">
+                  <stop offset="0%" style="stop-color:${cfg.font_bg_color};stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:${this.adjustColor(cfg.font_bg_color, -20)};stop-opacity:1" />
+                </radialGradient>
+                
+                <!-- Rim Gradients -->
+                ${this.renderGradients(uid)}
+                
+                <!-- Track Gradient -->
+                <linearGradient id="trackGradient-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:${this.adjustColor(cfg.slider_color, 25)};stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:${cfg.slider_color};stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:${this.adjustColor(cfg.slider_color, -8)};stop-opacity:1" />
+                </linearGradient>
+                
+                <!-- Aged texture filter -->
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feComponentTransfer result="grainTexture">
+                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  </feComponentTransfer>
+                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
+                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                </filter>
+              </defs>
+              
+              <!-- Base Plate -->
+              <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
+                    rx="20" ry="20"
+                    fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
+                    stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
+                    stroke-width="0.5"
+                    filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
+              
+              <!-- Corner Rivets -->
+              ${this.renderRivets()}
+              
+              <!-- Slider Track -->
+              <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
+                    rx="${trackWidth / 2}" ry="${trackWidth / 2}"
+                    fill="${cfg.slider_color}"
+                    stroke="rgba(0,0,0,0.3)"
+                    stroke-width="1"
+                    style="box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);" />
+              
+              <!-- Inner track shadow effect -->
+              <rect x="${trackX + 1}" y="${trackTopY + 2}" width="${trackWidth - 2}" height="${trackHeight - 4}"
+                    rx="${(trackWidth - 2) / 2}" ry="${(trackWidth - 2) / 2}"
+                    fill="url(#trackGradient-${uid})"
+                    opacity="0.4" />
+              
+              <!-- Tick Marks -->
+              ${this.renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, tickMajorLength, tickMinorLength)}
+              
+              <!-- LED Display Box -->
+              ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ''}
+              
+              <!-- Title -->
+              ${title ? `<text x="${SVG_WIDTH / 2}" y="${SVG_HEIGHT - 15}" text-anchor="middle" font-size="${cfg.title_font_size}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
+              
+              <!-- Wear Marks -->
+              ${this.renderWearMarks(wearLevel)}
+            </svg>
+            
+            <!-- HTML Input Range Overlay -->
+            <div class="slider-input-container">
+              <input id="slider" type="range" 
+                     min="${cfg.min}" 
+                     max="${cfg.max}" 
+                     step="${cfg.step}" 
+                     value="${cfg.value}" 
+                     aria-label="Slider control"
+                     aria-valuemin="${cfg.min}"
+                     aria-valuemax="${cfg.max}"
+                     aria-valuenow="${cfg.value}" />
             </div>
-              </div>
-            </div>
+          </div>
         </div>
       </ha-card>
     `;
 
     this._attachListeners();
-    // Ensure displayed values are formatted (zero-padded with negative placeholder)
-    this._updateValueDisplays(this.config.value);
+    this._updateValueDisplay(cfg.value);
+  }
+
+  renderGradients(uid) {
+    return `
+      <!-- Brass -->
+      <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#ddc68f;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#b8944d;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#d4b877;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#a68038;stop-opacity:1" />
+      </linearGradient>
+      <!-- Silver/Chrome -->
+      <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#c0c0c0;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#e0e0e0;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#b0b0b0;stop-opacity:1" />
+      </linearGradient>
+      <!-- White -->
+      <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f6f6f6;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#cfcfcf;stop-opacity:1" />
+      </linearGradient>
+      <!-- Black -->
+      <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3a3a3a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#141414;stop-opacity:1" />
+      </linearGradient>
+      <!-- Copper -->
+      <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#c77c43;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#e1a06a;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#9a5c2a;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#d7925a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+      </linearGradient>
+      <!-- Blue -->
+      <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#2a6fdb;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#5ea2ff;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#1f4f9e;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#4f8fe6;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#163b76;stop-opacity:1" />
+      </linearGradient>
+      <!-- Green -->
+      <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#2fbf71;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#6fe0a6;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#1f7a49;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#53cf8e;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#165a36;stop-opacity:1" />
+      </linearGradient>
+      <!-- Red -->
+      <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#e53935;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#ff6f6c;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#9e1f1c;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#e85a57;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+      </linearGradient>
+    `;
+  }
+
+  renderRivets() {
+    const rivets = [
+      { cx: 15, cy: 15 },
+      { cx: 135, cy: 15 },
+      { cx: 15, cy: 245 },
+      { cx: 135, cy: 245 }
+    ];
+
+    return rivets.map(r => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" 
+              class="screw-detail" 
+              transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `).join('');
+  }
+
+  renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, majorLength, minorLength) {
+    const min = cfg.min;
+    const max = cfg.max;
+    const step = cfg.step;
+    const tickColor = cfg.tick_color;
+    
+    const range = max - min;
+    const trackHeight = trackBottomY - trackTopY;
+    
+    let ticks = '';
+    
+    // Major ticks at 10% intervals
+    for (let i = 0; i <= 10; i++) {
+      const percent = i / 10;
+      const value = min + (range * percent);
+      const y = trackBottomY - (trackHeight * percent); // Inverted: bottom is min
+      
+      ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
+                      stroke="${tickColor}" stroke-width="2" />`;
+    }
+    
+    // Minor ticks at each step (if step is reasonable)
+    const numSteps = range / step;
+    if (numSteps > 0 && numSteps <= 100) {
+      for (let i = 0; i <= numSteps; i++) {
+        const value = min + (i * step);
+        const percent = (value - min) / range;
+        const y = trackBottomY - (trackHeight * percent);
+        
+        // Skip if this coincides with a major tick
+        const isMajor = (i % Math.ceil(numSteps / 10)) === 0;
+        if (!isMajor) {
+          ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
+                          stroke="${tickColor}" stroke-width="1" />`;
+        }
+      }
+    }
+    
+    return ticks;
+  }
+
+  renderLEDDisplay(uid, cfg, x, y, width, height, glassEffectEnabled) {
+    const borderRadius = 8;
+    
+    return `
+      <!-- LED Display Background -->
+      <rect x="${x}" y="${y}" width="${width}" height="${height}" 
+            rx="${borderRadius}" ry="${borderRadius}"
+            fill="url(#ledBg-${uid})"
+            stroke="rgba(0,0,0,0.5)"
+            stroke-width="1" />
+      
+      <!-- Inner bevel -->
+      <rect x="${x + 2}" y="${y + 2}" width="${width - 4}" height="${height - 4}" 
+            rx="${borderRadius - 2}" ry="${borderRadius - 2}"
+            fill="none"
+            stroke="rgba(0,0,0,0.2)"
+            stroke-width="1" />
+      
+      <!-- Glass glare effect -->
+      ${glassEffectEnabled ? `
+        <path d="M ${x + 4} ${y + 4} 
+                 L ${x + width - 4} ${y + 4} 
+                 L ${x + width - 4} ${y + height * 0.4} 
+                 Q ${x + width / 2} ${y + height * 0.5} ${x + 4} ${y + height * 0.4} Z" 
+              fill="white" 
+              opacity="0.08" />
+      ` : ''}
+      
+      <!-- Value Text -->
+      <text id="valueDisplay" 
+            x="${x + width / 2}" 
+            y="${y + height / 2}" 
+            text-anchor="middle" 
+            dominant-baseline="middle"
+            font-size="${cfg.value_font_size}" 
+            font-family="ds-digitalnormal, monospace" 
+            fill="${cfg.font_color}"
+            style="text-shadow: 0 0 5px ${cfg.font_color}; pointer-events: none;">
+        ${this._formatValue(cfg.value)}
+      </text>
+    `;
+  }
+
+  renderWearMarks(wearLevel) {
+    if (wearLevel === 0) return '';
+    
+    const baseOpacity = (wearLevel / 100) * 0.25;
+    
+    // 12 wear marks positioned for vertical slider (avoiding track area x=60-90)
+    const allMarks = [
+      { type: 'circle', cx: 30, cy: 55, r: 1.8, fill: '#8B7355', baseOpacity: 0.18 },
+      { type: 'ellipse', cx: 120, cy: 45, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.12 },
+      { type: 'circle', cx: 45, cy: 95, r: 1.2, fill: '#8B7355', baseOpacity: 0.15 },
+      { type: 'circle', cx: 128, cy: 88, r: 1.5, fill: '#6d5d4b', baseOpacity: 0.2 },
+      { type: 'ellipse', cx: 22, cy: 140, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.1 },
+      { type: 'circle', cx: 135, cy: 155, r: 1, fill: '#6d5d4b', baseOpacity: 0.15 },
+      { type: 'circle', cx: 38, cy: 185, r: 1.3, fill: '#8B7355', baseOpacity: 0.12 },
+      { type: 'ellipse', cx: 118, cy: 195, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.08 },
+      { type: 'circle', cx: 25, cy: 225, r: 2, fill: '#6d5d4b', baseOpacity: 0.2 },
+      { type: 'circle', cx: 125, cy: 238, r: 1.8, fill: '#8B7355', baseOpacity: 0.18 },
+      { type: 'ellipse', cx: 60, cy: 70, rx: 1.5, ry: 0.8, fill: '#6d5d4b', baseOpacity: 0.09 },
+      { type: 'circle', cx: 100, cy: 215, r: 0.8, fill: '#8B7355', baseOpacity: 0.1 }
+    ];
+    
+    const markCount = Math.ceil((wearLevel / 100) * allMarks.length);
+    const marksToShow = allMarks.slice(0, markCount);
+    
+    return marksToShow.map(mark => {
+      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+      return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+    }).join('');
   }
 
   _attachListeners() {
     const slider = this.shadowRoot.getElementById('slider');
     if (!slider) return;
+    
     slider.oninput = (e) => this._onSliderInput(e);
     slider.onchange = (e) => this._onSliderChange(e);
 
     const root = this.shadowRoot.getElementById('actionRoot');
-    if (root) root.onclick = () => this._handleAction('tap');
+    if (root) {
+      root.onclick = (e) => {
+        // Don't trigger action if clicking on slider
+        if (e.target.id !== 'slider') {
+          this._handleAction('tap');
+        }
+      };
+    }
   }
 
   _onSliderInput(e) {
     const v = e.target.value;
-    this._updateValueDisplays(v);
-    // Live event
+    this._updateValueDisplay(v);
     fireEvent(this, 'foundry-slider-input', { value: Number(v) });
   }
 
   _onSliderChange(e) {
     const v = e.target.value;
     this.config.value = Number(v);
-    this._updateValueDisplays(v);
+    this._updateValueDisplay(v);
     fireEvent(this, 'foundry-slider-change', { value: Number(v) });
   }
 
-  _updateValueDisplays(v) {
+  _updateValueDisplay(v) {
     const formatted = this._formatValue(v);
-    const ids = ['valueDisplay','valueDisplayA','valueDisplayB'];
-    ids.forEach(id => {
-      const el = this.shadowRoot.getElementById(id);
-      if (el) el.textContent = formatted;
-    });
+    const el = this.shadowRoot.getElementById('valueDisplay');
+    if (el) el.textContent = formatted;
   }
 
   _formatValue(v) {
@@ -235,44 +600,19 @@ class FoundrySliderCard extends HTMLElement {
     }
   }
 
-  // Helper color routines (copied lightweight versions)
   adjustColor(color, percent) {
     if (!color) return color;
     if (color.startsWith('#')) {
-      let num = parseInt(color.replace('#',''),16), amt = Math.round(2.55 * percent);
-      let R = (num >> 16) + amt;
-      let G = (num >> 8 & 0x00FF) + amt;
-      let B = (num & 0x0000FF) + amt;
-      R = Math.max(0, Math.min(255, R));
-      G = Math.max(0, Math.min(255, G));
-      B = Math.max(0, Math.min(255, B));
-      return '#'+(R.toString(16).padStart(2,'0'))+(G.toString(16).padStart(2,'0'))+(B.toString(16).padStart(2,'0'));
+      let num = parseInt(color.replace('#', ''), 16),
+        amt = Math.round(2.55 * percent),
+        R = (num >> 16) + amt,
+        G = (num >> 8 & 0x00FF) + amt,
+        B = (num & 0x0000FF) + amt;
+      return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                                 (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                                 (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
     }
     return color;
-  }
-
-  getRimStyleCss(ringStyle) {
-    switch (ringStyle) {
-      case 'brass':
-        return 'linear-gradient(135deg,#c9a961 0%,#ddc68f 25%,#b8944d 50%,#d4b877 75%,#a68038 100%)';
-      case 'silver':
-      case 'chrome':
-        return 'linear-gradient(135deg,#e8e8e8 0%,#ffffff 25%,#c0c0c0 50%,#e0e0e0 75%,#b0b0b0 100%)';
-      case 'white':
-        return 'linear-gradient(135deg,#f6f6f6 0%,#ffffff 100%)';
-      case 'black':
-        return 'linear-gradient(135deg,#3a3a3a 0%,#141414 100%)';
-      case 'copper':
-        return 'linear-gradient(135deg,#c77c43 0%,#e1a06a 25%,#9a5c2a 50%,#d7925a 75%,#7b461f 100%)';
-      case 'blue':
-        return 'linear-gradient(135deg,#2a6fdb 0%,#5ea2ff 25%,#1f4f9e 50%,#4f8fe6 75%,#163b76 100%)';
-      case 'green':
-        return 'linear-gradient(135deg,#2fbf71 0%,#6fe0a6 25%,#1f7a49 50%,#53cf8e 75%,#165a36 100%)';
-      case 'red':
-        return 'linear-gradient(135deg,#e53935 0%,#ff6f6c 25%,#9e1f1c 50%,#e85a57 75%,#6f1513 100%)';
-      default:
-        return 'linear-gradient(135deg,#c9a961 0%,#ddc68f 25%,#b8944d 50%,#d4b877 75%,#a68038 100%)';
-    }
   }
 
   static getConfigElement() {
@@ -286,16 +626,24 @@ class FoundrySliderCard extends HTMLElement {
       max: 100,
       step: 1,
       value: 50,
-      orientation: 'horizontal',
-      value_position: 'above',
+      led_position: 'right',
       ring_style: 'brass',
+      plate_color: '#8c7626',
+      rivet_color: '#6a5816',
       slider_color: '#444444',
       knob_color: '#c9a961',
+      knob_shape: 'square',
+      knob_size: 48,
+      tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',
-      plate_color: '#f5f5f5',
-      rivet_color: '#6d5d4b',
-      show_value: true
+      title_font_size: 14,
+      value_font_size: 36,
+      show_value: true,
+      wear_level: 50,
+      glass_effect_enabled: true,
+      aged_texture: 'everywhere',
+      aged_texture_intensity: 50
     };
   }
 }
@@ -309,5 +657,5 @@ window.customCards.push({
   type: 'foundry-slider-card',
   name: 'Foundry Slider',
   preview: true,
-  description: 'An industrial-style slider with configurable orientation and value display.'
+  description: 'A vertical retro-style slider with LED display and 70s aesthetic.'
 });

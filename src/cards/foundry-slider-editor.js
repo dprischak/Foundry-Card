@@ -50,33 +50,69 @@ class FoundrySliderEditor extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? 'brass',
+      plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [140,118,38],
+      plate_transparent: config.plate_transparent ?? false,
+      rivet_color: this._hexToRgb(config.rivet_color ?? '#6a5816') ?? [106,88,22],
+      slider_color: this._hexToRgb(config.slider_color ?? '#444444') ?? [68,68,68],
+      tick_color: config.tick_color ?? 'rgba(0,0,0,0.22)'
+    };
+    data.knob_settings = {
+      knob_shape: config.knob_shape ?? 'square',
+      knob_size: config.knob_size ?? 48,
+      knob_color: this._hexToRgb(config.knob_color ?? '#c9a961') ?? [201,169,97]
+    };
+    data.led_settings = {
+      show_value: config.show_value ?? true,
+      led_position: config.led_position ?? 'right',
       font_bg_color: this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [255,255,255],
       font_color: this._hexToRgb(config.font_color ?? '#000000') ?? [0,0,0],
-      rivet_color: this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [109,93,75],
-      plate_color: this._hexToRgb(config.plate_color ?? '#f5f5f5') ?? [245,245,245],
-      slider_color: this._hexToRgb(config.slider_color ?? '#444444') ?? [68,68,68],
-      knob_color: this._hexToRgb(config.knob_color ?? '#c9a961') ?? [201,169,97],
-      plate_transparent: config.plate_transparent ?? false,
-      show_value: config.show_value ?? true
+      title_font_size: config.title_font_size ?? 14,
+      value_font_size: config.value_font_size ?? 36
+    };
+    data.effects = {
+      wear_level: config.wear_level ?? 50,
+      glass_effect_enabled: config.glass_effect_enabled ?? true,
+      aged_texture: config.aged_texture ?? 'everywhere',
+      aged_texture_intensity: config.aged_texture_intensity ?? 50
     };
     return data;
   }
 
   _formToConfig(formData) {
     const config = { ...this._config };
+    
+    // Copy top-level fields
     Object.keys(formData).forEach(k => {
-      if (k === 'appearance') return;
+      if (['appearance', 'knob_settings', 'led_settings', 'effects'].includes(k)) return;
       config[k] = formData[k];
     });
+    
+    // Merge appearance settings
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
-      config.font_bg_color = this._rgbToHex(config.font_bg_color);
-      config.font_color = this._rgbToHex(config.font_color);
-      config.rivet_color = this._rgbToHex(config.rivet_color);
       config.plate_color = this._rgbToHex(config.plate_color);
+      config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
+    }
+    
+    // Merge knob settings
+    if (formData.knob_settings) {
+      Object.assign(config, formData.knob_settings);
       config.knob_color = this._rgbToHex(config.knob_color);
     }
+    
+    // Merge LED settings
+    if (formData.led_settings) {
+      Object.assign(config, formData.led_settings);
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+      config.font_color = this._rgbToHex(config.font_color);
+    }
+    
+    // Merge effects
+    if (formData.effects) {
+      Object.assign(config, formData.effects);
+    }
+    
     return config;
   }
 
@@ -86,20 +122,131 @@ class FoundrySliderEditor extends HTMLElement {
       { name: 'title', selector: { text: {} } },
       { name: 'min', label: 'Minimum', selector: { number: { mode: 'box' } } },
       { name: 'max', label: 'Maximum', selector: { number: { mode: 'box' } } },
-      { name: 'step', label: 'Step', selector: { number: { mode: 'box' } } },
+      { name: 'step', label: 'Step', selector: { number: { mode: 'box', step: 0.1 } } },
       { name: 'value', label: 'Initial Value', selector: { number: { mode: 'box' } } },
-      { name: 'orientation', label: 'Orientation', selector: { select: { options: [ { value: 'vertical', label: 'Vertical' }, { value: 'horizontal', label: 'Horizontal' } ] } } },
-      { name: 'value_position', label: 'Value Position', selector: { select: { options: [ { value: 'above', label: 'Above' }, { value: 'below', label: 'Below' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' } ] } } },
       {
         name: 'appearance',
         type: 'expandable',
         title: 'Appearance',
         schema: [
-          { name: 'ring_style', label: 'Ring Style', selector: { select: { options: [ { value: 'brass', label: 'Brass' }, { value: 'silver', label: 'Silver' }, { value: 'chrome', label: 'Chrome' }, { value: 'copper', label: 'Copper' }, { value: 'black', label: 'Black' }, { value: 'white', label: 'White' }, { value: 'blue', label: 'Blue' }, { value: 'green', label: 'Green' }, { value: 'red', label: 'Red' } ] } } },
-          { type: 'grid', name: '', schema: [ { name: 'font_bg_color', label: 'Value Background', selector: { color_rgb: {} } }, { name: 'font_color', label: 'Value Color', selector: { color_rgb: {} } }, { name: 'plate_color', label: 'Plate Color', selector: { color_rgb: {} } }, { name: 'rivet_color', label: 'Rivet Color', selector: { color_rgb: {} } } ] },
-          { type: 'grid', name: '', schema: [ { name: 'slider_color', label: 'Track Color', selector: { color_rgb: {} } }, { name: 'knob_color', label: 'Knob Color', selector: { color_rgb: {} } } ] },
-          { name: 'plate_transparent', label: 'Transparent Plate', selector: { boolean: {} } },
-          { name: 'show_value', label: 'Show Value', selector: { boolean: {} } }
+          { name: 'ring_style', label: 'Ring Style', selector: { 
+            select: { 
+              options: [ 
+                { value: 'brass', label: 'Brass' }, 
+                { value: 'silver', label: 'Silver' }, 
+                { value: 'chrome', label: 'Chrome' }, 
+                { value: 'copper', label: 'Copper' }, 
+                { value: 'black', label: 'Black' }, 
+                { value: 'white', label: 'White' }, 
+                { value: 'blue', label: 'Blue' }, 
+                { value: 'green', label: 'Green' }, 
+                { value: 'red', label: 'Red' } 
+              ] 
+            } 
+          } },
+          { type: 'grid', name: '', schema: [ 
+            { name: 'plate_color', label: 'Plate Color', selector: { color_rgb: {} } }, 
+            { name: 'rivet_color', label: 'Rivet Color', selector: { color_rgb: {} } } 
+          ] },
+          { type: 'grid', name: '', schema: [ 
+            { name: 'slider_color', label: 'Track Color', selector: { color_rgb: {} } },
+            { name: 'tick_color', label: 'Tick Mark Color', selector: { text: {} } }
+          ] },
+          { name: 'plate_transparent', label: 'Transparent Plate', selector: { boolean: {} } }
+        ]
+      },
+      {
+        name: 'knob_settings',
+        type: 'expandable',
+        title: 'Knob Settings',
+        schema: [
+          { name: 'knob_shape', label: 'Knob Shape', selector: { 
+            select: { 
+              options: [ 
+                { value: 'circular', label: 'Circular' }, 
+                { value: 'square', label: 'Square' }, 
+                { value: 'rectangular', label: 'Rectangular' } 
+              ] 
+            } 
+          } },
+          { name: 'knob_size', label: 'Knob Size', selector: { 
+            number: { 
+              min: 32, 
+              max: 80, 
+              step: 4,
+              mode: 'slider'
+            } 
+          } },
+          { name: 'knob_color', label: 'Knob Color', selector: { color_rgb: {} } }
+        ]
+      },
+      {
+        name: 'led_settings',
+        type: 'expandable',
+        title: 'LED Display',
+        schema: [
+          { name: 'show_value', label: 'Show Value', selector: { boolean: {} } },
+          { name: 'led_position', label: 'LED Position', selector: { 
+            select: { 
+              options: [ 
+                { value: 'left', label: 'Left' }, 
+                { value: 'right', label: 'Right' } 
+              ] 
+            } 
+          } },
+          { type: 'grid', name: '', schema: [ 
+            { name: 'font_bg_color', label: 'LED Background', selector: { color_rgb: {} } }, 
+            { name: 'font_color', label: 'LED Text Color', selector: { color_rgb: {} } } 
+          ] },
+          { type: 'grid', name: '', schema: [ 
+            { name: 'title_font_size', label: 'Title Font Size', selector: { 
+              number: { 
+                min: 8, 
+                max: 24, 
+                mode: 'slider'
+              } 
+            } },
+            { name: 'value_font_size', label: 'Value Font Size', selector: { 
+              number: { 
+                min: 20, 
+                max: 60, 
+                mode: 'slider'
+              } 
+            } }
+          ] }
+        ]
+      },
+      {
+        name: 'effects',
+        type: 'expandable',
+        title: 'Visual Effects',
+        schema: [
+          { name: 'wear_level', label: 'Wear Level', selector: { 
+            number: { 
+              min: 0, 
+              max: 100, 
+              mode: 'slider',
+              unit_of_measurement: '%'
+            } 
+          } },
+          { name: 'glass_effect_enabled', label: 'Glass Effect', selector: { boolean: {} } },
+          { name: 'aged_texture', label: 'Aged Texture', selector: { 
+            select: { 
+              options: [ 
+                { value: 'none', label: 'None' }, 
+                { value: 'glass_only', label: 'Glass Only' }, 
+                { value: 'everywhere', label: 'Everywhere' } 
+              ] 
+            } 
+          } },
+          { name: 'aged_texture_intensity', label: 'Texture Intensity', selector: { 
+            number: { 
+              min: 0, 
+              max: 100, 
+              mode: 'slider',
+              unit_of_measurement: '%'
+            } 
+          } }
         ]
       }
     ];
