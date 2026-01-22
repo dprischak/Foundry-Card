@@ -286,6 +286,9 @@ class FoundrySliderCard extends HTMLElement {
                     stroke-width="0.5"
                     filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
               
+              <!-- Decorative Rim -->
+              ${this.renderSquareRim(cfg.ring_style, uid, cfg.font_bg_color, glassEffectEnabled)}
+              
               <!-- Corner Rivets -->
               ${this.renderRivets()}
               
@@ -400,12 +403,58 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
+    const data = this.getRimStyleData(ringStyle, uid);
+    if (!data) return "";
+
+    // Rim positioned to frame the entire card
+    // Outer rim: 10px from edge, 130px wide x 240px tall
+    const rimX = 10;
+    const rimY = 10;
+    const rimWidth = 130;
+    const rimHeight = 240;
+    const rimRadius = 20;
+
+    return `
+      <!-- Outer Frame (The Ring) -->
+      <rect x="${rimX}" y="${rimY}" width="${rimWidth}" height="${rimHeight}" 
+            rx="${rimRadius}" ry="${rimRadius}" 
+            fill="url(#${data.grad})" 
+            stroke="${data.stroke}" 
+            stroke-width="1"
+            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+      
+      <!-- Inner Bevel (Inset) -->
+      <rect x="${rimX + 4}" y="${rimY + 4}" 
+            width="${rimWidth - 8}" height="${rimHeight - 8}" 
+            rx="${rimRadius - 5}" ry="${rimRadius - 5}" 
+            fill="none" 
+            stroke="rgba(0,0,0,0.2)" 
+            stroke-width="2"/>
+    `;
+  }
+
+  getRimStyleData(ringStyle, uid) {
+    switch (ringStyle) {
+      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case "silver":
+      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
+      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
+      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
+      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "blue": return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
+      case "green": return { grad: `greenRim-${uid}`, stroke: "#006400" };
+      case "red": return { grad: `redRim-${uid}`, stroke: "#8B0000" };
+      default: return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+    }
+  }
+
   renderRivets() {
     const rivets = [
-      { cx: 5, cy: 5 },
-      { cx: 145, cy: 5 },
-      { cx: 5, cy: 255 },
-      { cx: 145, cy: 255 }
+      { cx: 15, cy: 15 },
+      { cx: 135, cy: 15 },
+      { cx: 15, cy: 245 },
+      { cx: 135, cy: 245 }
     ];
 
     return rivets.map(r => `
@@ -584,7 +633,7 @@ class FoundrySliderCard extends HTMLElement {
 
     const num = Number(v);
     const allowSign = (Number(cfg.min) < 0) || (Number(cfg.max) < 0);
-    const sign = allowSign ? (num < 0 ? '-' : ' ') : '';
+    const sign = allowSign ? (num < 0 ? '-' : '+') : '';
     const abs = Math.abs(num);
 
     const maxAbs = Math.max(Math.abs(min), Math.abs(max), 0);
