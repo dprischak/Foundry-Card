@@ -4247,17 +4247,23 @@ var FoundrySliderCard = class extends HTMLElement {
         knobBorderRadius = "10px";
         break;
     }
-    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER;
-    const trackX = SVG_WIDTH / 2 - trackWidth / 2;
-    const trackTopY = 50;
-    const trackBottomY = 230;
-    const trackHeight = trackBottomY - trackTopY;
     const ledWidth = 60;
     const ledHeight = 50;
-    const ledY = 20;
     const ledLeftX = 15;
     const ledRightX = SVG_WIDTH - ledWidth - 15;
     const ledX = cfg.led_position === "left" ? ledLeftX : ledRightX;
+    const ledY = SVG_HEIGHT / 2 - ledHeight / 2;
+    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER;
+    const trackOffset = 15;
+    let trackX;
+    if (cfg.led_position === "left") {
+      trackX = SVG_WIDTH / 2 - trackWidth / 2 + trackOffset;
+    } else {
+      trackX = SVG_WIDTH / 2 - trackWidth / 2 - trackOffset;
+    }
+    const trackTopY = 50;
+    const trackBottomY = 230;
+    const trackHeight = trackBottomY - trackTopY;
     const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
     const tickMinorLength = 6;
@@ -4311,10 +4317,11 @@ var FoundrySliderCard = class extends HTMLElement {
         .slider-input-container {
           position: absolute;
           top: ${trackTopY / SVG_HEIGHT * 100}%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: ${trackWidth / SVG_WIDTH * 100}%;
-          height: ${trackHeight / SVG_HEIGHT * 100}%;
+          left: ${trackX / SVG_WIDTH * 100}%;
+          width: ${trackHeight / SVG_WIDTH * 100}%;
+          height: ${trackWidth / SVG_HEIGHT * 100}%;
+          transform-origin: top left;
+          transform: rotate(90deg) translateY(-100%);
           pointer-events: all;
         }
         
@@ -4324,9 +4331,6 @@ var FoundrySliderCard = class extends HTMLElement {
           background: transparent;
           width: 100%;
           height: 100%;
-          writing-mode: bt-lr;
-          transform: rotate(-90deg);
-          transform-origin: center;
           cursor: pointer;
         }
         
@@ -4537,10 +4541,10 @@ var FoundrySliderCard = class extends HTMLElement {
   }
   renderRivets() {
     const rivets = [
-      { cx: 15, cy: 15 },
-      { cx: 135, cy: 15 },
-      { cx: 15, cy: 245 },
-      { cx: 135, cy: 245 }
+      { cx: 5, cy: 5 },
+      { cx: 145, cy: 5 },
+      { cx: 5, cy: 255 },
+      { cx: 145, cy: 255 }
     ];
     return rivets.map((r) => `
       <g>
