@@ -535,15 +535,24 @@ An industrial liquid-in-glass thermometer:
 |--------|------|----------|---------|-------------|
 | `entity` | string | **Yes** | - | Temperature entity to monitor |
 | `title` | string | No | "Temperature" | Card title |
+| `title_font_color` | string | No | "#3e2723" | Color of the title text |
+| `unit` | string | No | - | Unit of measurement string to display |
 | `min` | number | No | -40 | Minimum temperature value |
 | `max` | number | No | 120 | Maximum temperature value |
-| `unit` | string | No | - | Unit of measurement string to display |
 | `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
 | `liquid_color` | string/array | No | '#cc0000' | Color of the liquid (mercury) |
 | `mercury_width` | number | No | 50 | Width of liquid column (percentage of tube) |
 | `segments_under_mercury` | boolean | No | true | Render colored segments behind the liquid tube |
 | `segments` | array | No | [] | Color zones (from/to/color) |
 | `animation_duration` | number | No | 1.5 | Animation speed in seconds |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of the tube scale area |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
 | `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
 
 
@@ -553,12 +562,17 @@ An industrial liquid-in-glass thermometer:
 ```yaml
 type: custom:foundry-thermostat-card
 entity: sensor.outside_temperature
+min: 0
 max: 100
 ring_style: brass
-title: Temperature
-grid_options:
-  columns: 6
-  rows: auto
+title: Temp
+mercury_width: 50
+segments_under_mercury: true
+animation_duration: 1.5
+plate_color: "#8c7626"
+rivet_color: "#ffffff"
+font_bg_color: "#fcfcfc"
+title_font_color: "#000000"
 segments:
   - from: 0
     to: 33
@@ -569,14 +583,13 @@ segments:
   - from: 66
     to: 100
     color: "#F44336"
-  - from: -100
-    to: 0
-    color: "#004cff"
-unit: "%"
-min: -100
-segments_under_mercury: true
-mercury_width: 50
-animation_duration: 1
+liquid_color: "#cc0000"
+plate_transparent: false
+glass_effect_enabled: true
+wear_level: 50
+aged_texture: everywhere
+aged_texture_intensity: 50
+unit: °C
 
 ```
 <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/tempsensor.png?raw=true" width="300" alt="Preview"/>
