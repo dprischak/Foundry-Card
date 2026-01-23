@@ -4,9 +4,9 @@
 [![GitHub release](https://img.shields.io/github/release/dprischak/Foundry-Card.svg)](https://github.com/dprischak/Foundry-Card/releases)
 [![License](https://img.shields.io/github/license/dprischak/Foundry-Card.svg)](LICENSE)
 
-A collection of custom dashboard cards for Home Assistant, designed with industrial and vintage aesthetics.
+A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 <p>
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/all.png?raw=true" width="600" alt="Preview"/>
+<img src="media/all.png" width="600" alt="Preview"/>
 </p>
 
 ## Table of Contents
@@ -25,8 +25,10 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
 7. [License](#license)
 8. [Credits](#credits)
 
+<a name="cards-included"></a>
 ## Cards Included
 
+<a name="foundry-gauge-card"></a>
 ### ⏱️ Foundry Gauge Card
 Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Customizable min/max values
@@ -34,6 +36,7 @@ Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Theme-aware colors
 - Responsive design
 
+<a name="foundry-analog-clock"></a>
 ### 🕰️ Foundry Analog Clock
 A skeuomorphic analog clock with:
 - Realistic hand movements
@@ -41,6 +44,7 @@ A skeuomorphic analog clock with:
 - Time zone support
 - Second hand toggling
 
+<a name="foundry-digital-clock"></a>
 ### 📟 Foundry Digital Clock
 A vintage industrial digital display featuring:
 - Retro LCD/LED aesthetics
@@ -48,6 +52,7 @@ A vintage industrial digital display featuring:
 - Custom backlight and digit colors
 - Wear and age effects
 
+<a name="foundry-button-card"></a>
 ### 🔘 Foundry Button Card
 A tactile industrial push-button:
 - Realistic press animation
@@ -55,6 +60,7 @@ A tactile industrial push-button:
 - Everything Customizable 
 - Jinja2 templating support
 
+<a name="foundry-thermostat"></a>
 ### 🌡️ Foundry Thermostat
 An industrial liquid thermometer card:
 - Realistic liquid column animation
@@ -62,6 +68,7 @@ An industrial liquid thermometer card:
 - Vintage glass tube effects
 - Customizable range and units
 
+<a name="foundry-entities-card"></a>
 ### 📋 Foundry Entities Card
 A digital list display for multiple entities:
 - Supports secondary info (last-updated, last-changed, etc.)
@@ -69,6 +76,7 @@ A digital list display for multiple entities:
 - Customizable fonts and colors
 - Same industrial casing options
 
+<a name="installation"></a>
 ## Installation 
 
 ### HACS (Recommended)
@@ -94,6 +102,7 @@ A digital list display for multiple entities:
    - Resource type: JavaScript Module
 4. Refresh your browser
 
+<a name="usage"></a>
 ## Usage
 
 ### Foundry Gauge Card
@@ -189,7 +198,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
+<img src="media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
@@ -213,7 +222,7 @@ segments:
     to: 100
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
+<img src="media/bathroom.png" width="300" alt="Preview"/>
 
 
 **Heavily weathered industrial gauge**
@@ -248,7 +257,7 @@ segments:
     to: 3
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
+<img src="media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -413,7 +422,7 @@ double_tap_action:
 time_zone: America/New_York
 
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/analogclock.png?raw=true" width="300" alt="Preview"/>
+<img src="media/analogclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -468,7 +477,7 @@ aged_texture_intensity: 50
 use_24h_format: false
 time_zone: America/New_York
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/digitalclock.png?raw=true" width="300" alt="Preview"/>
+<img src="media/digitalclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -531,7 +540,7 @@ tap_action:
   action: more-info
 ```
 
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/button-on.png" width="200" alt="Button On"/>
+<img src="media/button-off.png" width="200" alt="Button Off"/> <img src="media/button-on.png" width="200" alt="Button On"/>
 
 </details>
 
@@ -603,7 +612,7 @@ aged_texture_intensity: 50
 unit: °C
 
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/tempsensor.png?raw=true" width="300" alt="Preview"/>
+<img src="media/tempsensor.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -656,11 +665,12 @@ glass_effect_enabled: true
 aged_texture: everywhere
 aged_texture_intensity: 50
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/entities.png?raw=true" width="300" alt="Preview"/>
+<img src="media/entities.png" width="300" alt="Preview"/>
 
 </details>
 
 
+<a name="development"></a>
 ## Development
 
 Want to contribute or customize the cards?
@@ -724,6 +734,7 @@ Then open a pull request on GitHub with a clear description of your changes.
 
 
 
+<a name="roadmap"></a>
 ## Roadmap
 
 Future cards planned for the Foundry Card collection:
@@ -734,16 +745,19 @@ Future cards planned for the Foundry Card collection:
 - Industrial Climate Card
 
 
+<a name="support"></a>
 ## Support
 
 If you encounter any issues or have feature requests:
 - [Open an issue](https://github.com/dprischak/Foundry-Card/issues)
 - [Start a discussion](https://github.com/dprischak/Foundry-Card/discussions)
 
+<a name="license"></a>
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+<a name="credits"></a>
 ## Credits
 
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
