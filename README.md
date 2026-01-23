@@ -5,6 +5,9 @@
 [![License](https://img.shields.io/github/license/dprischak/Foundry-Card.svg)](LICENSE)
 
 A collection of custom dashboard cards for Home Assistant, designed with industrial and vintage aesthetics.
+<p>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/all.png?raw=true" width="600" alt="Preview"/>
+</p>
 
 ## Table of Contents
 1. [Cards Included](#cards-included)
@@ -15,6 +18,7 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
     - [Foundry Digital Clock](#foundry-digital-clock)
     - [Foundry Button Card](#foundry-button-card)
     - [Foundry Thermostat](#foundry-thermostat)
+    - [Foundry Entities Card](#foundry-entities-card)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
 6. [Support](#support)
@@ -57,6 +61,13 @@ An industrial liquid thermometer card:
 - Color-coded temperature segments
 - Vintage glass tube effects
 - Customizable range and units
+
+### 📋 Foundry Entities Card
+A digital list display for multiple entities:
+- Supports secondary info (last-updated, last-changed, etc.)
+- Vintage digital VFD/LCD aesthetic
+- Customizable fonts and colors
+- Same industrial casing options
 
 ## Installation 
 
@@ -545,9 +556,9 @@ An industrial liquid-in-glass thermometer:
 | `segments_under_mercury` | boolean | No | true | Render colored segments behind the liquid tube |
 | `segments` | array | No | [] | Color zones (from/to/color) |
 | `animation_duration` | number | No | 1.5 | Animation speed in seconds |
-| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_color` | string | No | '#8c7626' | Background plate color |
 | `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `rivet_color` | string | No | '#6a5816' | Color of rivets |
 | `font_bg_color` | string | No | '#ffffff' | Background color of the tube scale area |
 | `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
 | `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
@@ -593,6 +604,59 @@ unit: °C
 
 ```
 <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/tempsensor.png?raw=true" width="300" alt="Preview"/>
+
+</details>
+
+
+### Foundry Entities Card
+
+A digital display for a list of entities.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entities` | array | **Yes** | - | List of entities to display. Can be strings or objects. |
+| `title` | string | No | "Entities" | Card title |
+| `title_font_size` | number | No | 14 | Font size for the title text |
+| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of digital display area |
+| `font_color` | string | No | '#000000' | Color of the digital text |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-entities-card
+entities:
+  - entity: input_number.testlargenumber1
+    name: Large Number
+    secondary_info: none
+  - entity: input_number.testlargenumber2
+    name: Large Number 2
+    secondary_info: none
+title: Entities
+title_font_size: 14
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+font_bg_color: "#ffffff"
+font_color: "#0a0000"
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/entities.png?raw=true" width="300" alt="Preview"/>
 
 </details>
 
