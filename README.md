@@ -48,8 +48,8 @@ A vintage industrial digital display featuring:
 A tactile industrial push-button:
 - Realistic press animation
 - Configurable indicator light
-- Customizable size and width
-- Text templating support
+- Everything Customizable 
+- Jinja2 templating support
 
 ### 🌡️ Foundry Thermostat
 An industrial liquid thermometer card:
@@ -58,7 +58,7 @@ An industrial liquid thermometer card:
 - Vintage glass tube effects
 - Customizable range and units
 
-## Installation
+## Installation 
 
 ### HACS (Recommended)
 
@@ -520,7 +520,7 @@ tap_action:
   action: more-info
 ```
 
-<img src="button-off.png" width="200" alt="Button Off"/> <img src="button-on.png" width="200" alt="Button On"/>
+<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://github.com/dprischak/Foundry-Card/blob/main/media/button-on.png" width="200" alt="Button On"/>
 
 </details>
 
