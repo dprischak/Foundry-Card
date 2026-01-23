@@ -8,6 +8,8 @@ import "./cards/foundry-digital-clock-card.js";
 import "./cards/foundry-digital-clock-editor.js";
 import "./cards/foundry-entities-card.js";
 import "./cards/foundry-entities-editor.js";
+import "./cards/foundry-button-card.js";
+import "./cards/foundry-button-editor.js";
 
 const FOUNDRY_CARDS_VERSION = "2.0";
 
