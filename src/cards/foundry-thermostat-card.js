@@ -357,8 +357,8 @@ class FoundryThermostatCard extends HTMLElement {
     if (this.config.mercury_width === undefined) this.config.mercury_width = 50;
     if (this.config.segments_under_mercury === undefined) this.config.segments_under_mercury = true;
 
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+    this.config.plate_color = this.config.plate_color || '#8c7626';
+    this.config.rivet_color = this.config.rivet_color || '#6a5816';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
     this.config.title_font_color = this.config.title_font_color || '#3e2723';
 
