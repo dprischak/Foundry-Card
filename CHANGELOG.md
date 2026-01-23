@@ -1,5 +1,31 @@
-## v2.0
+## v3.0
+### 🚀 New Cards
 
+#### 📋 Foundry Entities Card
+**A vintage digital display for entity lists.**
+- **Digital VFD/LCD Aesthetic:** Retro digital styling for monitoring multiple entities in one view.
+- **Rich Data:** Supports secondary information like 'last-updated', 'last-changed', or other entity attributes.
+- **Fully Configurable:** Customizable fonts, glass effects, and industrial casing options.
+
+#### 🔘 Foundry Button Card
+**A tactile industrial push-button.**
+- **Interactive:** Realistic press animations
+- **Status Indicators:** Configurable LED style indicators for state feedback.
+- **Templating:** Full Jinja2 support for labels and icon control.
+
+### 🛠️ Improvements
+
+#### 🌡️ Thermostat Card Refinement
+- **Visual Cleanup:** improved alignment.
+- **Enhanced Scale:** Hash marks now extend across the full tube width for better readability.
+- **Color Sync:** Scale text colors now match the title font color configuration.
+
+#### 📚 Documentation
+- **Configuration Tables:** Added comprehensive configuration options for Thermostat and Entities cards.
+- **New Visuals:** Updated README with new preview images for all cards.
+
+
+## v2.0
 ### 🚀 New Cards
 
 #### 🕰️ Foundry Analog Clock Card
