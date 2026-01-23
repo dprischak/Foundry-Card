@@ -13,6 +13,7 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
     - [Foundry Gauge Card](#foundry-gauge-card)
     - [Foundry Analog Clock](#foundry-analog-clock)
     - [Foundry Digital Clock](#foundry-digital-clock)
+    - [Foundry Button Card](#foundry-button-card)
     - [Foundry Thermostat](#foundry-thermostat)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
@@ -22,7 +23,7 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
 
 ## Cards Included
 
-### 🌡️ Foundry Gauge Card
+### ⏱️ Foundry Gauge Card
 Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Customizable min/max values
 - Smooth needle animation
@@ -42,6 +43,13 @@ A vintage industrial digital display featuring:
 - 12h/24h formats
 - Custom backlight and digit colors
 - Wear and age effects
+
+### 🔘 Foundry Button Card
+A tactile industrial push-button:
+- Realistic press animation
+- Configurable indicator light
+- Customizable size and width
+- Text templating support
 
 ### 🌡️ Foundry Thermostat
 An industrial liquid thermometer card:
@@ -453,6 +461,69 @@ time_zone: America/New_York
 
 </details>
 
+</details>
+
+### Foundry Button Card
+
+A robust industrial push-button with integrated status text and icon.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | No | - | Entity to control/monitor |
+| `icon` | string | No | - | Icon to display |
+| `primary_info` | string | No | - | Primary text (top line) |
+| `secondary_info` | string | No | - | Secondary text (middle line) |
+| `secondary_info_2` | string | No | - | Extra info text (bottom line) |
+| `card_width` | number | No | 240 | Maximum width of the card in pixels |
+| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', etc. |
+| `plate_color` | string | No | '#f5f5f5' | Button face color |
+| `font_color` | string | No | '#000000' | Text color |
+| `font_bg_color` | string | No | '#ffffff' | Text background inset color |
+| `icon_color` | string | No | - | Color of the icon |
+| `wear_level` | number | No | 50 | Wear intensity (0-100) |
+| `aged_texture` | string | No | 'everywhere' | Texture mode |
+| `aged_texture_intensity` | number | No | 50 | Texture intensity |
+| `tap_action` | object | No | - | Action on tap |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-button-card
+entity: light.basement_cans_group
+icon: mdi:lightbulb
+primary_info: Basement
+secondary_info: "{{states('light.basement_cans_group')}}"
+ring_style: brass
+plate_color: "#8c7626"
+font_bg_color: "#ffffff"
+font_color: "#000000"
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+plate_transparent: false
+secondary_info_2: >-
+  {{ (state_attr('light.basement_cans_group', 'brightness') | int(0) / 2.55) |
+  round(0) | int }}%
+icon_color: |-
+  {% set rgb = state_attr('light.basement_cans_group', 'rgb_color') %}
+  {% if rgb %}
+    #{{ '%02x%02x%02x' | format(rgb[0], rgb[1], rgb[2]) }}
+  {% else %}
+    grey
+  {% endif %}
+card_width: 240
+tap_action:
+  action: more-info
+```
+
+<img src="button-off.png" width="200" alt="Button Off"/> <img src="button-on.png" width="200" alt="Button On"/>
+
+</details>
+
 
 ### Foundry Thermostat
 
@@ -579,7 +650,6 @@ Then open a pull request on GitHub with a clear description of your changes.
 ## Roadmap
 
 Future cards planned for the Foundry Card collection:
-- Industrial Button Card
 - Retro Sliders
 - Seismic Graph Card
 - Industrial Uptime Card
