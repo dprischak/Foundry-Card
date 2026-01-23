@@ -5858,7 +5858,7 @@ var FoundryButtonEditor = class extends HTMLElement {
 };
 customElements.define("foundry-button-editor", FoundryButtonEditor);
 
-// src/foundry-cards.js
+// src/foundry-card.js
 var FOUNDRY_CARDS_VERSION = "3.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,

@@ -2,11 +2,11 @@
   "name": "foundry-card",
   "version": "3.0.0",
   "description": "A collection of custom dashboard cards for Home Assistant",
-  "main": "dist/foundry-cards.js",
+  "main": "dist/foundry-card.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js",
-    "watch": "esbuild src/foundry-cards.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-cards.js --sourcemap --watch"
+    "build": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js",
+    "watch": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js --sourcemap --watch"
   },
   "repository": {
     "type": "git",

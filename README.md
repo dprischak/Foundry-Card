@@ -93,12 +93,12 @@ A digital list display for multiple entities:
 
 ### Manual Installation
 
-1. Download `foundry-cards.js` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
+1. Download `foundry-card.js` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
 2. Copy it to `<config>/www/` directory (create the `www` folder if it doesn't exist)
 3. Add the resource to your Lovelace dashboard:
    - Go to Settings → Dashboards → Resources
    - Click "Add Resource"
-   - URL: `/local/foundry-cards.js`
+   - URL: `/local/foundry-card.js`
    - Resource type: JavaScript Module
 4. Refresh your browser
 
