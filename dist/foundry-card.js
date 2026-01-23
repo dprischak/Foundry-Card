@@ -5859,7 +5859,7 @@ var FoundryButtonEditor = class extends HTMLElement {
 customElements.define("foundry-button-editor", FoundryButtonEditor);
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "3.0";
+var FOUNDRY_CARDS_VERSION = "4.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
