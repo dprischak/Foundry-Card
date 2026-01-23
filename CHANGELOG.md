@@ -1,3 +1,12 @@
+## v4.0
+### 📦 HACS Support
+- **Full Integration:** Added `hacs.json` and GitHub Actions for seamless HACS support.
+- **Automated Validation:** New workflow ensures the repository always meets HACS standards.
+
+### 🧹 Improvements
+- **Standardized Naming:** Renamed the main release file from `foundry-cards.js` to `foundry-card.js` to match the project name and convention.
+- **Cleanup:** Removed redundant files (`info.md`, `preview.png`) to streamline the repository.
+
 ## v3.0
 ### 🚀 New Cards
 
