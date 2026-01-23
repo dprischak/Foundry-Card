@@ -186,7 +186,8 @@ class FoundryButtonEditor extends HTMLElement {
                             }
                         }
                     },
-                    { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+                    { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+                    { name: "card_width", label: "Card Max Width (px)", selector: { number: { min: 100, max: 500, mode: "box" } } }
                 ]
             }
         ];

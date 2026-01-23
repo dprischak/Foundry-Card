@@ -5047,6 +5047,7 @@ var FoundryButtonCard = class extends HTMLElement {
     this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
     this.config.font_color = this.config.font_color || "#000000";
+    this.config.card_width = this.config.card_width || 240;
     this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
     this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
     this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
@@ -5137,6 +5138,7 @@ var FoundryButtonCard = class extends HTMLElement {
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
     const fontBgColor = config.font_bg_color;
+    const cardWidth = config.card_width !== void 0 ? config.card_width : 240;
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
@@ -5174,8 +5176,13 @@ var FoundryButtonCard = class extends HTMLElement {
           position: relative;
           cursor: pointer;
           width: 100%;
-          max-width: 280px; /* Increased max size */
-          container-type: inline-size; /* Measure this element, not the grid */
+          height: 100%;
+          aspect-ratio: 1 / 1;  
+
+          max-width: ${cardWidth}px;       /* Stop growing after this width */
+          margin: 0 auto;         /* Center the card if the space is wider */
+
+          container-type: size; 
         }
         .container {
           position: relative;
@@ -5184,7 +5191,8 @@ var FoundryButtonCard = class extends HTMLElement {
         }
         .vector-svg {
           width: 100%;
-          height: auto;
+          height: 100%;
+          max-height: 100%;  
           filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
         }
       </style>
@@ -5407,27 +5415,12 @@ var FoundryButtonCard = class extends HTMLElement {
   static get supportsCardResize() {
     return true;
   }
-  static getGridOptions() {
+  getGridOptions() {
     return {
-      rows: 3,
       columns: 6,
-      min_rows: 2,
-      min_columns: 4,
-      max_rows: 4,
-      max_columns: 8
-    };
-  }
-  static getLayoutOptions() {
-    return {
-      grid_rows: 3,
-      grid_columns: 6,
-      grid_min_rows: 2,
-      grid_min_columns: 4,
-      grid_max_rows: 4,
-      grid_max_columns: 8,
-      // Fallback
-      rows: 3,
-      columns: 6
+      rows: 4,
+      min_columns: 3,
+      min_rows: 2
     };
   }
   static getStubConfig() {
@@ -5445,10 +5438,7 @@ var FoundryButtonCard = class extends HTMLElement {
       glass_effect_enabled: true,
       aged_texture: "everywhere",
       aged_texture_intensity: 50,
-      grid_options: {
-        rows: 4,
-        columns: 6
-      }
+      card_width: 240
     };
   }
 };
@@ -5632,7 +5622,8 @@ var FoundryButtonEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          { name: "card_width", label: "Card Max Width (px)", selector: { number: { min: 100, max: 500, mode: "box" } } }
         ]
       }
     ];
