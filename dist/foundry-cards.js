@@ -2440,8 +2440,8 @@ var FoundryThermostatCard = class extends HTMLElement {
     if (this.config.max === void 0) this.config.max = 120;
     if (this.config.mercury_width === void 0) this.config.mercury_width = 50;
     if (this.config.segments_under_mercury === void 0) this.config.segments_under_mercury = true;
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+    this.config.plate_color = this.config.plate_color || "#8c7626";
+    this.config.rivet_color = this.config.rivet_color || "#6a5816";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
     this.config.title_font_color = this.config.title_font_color || "#3e2723";
     this._uniqueId = Math.random().toString(36).substr(2, 9);
@@ -5859,7 +5859,7 @@ var FoundryButtonEditor = class extends HTMLElement {
 customElements.define("foundry-button-editor", FoundryButtonEditor);
 
 // src/foundry-cards.js
-var FOUNDRY_CARDS_VERSION = "2.0";
+var FOUNDRY_CARDS_VERSION = "3.0";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
