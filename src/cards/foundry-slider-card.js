@@ -176,10 +176,11 @@ class FoundrySliderCard extends HTMLElement {
           position: absolute;
           top: ${trackTopY / SVG_HEIGHT * 100}%;
           left: ${trackX / SVG_WIDTH * 100}%;
-          width: ${trackHeight / SVG_WIDTH * 100}%;
-          height: ${trackWidth / SVG_HEIGHT * 100}%;
-          transform-origin: top left;
-          transform: rotate(90deg) translateY(-100%);
+          width: ${trackWidth / SVG_WIDTH * 100}%;
+          height: ${trackHeight / SVG_HEIGHT * 100}%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           pointer-events: all;
         }
         
@@ -189,6 +190,9 @@ class FoundrySliderCard extends HTMLElement {
           background: transparent;
           width: 100%;
           height: 100%;
+          writing-mode: bt-lr;
+          -webkit-writing-mode: bt-lr;
+          transform: rotate(270deg);
           cursor: pointer;
         }
         
