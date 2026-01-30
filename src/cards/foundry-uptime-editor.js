@@ -283,6 +283,10 @@ class FoundryUptimeEditor extends HTMLElement {
         if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
         if (config.plate_color) data.plate_color = this._hexToRgb(config.plate_color);
         if (config.rivet_color) data.rivet_color = this._hexToRgb(config.rivet_color);
+        if (config.alias) {
+            data.alias_ok = config.alias.ok;
+            data.alias_ko = config.alias.ko;
+        }
         return data;
     }
 
@@ -294,6 +298,14 @@ class FoundryUptimeEditor extends HTMLElement {
         if (formData.font_color) config.font_color = ensureHex(formData.font_color);
         if (formData.plate_color) config.plate_color = ensureHex(formData.plate_color);
         if (formData.rivet_color) config.rivet_color = ensureHex(formData.rivet_color);
+
+        if (formData.alias_ok !== undefined || formData.alias_ko !== undefined) {
+            config.alias = { ...config.alias };
+            if (formData.alias_ok !== undefined) config.alias.ok = formData.alias_ok;
+            if (formData.alias_ko !== undefined) config.alias.ko = formData.alias_ko;
+            delete config.alias_ok;
+            delete config.alias_ko;
+        }
 
         return config;
     }
@@ -324,7 +336,9 @@ class FoundryUptimeEditor extends HTMLElement {
                     { name: "hours_to_show", label: "Hours to Show", selector: { number: { min: 1, max: 168 } } },
                     { name: "update_interval", label: "Update Interval (s)", selector: { number: { min: 10, max: 3600 } } },
                     { name: "ok", label: "OK State (CSV or single)", selector: { text: {} } },
-                    { name: "ko", label: "KO State (CSV or single)", selector: { text: {} } }
+                    { name: "ko", label: "KO State (CSV or single)", selector: { text: {} } },
+                    { name: "alias_ok", label: "Alias for OK", selector: { text: {} } },
+                    { name: "alias_ko", label: "Alias for KO", selector: { text: {} } }
                 ]
             }
         ];

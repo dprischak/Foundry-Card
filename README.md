@@ -725,6 +725,8 @@ A detailed uptime monitoring card simulating an industrial vacuum tube display.
 | `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
 | `ok` | string/array | No | 'on',... | States considered "Up" |
 | `ko` | string/array | No | 'off',... | States considered "Down" |
+| `alias.ok` | string | No | "Up" | Display text for OK state |
+| `alias.ko` | string | No | "Down" | Display text for KO state |
 | `color_thresholds` | array | No | [] | Array of { value, color } for score coloring |
 
 <details>
