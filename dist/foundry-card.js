@@ -2352,16 +2352,16 @@ var FoundryThermostatCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -3962,13 +3962,13 @@ var FoundryDigitalClockCard = class extends HTMLElement {
               <!-- Digital Time -->
               ${this.config.show_seconds !== false ? `
                   <!-- Layout with Seconds: H:M:S -->
-                  <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                  <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--:--</text>
                     <text id="pmIndicator" x="205" y="75" text-anchor="start"></text>
                   </g>
                 ` : `
                   <!-- Layout without Seconds: H:M -->
-                  <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                  <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--</text>
                     <text id="pmIndicator" x="185" y="75" text-anchor="start"></text>
                   </g>
@@ -4643,7 +4643,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
               
               <!-- Entities List -->
-              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
+              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" stroke="${fontColor}" stroke-width="0.2" style="letter-spacing: 1px; pointer-events: none;">
                 ${this.renderEntitiesLoop(rowLayouts)}
               </g>
 
@@ -4677,7 +4677,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
       return `
              <g class="entity-row" data-entity-id="${entityId}" style="cursor: pointer;">
                  <!-- Hit target for clicking -->
-                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" pointer-events="all"/>
+                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" stroke="none" pointer-events="all"/>
                  <text x="10" y="${yText}" text-anchor="start" style="pointer-events: none;">${name}</text>
                  ${hasSecondary ? `<text id="secondary-${i}" x="22" y="${ySecondary}" text-anchor="start" font-size="8" opacity="0.7" style="pointer-events: none;"></text>` : ""}
                  <text id="state-${i}" x="190" y="${yState}" text-anchor="end" style="pointer-events: none;">--</text>

@@ -224,14 +224,14 @@ class FoundryDigitalClockCard extends HTMLElement {
               ${this.config.show_seconds !== false
         ? `
                   <!-- Layout with Seconds: H:M:S -->
-                  <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                  <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--:--</text>
                     <text id="pmIndicator" x="205" y="75" text-anchor="start"></text>
                   </g>
                 `
         : `
                   <!-- Layout without Seconds: H:M -->
-                  <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" style="text-shadow: 0 0 5px ${fontColor}; pointer-events: none; letter-spacing: 2px;">
+                  <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--</text>
                     <text id="pmIndicator" x="185" y="75" text-anchor="start"></text>
                   </g>

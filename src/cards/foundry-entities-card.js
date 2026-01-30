@@ -232,7 +232,7 @@ class FoundryEntitiesCard extends HTMLElement {
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Entities List -->
-              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" style="text-shadow: 0 0 3px ${fontColor}; letter-spacing: 1px; pointer-events: none;">
+              <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" stroke="${fontColor}" stroke-width="0.2" style="letter-spacing: 1px; pointer-events: none;">
                 ${this.renderEntitiesLoop(rowLayouts)}
               </g>
 
@@ -273,7 +273,7 @@ class FoundryEntitiesCard extends HTMLElement {
       return `
              <g class="entity-row" data-entity-id="${entityId}" style="cursor: pointer;">
                  <!-- Hit target for clicking -->
-                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" pointer-events="all"/>
+                 <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" stroke="none" pointer-events="all"/>
                  <text x="10" y="${yText}" text-anchor="start" style="pointer-events: none;">${name}</text>
                  ${hasSecondary ? `<text id="secondary-${i}" x="22" y="${ySecondary}" text-anchor="start" font-size="8" opacity="0.7" style="pointer-events: none;"></text>` : ''}
                  <text id="state-${i}" x="190" y="${yState}" text-anchor="end" style="pointer-events: none;">--</text>
