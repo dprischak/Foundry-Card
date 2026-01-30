@@ -1,3 +1,10 @@
+## v4.01
+### 📦 Readme fixes
+- **Installation:** Added standard HACS installation instructions.
+- **Image Location:** Pulling images from the repo instead of a CDN.
+- **Header information:** Added header information to the readme.
+
+
 ## v4.0
 ### 📦 HACS Support
 - **Full Integration:** Added `hacs.json` and GitHub Actions for seamless HACS support.
