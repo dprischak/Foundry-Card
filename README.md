@@ -35,6 +35,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
     - [Foundry Button Card](#foundry-button-card)
     - [Foundry Thermostat](#foundry-thermostat)
     - [Foundry Entities Card](#foundry-entities-card)
+    - [Foundry Uptime Card](#foundry-uptime-card)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
 6. [Support](#support)
@@ -91,6 +92,14 @@ A digital list display for multiple entities:
 - Vintage digital VFD/LCD aesthetic
 - Customizable fonts and colors
 - Same industrial casing options
+
+<a name="foundry-uptime-card"></a>
+### ⚡ Foundry Uptime Card
+A vintage uptime monitor:
+- Industrial tube visualization
+- Metallic dividers and bezels
+- Color-coded status thresholds
+- Detailed history tracking
 
 <a name="installation"></a>
 ## Installation 
@@ -690,6 +699,67 @@ aged_texture_intensity: 50
 </details>
 
 
+### Foundry Uptime Card
+
+A detailed uptime monitoring card simulating an industrial vacuum tube display.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | **Yes** | - | Binary Sensor or entity to monitor |
+| `title` | string | No | "Uptime Monitor" | Card title |
+| `title_font_size` | number | No | 14 | Font size for the title text |
+| `hours_to_show` | number | No | 24 | Number of history hours to display |
+| `update_interval` | number | No | 60 | Refresh interval in seconds |
+| `show_footer` | boolean | No | true | Show start/end time labels |
+| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of status area |
+| `font_color` | string | No | '#000000' | Color of status text |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `ok` | string/array | No | 'on',... | States considered "Up" |
+| `ko` | string/array | No | 'off',... | States considered "Down" |
+| `color_thresholds` | array | No | [] | Array of { value, color } for score coloring |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-uptime-card
+entity: binary_sensor.google_com
+title: Uptime Monitor
+hours_to_show: 24
+ok: "on"
+ko: "off"
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+font_bg_color: "#ffffff"
+font_color: "#000000"
+wear_level: 50
+glass_effect_enabled: true
+color_thresholds:
+  - value: 20
+    color: "#c229b5"
+  - value: 60
+    color: "#F44336"
+  - value: 99.9
+    color: "#FF9800"
+  - value: 100
+    color: "#4CAF50"
+```
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/uptime.png" width="300" alt="Preview"/>
+
+</details>
+
+
 <a name="development"></a>
 ## Development
 
@@ -760,7 +830,6 @@ Then open a pull request on GitHub with a clear description of your changes.
 Future cards planned for the Foundry Card collection:
 - Retro Sliders
 - Seismic Graph Card
-- Industrial Uptime Card
 - Industrial Energy Map
 - Industrial Climate Card
 
