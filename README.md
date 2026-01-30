@@ -1,12 +1,28 @@
 # Foundry Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub release](https://img.shields.io/github/release/dprischak/Foundry-Card.svg)](https://github.com/dprischak/Foundry-Card/releases)
-[![License](https://img.shields.io/github/license/dprischak/Foundry-Card.svg)](LICENSE)
+
+[![hacs][hacs-default]][hacs-default-link] 
+![Downloads][downloads]
+[![forum][forum-badge]][forum-url]
+[![Stable][releases-shield]][releases] 
+[![License][license-shield]](LICENSE) 
+
+<!--Badges-->
+[downloads]: https://img.shields.io/github/downloads/dprischak/Foundry-Card/total
+[hacs-badge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg
+[hacs-link]: https://hacs.xyz/
+[hacs-default]: https://img.shields.io/badge/HACS-Default-blue?style=flat&logo=homeassistantcommunitystore&logoSize=auto
+[hacs-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
+[releases]: https://github.com/custom-cards/foundry-card/releases/latest
+[forum-url]: https://community.home-assistant.io/
+[forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
+[releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
+[license-shield]: https://img.shields.io/github/license/dprischak/Foundry-Card.svg
+
 
 A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 <p>
-<img src="media/all.png" width="600" alt="Preview"/>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/all.png" width="600" alt="Preview"/></a>
 </p>
 
 ## Table of Contents
@@ -79,17 +95,21 @@ A digital list display for multiple entities:
 <a name="installation"></a>
 ## Installation 
 
-### HACS (Recommended)
+### [HACS](https://hacs.xyz) (Home Assistant Community Store)
 
-1. Open HACS in your Home Assistant instance
-2. Click on "Frontend"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add `https://github.com/dprischak/Foundry-Card` as the repository
-6. Select "Lovelace" as the category
-7. Click "Add"
-8. Find "Foundry Card" in the list and click "Install"
-9. Restart Home Assistant
+Foundry card is available in HACS.
+
+Use this link to directly go to the repository in HACS
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin)
+
+or
+1. If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/#getting-started-with-hacs](https://hacs.xyz/docs/use/#getting-started-with-hacs)
+2. Open HACS in Home Assistant
+3. Search for `Foundry Card`
+4. Click the download button. ⬇️
+1. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
+1. Add vehicle-status-card to your dashboard
 
 ### Manual Installation
 
@@ -198,7 +218,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src="media/temperature.png" width="300" alt="Preview"/>
+<img src=https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
@@ -222,7 +242,7 @@ segments:
     to: 100
     color: "#F44336"
 ```
-<img src="media/bathroom.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/bathroom.png" width="300" alt="Preview"/>
 
 
 **Heavily weathered industrial gauge**
@@ -257,7 +277,7 @@ segments:
     to: 3
     color: "#F44336"
 ```
-<img src="media/sump.png" width="300" alt="Heavily weathered industrial"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -422,7 +442,7 @@ double_tap_action:
 time_zone: America/New_York
 
 ```
-<img src="media/analogclock.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/analogclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -477,7 +497,7 @@ aged_texture_intensity: 50
 use_24h_format: false
 time_zone: America/New_York
 ```
-<img src="media/digitalclock.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/digitalclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -540,7 +560,7 @@ tap_action:
   action: more-info
 ```
 
-<img src="media/button-off.png" width="200" alt="Button Off"/> <img src="media/button-on.png" width="200" alt="Button On"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-on.png" width="200" alt="Button On"/>
 
 </details>
 
@@ -612,7 +632,7 @@ aged_texture_intensity: 50
 unit: °C
 
 ```
-<img src="media/tempsensor.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/tempsensor.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -665,7 +685,7 @@ glass_effect_enabled: true
 aged_texture: everywhere
 aged_texture_intensity: 50
 ```
-<img src="media/entities.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/entities.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -763,3 +783,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
 
 If you find this project useful, consider giving it a ⭐ on GitHub!
+

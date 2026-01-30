@@ -11,7 +11,7 @@ import "./cards/foundry-entities-editor.js";
 import "./cards/foundry-button-card.js";
 import "./cards/foundry-button-editor.js";
 
-const FOUNDRY_CARDS_VERSION = "4.0";
+const FOUNDRY_CARDS_VERSION = "4.01";
 
 console.info(
     `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
