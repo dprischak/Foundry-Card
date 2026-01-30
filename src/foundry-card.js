@@ -10,6 +10,8 @@ import "./cards/foundry-entities-card.js";
 import "./cards/foundry-entities-editor.js";
 import "./cards/foundry-button-card.js";
 import "./cards/foundry-button-editor.js";
+import "./cards/foundry-uptime-card.js";
+import "./cards/foundry-uptime-editor.js";
 
 const FOUNDRY_CARDS_VERSION = "4.01";
 
