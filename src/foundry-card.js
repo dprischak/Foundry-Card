@@ -8,8 +8,14 @@ import "./cards/foundry-digital-clock-card.js";
 import "./cards/foundry-digital-clock-editor.js";
 import "./cards/foundry-slider-card.js";
 import "./cards/foundry-slider-editor.js";
+import "./cards/foundry-entities-card.js";
+import "./cards/foundry-entities-editor.js";
+import "./cards/foundry-button-card.js";
+import "./cards/foundry-button-editor.js";
+import "./cards/foundry-uptime-card.js";
+import "./cards/foundry-uptime-editor.js";
 
-const FOUNDRY_CARDS_VERSION = "2.0";
+const FOUNDRY_CARDS_VERSION = "4.01";
 
 console.info(
     `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,

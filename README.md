@@ -1,10 +1,29 @@
 # Foundry Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub release](https://img.shields.io/github/release/dprischak/Foundry-Card.svg)](https://github.com/dprischak/Foundry-Card/releases)
-[![License](https://img.shields.io/github/license/dprischak/Foundry-Card.svg)](LICENSE)
 
-A collection of custom dashboard cards for Home Assistant, designed with industrial and vintage aesthetics.
+[![hacs][hacs-default]][hacs-default-link] 
+![Downloads][downloads]
+[![forum][forum-badge]][forum-url]
+[![Stable][releases-shield]][releases] 
+[![License][license-shield]](LICENSE) 
+
+<!--Badges-->
+[downloads]: https://img.shields.io/github/downloads/dprischak/Foundry-Card/total
+[hacs-badge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg
+[hacs-link]: https://hacs.xyz/
+[hacs-default]: https://img.shields.io/badge/HACS-Default-blue?style=flat&logo=homeassistantcommunitystore&logoSize=auto
+[hacs-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
+[releases]: https://github.com/custom-cards/foundry-card/releases/latest
+[forum-url]: https://community.home-assistant.io/
+[forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
+[releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
+[license-shield]: https://img.shields.io/github/license/dprischak/Foundry-Card.svg
+
+
+A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
+<p>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/all.png" width="600" alt="Preview"/></a>
+</p>
 
 ## Table of Contents
 1. [Cards Included](#cards-included)
@@ -13,22 +32,28 @@ A collection of custom dashboard cards for Home Assistant, designed with industr
     - [Foundry Gauge Card](#foundry-gauge-card)
     - [Foundry Analog Clock](#foundry-analog-clock)
     - [Foundry Digital Clock](#foundry-digital-clock)
+    - [Foundry Button Card](#foundry-button-card)
     - [Foundry Thermostat](#foundry-thermostat)
+    - [Foundry Entities Card](#foundry-entities-card)
+    - [Foundry Uptime Card](#foundry-uptime-card)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
 6. [Support](#support)
 7. [License](#license)
 8. [Credits](#credits)
 
+<a name="cards-included"></a>
 ## Cards Included
 
-### 🌡️ Foundry Gauge Card
+<a name="foundry-gauge-card"></a>
+### ⏱️ Foundry Gauge Card
 Display your sensor data with a beautiful foundry gauge visualization featuring:
 - Customizable min/max values
 - Smooth needle animation
 - Theme-aware colors
 - Responsive design
 
+<a name="foundry-analog-clock"></a>
 ### 🕰️ Foundry Analog Clock
 A skeuomorphic analog clock with:
 - Realistic hand movements
@@ -36,6 +61,7 @@ A skeuomorphic analog clock with:
 - Time zone support
 - Second hand toggling
 
+<a name="foundry-digital-clock"></a>
 ### 📟 Foundry Digital Clock
 A vintage industrial digital display featuring:
 - Retro LCD/LED aesthetics
@@ -43,6 +69,15 @@ A vintage industrial digital display featuring:
 - Custom backlight and digit colors
 - Wear and age effects
 
+<a name="foundry-button-card"></a>
+### 🔘 Foundry Button Card
+A tactile industrial push-button:
+- Realistic press animation
+- Configurable indicator light
+- Everything Customizable 
+- Jinja2 templating support
+
+<a name="foundry-thermostat"></a>
 ### 🌡️ Foundry Thermostat
 An industrial liquid thermometer card:
 - Realistic liquid column animation
@@ -50,31 +85,53 @@ An industrial liquid thermometer card:
 - Vintage glass tube effects
 - Customizable range and units
 
-## Installation
+<a name="foundry-entities-card"></a>
+### 📋 Foundry Entities Card
+A digital list display for multiple entities:
+- Supports secondary info (last-updated, last-changed, etc.)
+- Vintage digital VFD/LCD aesthetic
+- Customizable fonts and colors
+- Same industrial casing options
 
-### HACS (Recommended)
+<a name="foundry-uptime-card"></a>
+### ⚡ Foundry Uptime Card
+A vintage uptime monitor:
+- Industrial tube visualization
+- Metallic dividers and bezels
+- Color-coded status thresholds
+- Detailed history tracking
 
-1. Open HACS in your Home Assistant instance
-2. Click on "Frontend"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add `https://github.com/dprischak/Foundry-Card` as the repository
-6. Select "Lovelace" as the category
-7. Click "Add"
-8. Find "Foundry Card" in the list and click "Install"
-9. Restart Home Assistant
+<a name="installation"></a>
+## Installation 
+
+### [HACS](https://hacs.xyz) (Home Assistant Community Store)
+
+Foundry card is available in HACS.
+
+Use this link to directly go to the repository in HACS
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin)
+
+or
+1. If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/#getting-started-with-hacs](https://hacs.xyz/docs/use/#getting-started-with-hacs)
+2. Open HACS in Home Assistant
+3. Search for `Foundry Card`
+4. Click the download button. ⬇️
+1. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
+1. Add vehicle-status-card to your dashboard
 
 ### Manual Installation
 
-1. Download `foundry-cards.js` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
+1. Download `foundry-card.js` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
 2. Copy it to `<config>/www/` directory (create the `www` folder if it doesn't exist)
 3. Add the resource to your Lovelace dashboard:
    - Go to Settings → Dashboards → Resources
    - Click "Add Resource"
-   - URL: `/local/foundry-cards.js`
+   - URL: `/local/foundry-card.js`
    - Resource type: JavaScript Module
 4. Refresh your browser
 
+<a name="usage"></a>
 ## Usage
 
 ### Foundry Gauge Card
@@ -170,7 +227,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/temperature.png?raw=true" width="300" alt="Preview"/>
+<img src=https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
@@ -194,7 +251,7 @@ segments:
     to: 100
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/bathroom.png?raw=true" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/bathroom.png" width="300" alt="Preview"/>
 
 
 **Heavily weathered industrial gauge**
@@ -229,7 +286,7 @@ segments:
     to: 3
     color: "#F44336"
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/sump.png?raw=true" width="300" alt="Heavily weathered industrial"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -394,7 +451,7 @@ double_tap_action:
 time_zone: America/New_York
 
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/analogclock.png?raw=true" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/analogclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -449,7 +506,70 @@ aged_texture_intensity: 50
 use_24h_format: false
 time_zone: America/New_York
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/digitalclock.png?raw=true" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/digitalclock.png" width="300" alt="Preview"/>
+
+</details>
+
+</details>
+
+### Foundry Button Card
+
+A robust industrial push-button with integrated status text and icon.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | No | - | Entity to control/monitor |
+| `icon` | string | No | - | Icon to display |
+| `primary_info` | string | No | - | Primary text (top line) |
+| `secondary_info` | string | No | - | Secondary text (middle line) |
+| `secondary_info_2` | string | No | - | Extra info text (bottom line) |
+| `card_width` | number | No | 240 | Maximum width of the card in pixels |
+| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', etc. |
+| `plate_color` | string | No | '#f5f5f5' | Button face color |
+| `font_color` | string | No | '#000000' | Text color |
+| `font_bg_color` | string | No | '#ffffff' | Text background inset color |
+| `icon_color` | string | No | - | Color of the icon |
+| `wear_level` | number | No | 50 | Wear intensity (0-100) |
+| `aged_texture` | string | No | 'everywhere' | Texture mode |
+| `aged_texture_intensity` | number | No | 50 | Texture intensity |
+| `tap_action` | object | No | - | Action on tap |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-button-card
+entity: light.basement_cans_group
+icon: mdi:lightbulb
+primary_info: Basement
+secondary_info: "{{states('light.basement_cans_group')}}"
+ring_style: brass
+plate_color: "#8c7626"
+font_bg_color: "#ffffff"
+font_color: "#000000"
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+plate_transparent: false
+secondary_info_2: >-
+  {{ (state_attr('light.basement_cans_group', 'brightness') | int(0) / 2.55) |
+  round(0) | int }}%
+icon_color: |-
+  {% set rgb = state_attr('light.basement_cans_group', 'rgb_color') %}
+  {% if rgb %}
+    #{{ '%02x%02x%02x' | format(rgb[0], rgb[1], rgb[2]) }}
+  {% else %}
+    grey
+  {% endif %}
+card_width: 240
+tap_action:
+  action: more-info
+```
+
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-on.png" width="200" alt="Button On"/>
 
 </details>
 
@@ -464,15 +584,24 @@ An industrial liquid-in-glass thermometer:
 |--------|------|----------|---------|-------------|
 | `entity` | string | **Yes** | - | Temperature entity to monitor |
 | `title` | string | No | "Temperature" | Card title |
+| `title_font_color` | string | No | "#3e2723" | Color of the title text |
+| `unit` | string | No | - | Unit of measurement string to display |
 | `min` | number | No | -40 | Minimum temperature value |
 | `max` | number | No | 120 | Maximum temperature value |
-| `unit` | string | No | - | Unit of measurement string to display |
 | `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
 | `liquid_color` | string/array | No | '#cc0000' | Color of the liquid (mercury) |
 | `mercury_width` | number | No | 50 | Width of liquid column (percentage of tube) |
 | `segments_under_mercury` | boolean | No | true | Render colored segments behind the liquid tube |
 | `segments` | array | No | [] | Color zones (from/to/color) |
 | `animation_duration` | number | No | 1.5 | Animation speed in seconds |
+| `plate_color` | string | No | '#8c7626' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6a5816' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of the tube scale area |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
 | `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
 
 
@@ -482,12 +611,17 @@ An industrial liquid-in-glass thermometer:
 ```yaml
 type: custom:foundry-thermostat-card
 entity: sensor.outside_temperature
+min: 0
 max: 100
 ring_style: brass
-title: Temperature
-grid_options:
-  columns: 6
-  rows: auto
+title: Temp
+mercury_width: 50
+segments_under_mercury: true
+animation_duration: 1.5
+plate_color: "#8c7626"
+rivet_color: "#ffffff"
+font_bg_color: "#fcfcfc"
+title_font_color: "#000000"
 segments:
   - from: 0
     to: 33
@@ -498,21 +632,137 @@ segments:
   - from: 66
     to: 100
     color: "#F44336"
-  - from: -100
-    to: 0
-    color: "#004cff"
-unit: "%"
-min: -100
-segments_under_mercury: true
-mercury_width: 50
-animation_duration: 1
+liquid_color: "#cc0000"
+plate_transparent: false
+glass_effect_enabled: true
+wear_level: 50
+aged_texture: everywhere
+aged_texture_intensity: 50
+unit: °C
 
 ```
-<img src="https://github.com/dprischak/Foundry-Card/blob/main/media/tempsensor.png?raw=true" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/tempsensor.png" width="300" alt="Preview"/>
 
 </details>
 
 
+### Foundry Entities Card
+
+A digital display for a list of entities.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entities` | array | **Yes** | - | List of entities to display. Can be strings or objects. |
+| `title` | string | No | "Entities" | Card title |
+| `title_font_size` | number | No | 14 | Font size for the title text |
+| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of digital display area |
+| `font_color` | string | No | '#000000' | Color of the digital text |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-entities-card
+entities:
+  - entity: input_number.testlargenumber1
+    name: Large Number
+    secondary_info: none
+  - entity: input_number.testlargenumber2
+    name: Large Number 2
+    secondary_info: none
+title: Entities
+title_font_size: 14
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+font_bg_color: "#ffffff"
+font_color: "#0a0000"
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/entities.png" width="300" alt="Preview"/>
+
+</details>
+
+
+### Foundry Uptime Card
+
+A detailed uptime monitoring card simulating an industrial vacuum tube display.
+
+#### Configuration Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `entity` | string | **Yes** | - | Binary Sensor or entity to monitor |
+| `title` | string | No | "Uptime Monitor" | Card title |
+| `title_font_size` | number | No | 14 | Font size for the title text |
+| `hours_to_show` | number | No | 24 | Number of history hours to display |
+| `update_interval` | number | No | 60 | Refresh interval in seconds |
+| `show_footer` | boolean | No | true | Show start/end time labels |
+| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color` | string | No | '#f5f5f5' | Background plate color |
+| `plate_transparent` | boolean | No | false | Make the plate transparent |
+| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
+| `font_bg_color` | string | No | '#ffffff' | Background color of status area |
+| `font_color` | string | No | '#000000' | Color of status text |
+| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
+| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
+| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
+| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
+| `ok` | string/array | No | 'on',... | States considered "Up" |
+| `ko` | string/array | No | 'off',... | States considered "Down" |
+| `alias.ok` | string | No | "Up" | Display text for OK state |
+| `alias.ko` | string | No | "Down" | Display text for KO state |
+| `color_thresholds` | array | No | [] | Array of { value, color } for score coloring |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-uptime-card
+entity: binary_sensor.google_com
+title: Uptime Monitor
+hours_to_show: 24
+ok: "on"
+ko: "off"
+ring_style: brass
+rivet_color: "#6a5816"
+plate_color: "#8c7626"
+plate_transparent: false
+font_bg_color: "#ffffff"
+font_color: "#000000"
+wear_level: 50
+glass_effect_enabled: true
+color_thresholds:
+  - value: 20
+    color: "#c229b5"
+  - value: 60
+    color: "#F44336"
+  - value: 99.9
+    color: "#FF9800"
+  - value: 100
+    color: "#4CAF50"
+```
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/uptime.png" width="300" alt="Preview"/>
+
+</details>
+
+
+<a name="development"></a>
 ## Development
 
 Want to contribute or customize the cards?
@@ -576,29 +826,32 @@ Then open a pull request on GitHub with a clear description of your changes.
 
 
 
+<a name="roadmap"></a>
 ## Roadmap
 
 Future cards planned for the Foundry Card collection:
-- Industrial Button Card
 - Retro Sliders
 - Seismic Graph Card
-- Industrial Uptime Card
 - Industrial Energy Map
 - Industrial Climate Card
 
 
+<a name="support"></a>
 ## Support
 
 If you encounter any issues or have feature requests:
 - [Open an issue](https://github.com/dprischak/Foundry-Card/issues)
 - [Start a discussion](https://github.com/dprischak/Foundry-Card/discussions)
 
+<a name="license"></a>
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+<a name="credits"></a>
 ## Credits
 
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
 
 If you find this project useful, consider giving it a ⭐ on GitHub!
+

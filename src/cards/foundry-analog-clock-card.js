@@ -315,9 +315,10 @@ class FoundryAnalogClockCard extends HTMLElement {
               <!-- Second Hand -->
               ${secondHandEnabled ? `
               <g id="secondHand" style="transform-origin: 100px 100px; transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);">
-                  <line x1="100" y1="100" x2="100" y2="25" stroke="#C41E3A" stroke-width="1.5" />
-                  <circle cx="100" cy="100" r="3" fill="#C41E3A" />
-                  <circle cx="100" cy="25" r="2" fill="#C41E3A" />
+                  <!-- Shaft -->
+                  <rect x="99" y="30" width="2" height="85" fill="#C41E3A" />
+                  <!-- Pointed Tip -->
+                  <path d="M 99 30 L 100 20 L 101 30 Z" fill="#C41E3A" />
               </g>
               ` : ''}
 
