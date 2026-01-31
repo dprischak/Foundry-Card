@@ -1,4 +1,3 @@
-# Foundry Card
 
 
 [![hacs][hacs-default]][hacs-default-link] 
@@ -19,7 +18,7 @@
 [releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
 [license-shield]: https://img.shields.io/github/license/dprischak/Foundry-Card.svg
 
-
+# 🏭Foundry Card
 A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
 
@@ -228,7 +227,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src=https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/temperature.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
