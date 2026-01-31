@@ -140,21 +140,24 @@ class FoundrySliderCard extends HTMLElement {
         ha-card {
           container-type: inline-size;
           overflow: visible;
+          height: 100%;
         }
         .card {
           background: transparent;
           padding: 0;
           position: relative;
           cursor: pointer;
+          height: 100%;
         }
         .slider-container {
           position: relative;
           width: 100%;
-          max-width: 200px;
-          min-width: 100px;
+          height: 100%;
           margin: 0 auto;
           container-type: inline-size;
-          aspect-ratio: ${SVG_WIDTH} / ${SVG_HEIGHT};
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .slider-svg {
           width: 100%;
@@ -190,7 +193,7 @@ class FoundrySliderCard extends HTMLElement {
           appearance: none;
           background: transparent;
           width: ${((trackHeight + knobHeight * 3.5) / SVG_HEIGHT * 100).toFixed(2)}%;
-          height: ${trackWidth}px;
+          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
           transform: rotate(270deg) translateY(${(((trackTopY - knobHeight * 1.75) - (SVG_HEIGHT / 2)) / SVG_HEIGHT * 100).toFixed(2)}%);
@@ -201,45 +204,45 @@ class FoundrySliderCard extends HTMLElement {
         /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
           background: transparent;
-          height: ${trackWidth}px;
+          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
           border: none;
         }
         input[type="range"]::-moz-range-track {
           background: transparent;
-          height: ${trackWidth}px;
+          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
           border: none;
         }
         
         /* Thumb/Knob styling */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: ${knobWidth}px;
-          height: ${knobHeight}px;
-          margin-top: ${-(knobHeight / 2 - trackWidth / 2)}px;
+          width: ${(knobWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
+          height: ${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi;
+          margin-top: calc(-${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi / 2 + ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi / 2);
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${KNOB_BORDER_WIDTH}px solid ${this.adjustColor(cfg.knob_color, -30)};
-          box-shadow: 0 6px 16px rgba(0,0,0,0.45), 
-                      inset 0 6px 10px rgba(255,255,255,0.12), 
-                      inset 0 -6px 8px rgba(0,0,0,0.25);
+          border: ${(KNOB_BORDER_WIDTH / SVG_WIDTH * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
+                      inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
+                      inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
           cursor: grab;
         }
         
         input[type="range"]::-moz-range-thumb {
-          width: ${knobWidth}px;
-          height: ${knobHeight}px;
+          width: ${(knobWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
+          height: ${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi;
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${KNOB_BORDER_WIDTH}px solid ${this.adjustColor(cfg.knob_color, -30)};
-          box-shadow: 0 6px 16px rgba(0,0,0,0.45), 
-                      inset 0 6px 10px rgba(255,255,255,0.12), 
-                      inset 0 -6px 8px rgba(0,0,0,0.25);
+          border: ${(KNOB_BORDER_WIDTH / SVG_WIDTH * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
+                      inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
+                      inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
           cursor: grab;
         }
         
