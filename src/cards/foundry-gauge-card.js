@@ -1668,7 +1668,7 @@ class FoundryGaugeCard extends HTMLElement {
             const handleTransitionEnd = () => {
               // Recalculate and snap to exact position after animation completes
               const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
-              const finalOffset = Math.round(-newPosition * finalDigitHeight);
+              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
               inner.style.transform = `translateY(${finalOffset}px)`;
               inner.removeEventListener('transitionend', handleTransitionEnd);
             };

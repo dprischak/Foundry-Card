@@ -1390,7 +1390,7 @@ var FoundryGaugeCard = class extends HTMLElement {
             inner.style.transform = `translateY(${offset}px)`;
             const handleTransitionEnd = () => {
               const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
-              const finalOffset = Math.round(-newPosition * finalDigitHeight);
+              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
               inner.style.transform = `translateY(${finalOffset}px)`;
               inner.removeEventListener("transitionend", handleTransitionEnd);
             };
@@ -4583,10 +4583,10 @@ var FoundrySliderCard = class extends HTMLElement {
         /* HTML input range overlay */
         .slider-input-container {
           position: absolute;
-          top: ${trackTopY / SVG_HEIGHT * 100}%;
-          left: 50%;
-          width: ${trackHeight / SVG_HEIGHT * 100}%;
-          height: ${trackWidth / SVG_WIDTH * 100}%;
+          top: 0;
+          left: ${(trackX + trackWidth / 2) / SVG_WIDTH * 100}%;
+          width: 100%;
+          height: 100%;
           transform: translateX(-50%);
           display: flex;
           align-items: center;
@@ -4598,11 +4598,11 @@ var FoundrySliderCard = class extends HTMLElement {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
-          width: 100%;
+          width: ${((trackHeight + knobHeight * 2.5) / SVG_HEIGHT * 100).toFixed(2)}%;
           height: ${trackWidth}px;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
-          transform: rotate(270deg);
+          transform: rotate(270deg) translateY(${((trackTopY - knobHeight * 1.25 - SVG_HEIGHT / 2) / SVG_HEIGHT * 100).toFixed(2)}%);
           cursor: pointer;
           margin: 0;
         }
@@ -4727,11 +4727,11 @@ var FoundrySliderCard = class extends HTMLElement {
               <!-- Tick Marks -->
               ${this.renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, tickMajorLength, tickMinorLength)}
               
+              <!-- Title -->
+              ${title ? `<text x="${SVG_WIDTH / 2}" y="30" text-anchor="middle" font-size="${cfg.title_font_size}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
+              
               <!-- LED Display Box -->
               ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ""}
-              
-              <!-- Title -->
-              ${title ? `<text x="${SVG_WIDTH / 2}" y="${SVG_HEIGHT - 15}" text-anchor="middle" font-size="${cfg.title_font_size}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
               
               <!-- Wear Marks -->
               ${this.renderWearMarks(wearLevel)}
