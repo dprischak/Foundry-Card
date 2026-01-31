@@ -13,7 +13,7 @@ import "./cards/foundry-button-editor.js";
 import "./cards/foundry-uptime-card.js";
 import "./cards/foundry-uptime-editor.js";
 
-const FOUNDRY_CARDS_VERSION = "4.01";
+const FOUNDRY_CARDS_VERSION = "5.0";
 
 console.info(
     `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,

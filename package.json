@@ -1,6 +1,6 @@
 {
   "name": "foundry-card",
-  "version": "4.0.0",
+  "version": "5.0",
   "description": "A collection of custom dashboard cards for Home Assistant",
   "main": "dist/foundry-card.js",
   "scripts": {

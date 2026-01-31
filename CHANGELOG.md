@@ -1,3 +1,17 @@
+## v5.0
+### 🚀 New Cards
+
+#### ⚡ Foundry Uptime Card
+**A vintage uptime monitor.**
+- **Industrial Visualization:** Simulates an industrial vacuum tube display with metallic dividers.
+- **History Tracking:** Detailed circular history tracking for any binary sensor.
+- **Status Thresholds:** Color-coded visual feedback based on uptime score.
+- **Customizable:** Options for "up"/"down" states, update intervals, and history duration.
+
+### 🛠️ Improvements
+- **Documentation:** Updated README with comprehensive documentation for the Uptime Card and general fixes.
+
+
 ## v4.01
 ### 📦 Readme fixes
 - **Installation:** Added standard HACS installation instructions.
