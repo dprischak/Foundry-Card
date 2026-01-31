@@ -189,11 +189,11 @@ class FoundrySliderCard extends HTMLElement {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
-          width: ${((trackHeight + knobHeight * 2.5) / SVG_HEIGHT * 100).toFixed(2)}%;
+          width: ${((trackHeight + knobHeight * 3.5) / SVG_HEIGHT * 100).toFixed(2)}%;
           height: ${trackWidth}px;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
-          transform: rotate(270deg) translateY(${(((trackTopY - knobHeight * 1.25) - (SVG_HEIGHT / 2)) / SVG_HEIGHT * 100).toFixed(2)}%);
+          transform: rotate(270deg) translateY(${(((trackTopY - knobHeight * 1.75) - (SVG_HEIGHT / 2)) / SVG_HEIGHT * 100).toFixed(2)}%);
           cursor: pointer;
           margin: 0;
         }
