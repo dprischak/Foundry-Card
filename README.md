@@ -23,7 +23,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
 
 
 <p></p>
-<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry-card.gif" width="600" style="border-radius: 8px"></a>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry-card.gif" style="border-radius: 8px"></a>
 
 ## Table of Contents
 1. [Cards Included](#cards-included)
