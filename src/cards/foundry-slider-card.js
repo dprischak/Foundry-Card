@@ -95,28 +95,18 @@ class FoundrySliderCard extends HTMLElement {
         break;
     }
     
-    // LED Display positioning
+    // Track dimensions - centered horizontally
+    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
+    const trackX = (SVG_WIDTH / 2) - (trackWidth / 2);
+    const trackTopY = 50;
+    const trackBottomY = 180;  // Made shorter to accommodate LED below
+    const trackHeight = trackBottomY - trackTopY;
+    
+    // LED Display positioning - below track, centered
     const ledWidth = 60;
     const ledHeight = 50;
-    const ledLeftX = 15;
-    const ledRightX = SVG_WIDTH - ledWidth - 15;
-    const ledX = cfg.led_position === 'left' ? ledLeftX : ledRightX;
-    const ledY = (SVG_HEIGHT / 2) - (ledHeight / 2); // Centered vertically
-    
-    // Track dimensions - shift based on LED position
-    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
-    const trackOffset = 15; // How much to shift the track away from LED
-    let trackX;
-    if (cfg.led_position === 'left') {
-      // LED on left, shift track to the right
-      trackX = (SVG_WIDTH / 2) - (trackWidth / 2) + trackOffset;
-    } else {
-      // LED on right, shift track to the left
-      trackX = (SVG_WIDTH / 2) - (trackWidth / 2) - trackOffset;
-    }
-    const trackTopY = 50;
-    const trackBottomY = 230;
-    const trackHeight = trackBottomY - trackTopY;
+    const ledX = (SVG_WIDTH / 2) - (ledWidth / 2);
+    const ledY = trackBottomY + 15; // Positioned below the track
     
     // Tick mark positioning
     const tickStartX = trackX + trackWidth + 5;

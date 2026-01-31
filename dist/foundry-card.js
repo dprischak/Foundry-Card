@@ -4514,23 +4514,15 @@ var FoundrySliderCard = class extends HTMLElement {
         knobBorderRadius = "10px";
         break;
     }
+    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER;
+    const trackX = SVG_WIDTH / 2 - trackWidth / 2;
+    const trackTopY = 50;
+    const trackBottomY = 180;
+    const trackHeight = trackBottomY - trackTopY;
     const ledWidth = 60;
     const ledHeight = 50;
-    const ledLeftX = 15;
-    const ledRightX = SVG_WIDTH - ledWidth - 15;
-    const ledX = cfg.led_position === "left" ? ledLeftX : ledRightX;
-    const ledY = SVG_HEIGHT / 2 - ledHeight / 2;
-    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER;
-    const trackOffset = 15;
-    let trackX;
-    if (cfg.led_position === "left") {
-      trackX = SVG_WIDTH / 2 - trackWidth / 2 + trackOffset;
-    } else {
-      trackX = SVG_WIDTH / 2 - trackWidth / 2 - trackOffset;
-    }
-    const trackTopY = 50;
-    const trackBottomY = 230;
-    const trackHeight = trackBottomY - trackTopY;
+    const ledX = SVG_WIDTH / 2 - ledWidth / 2;
+    const ledY = trackBottomY + 15;
     const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
     const tickMinorLength = 6;
