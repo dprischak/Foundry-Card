@@ -175,9 +175,10 @@ class FoundrySliderCard extends HTMLElement {
         .slider-input-container {
           position: absolute;
           top: ${trackTopY / SVG_HEIGHT * 100}%;
-          left: ${trackX / SVG_WIDTH * 100}%;
-          width: ${trackWidth / SVG_WIDTH * 100}%;
-          height: ${trackHeight / SVG_HEIGHT * 100}%;
+          left: 50%;
+          width: ${trackHeight / SVG_HEIGHT * 100}%;
+          height: ${trackWidth / SVG_WIDTH * 100}%;
+          transform: translateX(-50%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -189,21 +190,24 @@ class FoundrySliderCard extends HTMLElement {
           appearance: none;
           background: transparent;
           width: 100%;
-          height: 100%;
+          height: ${trackWidth}px;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
           transform: rotate(270deg);
           cursor: pointer;
+          margin: 0;
         }
         
         /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
           background: transparent;
-          height: 100%;
+          height: ${trackWidth}px;
+          border: none;
         }
         input[type="range"]::-moz-range-track {
           background: transparent;
-          height: 100%;
+          height: ${trackWidth}px;
+          border: none;
         }
         
         /* Thumb/Knob styling */
@@ -211,6 +215,7 @@ class FoundrySliderCard extends HTMLElement {
           -webkit-appearance: none;
           width: ${knobWidth}px;
           height: ${knobHeight}px;
+          margin-top: ${-(knobHeight / 2 - trackWidth / 2)}px;
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
