@@ -23,7 +23,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
 
 
 <p></p>
-<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry-card.gif" style="border-radius: 8px"></a>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/foundry-card.gif" style="border-radius: 8px"></a>
 
 ## Table of Contents
 1. [Cards Included](#cards-included)
@@ -227,7 +227,7 @@ segments:
     to: 90
     color: "#F44336"
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/temperature.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
 ```yaml
@@ -251,7 +251,7 @@ segments:
     to: 100
     color: "#F44336"
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/bathroom.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/bathroom.png" width="300" alt="Preview"/>
 
 
 **Heavily weathered industrial gauge**
@@ -286,7 +286,7 @@ segments:
     to: 3
     color: "#F44336"
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -451,7 +451,7 @@ double_tap_action:
 time_zone: America/New_York
 
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/analogclock.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/analogclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -506,7 +506,7 @@ aged_texture_intensity: 50
 use_24h_format: false
 time_zone: America/New_York
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/digitalclock.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/digitalclock.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -569,7 +569,7 @@ tap_action:
   action: more-info
 ```
 
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/button-on.png" width="200" alt="Button On"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/button-off.png" width="200" alt="Button Off"/> <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/button-on.png" width="200" alt="Button On"/>
 
 </details>
 
@@ -641,7 +641,7 @@ aged_texture_intensity: 50
 unit: °C
 
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/tempsensor.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/tempsensor.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -694,7 +694,7 @@ glass_effect_enabled: true
 aged_texture: everywhere
 aged_texture_intensity: 50
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/entities.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/entities.png" width="300" alt="Preview"/>
 
 </details>
 
@@ -757,7 +757,7 @@ color_thresholds:
   - value: 100
     color: "#4CAF50"
 ```
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/uptime.png" width="300" alt="Preview"/>
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/uptime.png" width="300" alt="Preview"/>
 
 </details>
 
