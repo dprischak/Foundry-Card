@@ -4519,7 +4519,10 @@ var FoundrySliderCard = class extends HTMLElement {
     const trackTopY = 50;
     const trackBottomY = 180;
     const trackHeight = trackBottomY - trackTopY;
-    const ledWidth = 60;
+    const displayChars = this._getLedCharCount(cfg);
+    const ledCharWidth = cfg.value_font_size * 0.45;
+    const ledPaddingX = Math.max(6, Math.round(cfg.value_font_size * 0.2));
+    const ledWidth = Math.max(50, Math.round(displayChars * ledCharWidth + ledPaddingX * 2));
     const ledHeight = 50;
     const ledX = SVG_WIDTH / 2 - ledWidth / 2;
     const ledY = trackBottomY + 15;
@@ -5003,6 +5006,12 @@ var FoundrySliderCard = class extends HTMLElement {
     const formatted = this._formatValue(v);
     const el = this.shadowRoot.getElementById("valueDisplay");
     if (el) el.textContent = formatted;
+  }
+  _getLedCharCount(cfg) {
+    const minText = this._formatValue(cfg.min);
+    const maxText = this._formatValue(cfg.max);
+    const valText = this._formatValue(cfg.value);
+    return Math.max(minText.length, maxText.length, valText.length);
   }
   _formatValue(v) {
     const cfg = this.config || {};
