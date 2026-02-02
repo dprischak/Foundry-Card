@@ -101,6 +101,9 @@ class FoundrySliderCard extends HTMLElement {
     const trackTopY = 50;
     const trackBottomY = 180;  // Made shorter to accommodate LED below
     const trackHeight = trackBottomY - trackTopY;
+    const trackCenterY = (trackTopY + trackBottomY) / 2;
+    const sliderInputHeight = trackHeight + knobHeight;
+    const sliderInputTop = trackTopY - (knobHeight / 2);
     
     // LED Display positioning - below track, centered
     const displayChars = this._getLedCharCount(cfg);
@@ -170,10 +173,10 @@ class FoundrySliderCard extends HTMLElement {
         /* HTML input range overlay */
         .slider-input-container {
           position: absolute;
-          top: -10%;
-          left: ${((trackX + trackWidth / 2) / SVG_WIDTH * 100) + 7.5}%;
+          top: ${((sliderInputTop / SVG_HEIGHT) * 100).toFixed(2)}%;
+          left: ${((trackX + trackWidth / 2) / SVG_WIDTH * 100).toFixed(2)}%;
           width: 100%;
-          height: 100%;
+          height: ${((sliderInputHeight / SVG_HEIGHT) * 100).toFixed(2)}%;
           transform: translateX(-50%);
           display: flex;
           align-items: center;
@@ -185,11 +188,12 @@ class FoundrySliderCard extends HTMLElement {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
-          width: ${((trackHeight + knobHeight * 3.5) / SVG_HEIGHT * 100 * 1.15).toFixed(2)}%;
+          width: 100%;
           height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
-          transform: rotate(270deg) translateY(${(((trackTopY - knobHeight * 1.75) - (SVG_HEIGHT / 2)) / SVG_HEIGHT * 100 - 20).toFixed(2)}%);
+          transform-origin: center center;
+          transform: rotate(270deg);
           cursor: pointer;
           margin: 0;
         }
