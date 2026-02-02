@@ -66,11 +66,11 @@ class FoundrySliderCard extends HTMLElement {
     const TRACK_WIDTH_MULTIPLIER = 0.375; // Track width = knob_size * this multiplier
     
     // Layout Constants
-    const PLATE_PADDING = 8;
-    const PLATE_X = 5;
-    const PLATE_Y = 10;
-    const PLATE_WIDTH = SVG_WIDTH - (PLATE_X * 2);
-    const PLATE_HEIGHT = SVG_HEIGHT - (PLATE_Y * 2);
+    const PLATE_PADDING = 0;
+    const PLATE_X = 0;
+    const PLATE_Y = 0;
+    const PLATE_WIDTH = SVG_WIDTH;
+    const PLATE_HEIGHT = SVG_HEIGHT;
     
     // Calculate knob dimensions based on shape
     const knobSize = cfg.knob_size;
@@ -460,10 +460,10 @@ class FoundrySliderCard extends HTMLElement {
 
   renderRivets() {
     const rivets = [
-      { cx: 5, cy: 5 },
-      { cx: 145, cy: 5 },
-      { cx: 5, cy: 255 },
-      { cx: 145, cy: 255 }
+      { cx: 10, cy: 10 },
+      { cx: 140, cy: 10 },
+      { cx: 10, cy: 250 },
+      { cx: 140, cy: 250 }
     ];
 
     return rivets.map(r => `
