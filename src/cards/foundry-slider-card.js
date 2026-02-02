@@ -460,10 +460,10 @@ class FoundrySliderCard extends HTMLElement {
 
   renderRivets() {
     const rivets = [
-      { cx: 15, cy: 15 },
-      { cx: 135, cy: 15 },
-      { cx: 15, cy: 245 },
-      { cx: 135, cy: 245 }
+      { cx: 5, cy: 5 },
+      { cx: 145, cy: 5 },
+      { cx: 5, cy: 255 },
+      { cx: 145, cy: 255 }
     ];
 
     return rivets.map(r => `
