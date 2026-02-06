@@ -6743,7 +6743,7 @@ if (!customElements.get("foundry-uptime-editor")) {
 }
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "5.0";
+var FOUNDRY_CARDS_VERSION = "26.2.1";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
