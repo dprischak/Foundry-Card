@@ -2843,18 +2843,6 @@ window.customCards.push({
 });
 
 // src/cards/foundry-thermostat-editor.js
-var fireEvent2 = (node, type, detail, options) => {
-  options = options || {};
-  detail = detail === null || detail === void 0 ? {} : detail;
-  const event = new Event(type, {
-    bubbles: options.bubbles === void 0 ? true : options.bubbles,
-    cancelable: Boolean(options.cancelable),
-    composed: options.composed === void 0 ? true : options.composed
-  });
-  event.detail = detail;
-  node.dispatchEvent(event);
-  return event;
-};
 var FoundryThermostatEditor = class extends HTMLElement {
   constructor() {
     super();
@@ -2869,7 +2857,8 @@ var FoundryThermostatEditor = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
   }
   render() {
     if (!this._hass || !this._config) return;
@@ -3055,7 +3044,14 @@ var FoundryThermostatEditor = class extends HTMLElement {
   }
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    fireEvent2(this, "config-changed", { config: this._config });
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
   }
   _handleFormChanged(ev) {
     const newConfig = this._formToConfig(ev.detail.value);
@@ -3065,6 +3061,7 @@ var FoundryThermostatEditor = class extends HTMLElement {
   }
   _configToForm(config) {
     const data = { ...config };
+    delete data.segments;
     data.liquid_color = this._hexToRgb(config.liquid_color ?? "#cc0000") || [
       204,
       0,
@@ -3102,7 +3099,13 @@ var FoundryThermostatEditor = class extends HTMLElement {
     return data;
   }
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+    Object.keys(formData).forEach((key) => {
+      config[key] = formData[key];
+    });
+    if (this._config.segments) {
+      config.segments = this._config.segments;
+    }
     if (config.liquid_color)
       config.liquid_color = this._rgbToHex(config.liquid_color);
     if (config.plate_color)
@@ -5523,7 +5526,7 @@ window.customCards.push({
 });
 
 // src/cards/foundry-entities-editor.js
-var fireEvent3 = (node, type, detail, options) => {
+var fireEvent2 = (node, type, detail, options) => {
   options = options || {};
   detail = detail === null || detail === void 0 ? {} : detail;
   const event = new Event(type, {
@@ -5673,13 +5676,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const newConfig = this._formToConfig(ev.detail.value);
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
-      fireEvent3(this, "config-changed", { config: this._config });
+      fireEvent2(this, "config-changed", { config: this._config });
     }
   }
   _handleFormChangedAdvanced(ev) {
     const newConfig = this._formToConfigAdvanced(ev.detail.value);
     this._config = newConfig;
-    fireEvent3(this, "config-changed", { config: this._config });
+    fireEvent2(this, "config-changed", { config: this._config });
   }
   _configToForm(config) {
     const data = { ...config };
@@ -6384,7 +6387,7 @@ window.customCards.push({
 });
 
 // src/cards/foundry-button-editor.js
-var fireEvent4 = (node, type, detail, options) => {
+var fireEvent3 = (node, type, detail, options) => {
   options = options || {};
   detail = detail === null || detail === void 0 ? {} : detail;
   const event = new Event(type, {
@@ -6438,7 +6441,7 @@ var FoundryButtonEditor = class extends HTMLElement {
     const newConfig = this._formToConfig(ev.detail.value);
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
-      fireEvent4(this, "config-changed", { config: this._config });
+      fireEvent3(this, "config-changed", { config: this._config });
     }
   }
   _configToForm(config) {
@@ -7230,7 +7233,7 @@ window.customCards.push({
 });
 
 // src/cards/foundry-uptime-editor.js
-var fireEvent5 = (node, type, detail, options) => {
+var fireEvent4 = (node, type, detail, options) => {
   options = options || {};
   detail = detail === null || detail === void 0 ? {} : detail;
   const event = new Event(type, {
@@ -7460,7 +7463,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
   }
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    fireEvent5(this, "config-changed", { config: this._config });
+    fireEvent4(this, "config-changed", { config: this._config });
   }
   _handleFormChanged(ev) {
     const newConfig = this._formToConfig(ev.detail.value);

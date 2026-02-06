@@ -9,6 +9,10 @@
 - **Linter:** Added Linter to ensure code quality.
 - **Format:** Added format to ensure consistent code style.
 
+### Defect Fixes
+
+- **Issue #21:** Unable to change thermostat card color ranges in visual editor
+
 ## v5.0
 
 ### 🚀 New Cards
