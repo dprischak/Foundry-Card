@@ -1,6 +1,5 @@
-
-import { debounce, fireEvent, getActionConfig } from "./utils.js";
-import { ensureLedFont } from "./fonts.js";
+import { fireEvent } from './utils.js';
+import { ensureLedFont } from './fonts.js';
 
 class FoundryThermostatCard extends HTMLElement {
   constructor() {
@@ -9,11 +8,11 @@ class FoundryThermostatCard extends HTMLElement {
     this._resizeObserver = null;
     this._entityError = null;
 
-    this._boundHandleClick = () => this._handleAction("tap");
-    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleClick = () => this._handleAction('tap');
+    this._boundHandleDblClick = () => this._handleAction('double_tap');
     this._boundHandleContextMenu = (e) => {
       e.preventDefault();
-      this._handleAction("hold");
+      this._handleAction('hold');
     };
   }
 
@@ -25,16 +24,16 @@ class FoundryThermostatCard extends HTMLElement {
 
   getRimStyleData(ringStyle, uid) {
     const styles = {
-      brass: { grad: `brassRim-${uid}`, stroke: "#8B7355" },
-      silver: { grad: `silverRim-${uid}`, stroke: "#999999" },
-      chrome: { grad: `silverRim-${uid}`, stroke: "#999999" },
-      copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
-      black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
-      white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
-      blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
-      green: { grad: `greenRim-${uid}`, stroke: "#006400" },
-      red: { grad: `redRim-${uid}`, stroke: "#8B0000" },
-      none: { grad: null, stroke: "transparent" }
+      brass: { grad: `brassRim-${uid}`, stroke: '#8B7355' },
+      silver: { grad: `silverRim-${uid}`, stroke: '#999999' },
+      chrome: { grad: `silverRim-${uid}`, stroke: '#999999' },
+      copper: { grad: `copperRim-${uid}`, stroke: '#8B4513' },
+      black: { grad: `blackRim-${uid}`, stroke: '#2b2b2b' },
+      white: { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' },
+      blue: { grad: `blueRim-${uid}`, stroke: '#104E8B' },
+      green: { grad: `greenRim-${uid}`, stroke: '#006400' },
+      red: { grad: `redRim-${uid}`, stroke: '#8B0000' },
+      none: { grad: null, stroke: 'transparent' },
     };
     return styles[ringStyle] || styles.brass;
   }
@@ -115,11 +114,21 @@ class FoundryThermostatCard extends HTMLElement {
 
     // Appearance
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
 
     // Handle liquid_color being either array (standard) or string (hex/rgb from editor sometimes)
     let liquidColor = '#cc0000';
@@ -136,13 +145,23 @@ class FoundryThermostatCard extends HTMLElement {
         const num = parseInt(color.replace('#', ''), 16);
         const amt = Math.round(2.55 * percent);
         const R = (num >> 16) - amt;
-        const G = (num >> 8 & 0x00FF) - amt;
-        const B = (num & 0x0000FF) - amt;
-        return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        const G = ((num >> 8) & 0x00ff) - amt;
+        const B = (num & 0x0000ff) - amt;
+        return (
+          '#' +
+          (
+            0x1000000 +
+            (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+            (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+            (B < 255 ? (B < 1 ? 0 : B) : 255)
+          )
+            .toString(16)
+            .slice(1)
+        );
       }
       if (color.startsWith('rgb')) {
         const [r, g, b] = color.match(/\d+/g).map(Number);
-        const factor = 1 - (percent / 100);
+        const factor = 1 - percent / 100;
         return `rgb(${Math.max(0, Math.round(r * factor))}, ${Math.max(0, Math.round(g * factor))}, ${Math.max(0, Math.round(b * factor))})`;
       }
       return color;
@@ -257,16 +276,19 @@ class FoundryThermostatCard extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== undefined ? config.mercury_width : 50;
-        const widthPx = (tubeWidth * pct) / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+                  const tubeWidth = 20;
+                  const tubeX = 47.5;
+                  const pct =
+                    config.mercury_width !== undefined
+                      ? config.mercury_width
+                      : 50;
+                  const widthPx = (tubeWidth * pct) / 100;
+                  const xPx = tubeX + (tubeWidth - widthPx) / 2;
+                  return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+                })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || '#444', 10)}" stroke="#444" stroke-width="0.5" />
@@ -292,21 +314,25 @@ class FoundryThermostatCard extends HTMLElement {
       { cx: x + offset, cy: y + offset },
       { cx: x + w - offset, cy: y + offset },
       { cx: x + offset, cy: y + h - offset },
-      { cx: x + w - offset, cy: y + h - offset }
+      { cx: x + w - offset, cy: y + h - offset },
     ];
 
-    return rivets.map(r => `
+    return rivets
+      .map(
+        (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
 
     const bevelX = x + 8;
     const bevelY = y + 8;
@@ -350,12 +376,14 @@ class FoundryThermostatCard extends HTMLElement {
 
     this.config = { ...config };
 
-    if (!this.config.tap_action) this.config.tap_action = { action: "more-info" };
+    if (!this.config.tap_action)
+      this.config.tap_action = { action: 'more-info' };
     if (this.config.ring_style === undefined) this.config.ring_style = 'brass';
     if (this.config.min === undefined) this.config.min = -40;
     if (this.config.max === undefined) this.config.max = 120;
     if (this.config.mercury_width === undefined) this.config.mercury_width = 50;
-    if (this.config.segments_under_mercury === undefined) this.config.segments_under_mercury = true;
+    if (this.config.segments_under_mercury === undefined)
+      this.config.segments_under_mercury = true;
 
     this.config.plate_color = this.config.plate_color || '#8c7626';
     this.config.rivet_color = this.config.rivet_color || '#6a5816';
@@ -363,19 +391,20 @@ class FoundryThermostatCard extends HTMLElement {
     this.config.title_font_color = this.config.title_font_color || '#3e2723';
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
+    ensureLedFont();
     this.render();
   }
 
   _attachActionListeners() {
-    const root = this.shadowRoot?.getElementById("actionRoot");
+    const root = this.shadowRoot?.getElementById('actionRoot');
     if (!root) return;
-    root.removeEventListener("click", this._boundHandleClick);
-    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.removeEventListener('click', this._boundHandleClick);
+    root.addEventListener('click', this._boundHandleClick, { passive: true });
   }
 
   _handleAction(kind) {
     if (!this._hass || !this.config) return;
-    fireEvent(this, "hass-action", { config: this.config, action: kind });
+    fireEvent(this, 'hass-action', { config: this.config, action: kind });
   }
 
   _calculateTickInterval(min, max) {
@@ -444,7 +473,7 @@ class FoundryThermostatCard extends HTMLElement {
 
     let svgContent = '';
 
-    segments.forEach(seg => {
+    segments.forEach((seg) => {
       const from = seg.from !== undefined ? seg.from : 0;
       const to = seg.to !== undefined ? seg.to : 0;
 
@@ -469,12 +498,9 @@ class FoundryThermostatCard extends HTMLElement {
     const val = parseFloat(entity.state);
     if (isNaN(val)) return;
 
-    const yTop = 55;
-    const yBottom = 285;
-    const zeroY = this._valueToY(this.config.min);
+    // Unused variables yTop, zeroY, height removed
+    // yBottom removed
     const valY = this._valueToY(val);
-
-    const height = yBottom - valY;
 
     const liquidCol = this.shadowRoot.getElementById('liquid-col');
     if (liquidCol) {
@@ -488,17 +514,17 @@ class FoundryThermostatCard extends HTMLElement {
     }
   }
   static getConfigElement() {
-    return document.createElement("foundry-thermostat-editor");
+    return document.createElement('foundry-thermostat-editor');
   }
 
   static getStubConfig() {
     return {
-      entity: "sensor.temperature",
+      entity: 'sensor.temperature',
       min: 0,
       max: 100,
-      ring_style: "brass",
-      title: "Temp",
-      unit: "°C",
+      ring_style: 'brass',
+      title: 'Temp',
+      unit: '°C',
       mercury_width: 50,
       segments_under_mercury: true,
       animation_duration: 1.5,
@@ -509,21 +535,20 @@ class FoundryThermostatCard extends HTMLElement {
       segments: [
         { from: 0, to: 33, color: '#4CAF50' },
         { from: 33, to: 66, color: '#FFC107' },
-        { from: 66, to: 100, color: '#F44336' }
-      ]
+        { from: 66, to: 100, color: '#F44336' },
+      ],
     };
   }
 }
 
-if (!customElements.get("foundry-thermostat-card")) {
-  customElements.define("foundry-thermostat-card", FoundryThermostatCard);
+if (!customElements.get('foundry-thermostat-card')) {
+  customElements.define('foundry-thermostat-card', FoundryThermostatCard);
 }
-
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-thermostat-card",
-  name: "Foundry Thermostat Card",
+  type: 'foundry-thermostat-card',
+  name: 'Foundry Thermostat Card',
   preview: true,
-  description: "A vintage industrial style thermostat card"
+  description: 'A vintage industrial style thermostat card',
 });

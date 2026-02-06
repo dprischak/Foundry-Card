@@ -1,4 +1,4 @@
-import { fireEvent, getActionConfig } from "./utils.js";
+import { fireEvent, getActionConfig } from './utils.js';
 
 class FoundryAnalogClockCard extends HTMLElement {
   constructor() {
@@ -8,7 +8,7 @@ class FoundryAnalogClockCard extends HTMLElement {
     this._handState = {
       s: { v: -1, off: 0 },
       m: { v: -1, off: 0 },
-      h: { v: -1, off: 0 }
+      h: { v: -1, off: 0 },
     };
   }
 
@@ -17,7 +17,7 @@ class FoundryAnalogClockCard extends HTMLElement {
 
     // Default behavior like built-in cards
     if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
+      this.config.tap_action = { action: 'more-info' };
     }
 
     // Default ring style
@@ -69,10 +69,12 @@ class FoundryAnalogClockCard extends HTMLElement {
     // Handle Time Zone
     if (this.config.time_zone) {
       try {
-        const tzString = new Date().toLocaleString("en-US", { timeZone: this.config.time_zone });
+        const tzString = new Date().toLocaleString('en-US', {
+          timeZone: this.config.time_zone,
+        });
         time = new Date(tzString);
-      } catch (e) {
-        console.warn("Invalid time zone:", this.config.time_zone);
+      } catch (_e) {
+        console.warn('Invalid time zone:', this.config.time_zone);
       }
     }
 
@@ -87,7 +89,7 @@ class FoundryAnalogClockCard extends HTMLElement {
       this._handState.s.off += 360;
     }
     this._handState.s.v = seconds;
-    const secondAngle = (seconds * 6) + this._handState.s.off;
+    const secondAngle = seconds * 6 + this._handState.s.off;
 
     // Minutes
     // Minute hand moves partially with seconds: (minutes * 6) + (seconds * 0.1)
@@ -96,19 +98,20 @@ class FoundryAnalogClockCard extends HTMLElement {
       this._handState.m.off += 360;
     }
     this._handState.m.v = minutes;
-    const minuteAngle = (minutes * 6) + (seconds * 0.1) + this._handState.m.off;
+    const minuteAngle = minutes * 6 + seconds * 0.1 + this._handState.m.off;
 
     // Hours
     // Hour hand moves partially with minutes: ((hours % 12) * 30) + (minutes * 0.5)
     // Wrap detection relies on display hour (0-11)
     const displayHour = hours % 12;
-    const prevDisplayHour = this._handState.h.v !== -1 ? (this._handState.h.v % 12) : displayHour;
+    const prevDisplayHour =
+      this._handState.h.v !== -1 ? this._handState.h.v % 12 : displayHour;
 
     if (this._handState.h.v !== -1 && displayHour < prevDisplayHour) {
       this._handState.h.off += 360;
     }
     this._handState.h.v = hours;
-    const hourAngle = (displayHour * 30) + (minutes * 0.5) + this._handState.h.off;
+    const hourAngle = displayHour * 30 + minutes * 0.5 + this._handState.h.off;
 
     this._updateHand('secondHand', secondAngle);
     this._updateHand('minuteHand', minuteAngle);
@@ -126,22 +129,40 @@ class FoundryAnalogClockCard extends HTMLElement {
     const config = this.config;
     const title = config.title || '';
     const uid = this._uniqueId;
-    const titleFontSize = config.title_font_size !== undefined ? config.title_font_size : 12;
+    const titleFontSize =
+      config.title_font_size !== undefined ? config.title_font_size : 12;
 
-    const ringStyle = config.ring_style !== undefined ? config.ring_style : 'brass';
-    const rimData = this.getRimStyleData(ringStyle, uid);
-    const rivetColor = config.rivet_color !== undefined ? config.rivet_color : '#6d5d4b';
-    const plateColor = config.plate_color !== undefined ? config.plate_color : '#f5f5f5'; // Default light plate for clock
-    const plateTransparent = config.plate_transparent !== undefined ? config.plate_transparent : false;
+    const ringStyle =
+      config.ring_style !== undefined ? config.ring_style : 'brass';
+    // Rim data used in renderRim separately
+    const rivetColor =
+      config.rivet_color !== undefined ? config.rivet_color : '#6d5d4b';
+    const plateColor =
+      config.plate_color !== undefined ? config.plate_color : '#f5f5f5'; // Default light plate for clock
+    const plateTransparent =
+      config.plate_transparent !== undefined ? config.plate_transparent : false;
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'glass_only';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'glass_only';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
 
-    const secondHandEnabled = config.second_hand_enabled !== undefined ? config.second_hand_enabled : false;
+    const secondHandEnabled =
+      config.second_hand_enabled !== undefined
+        ? config.second_hand_enabled
+        : false;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -286,7 +307,7 @@ class FoundryAnalogClockCard extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Clock face -->
-              <circle cx="100" cy="100" r="85" fill="url(#clockFace-${uid})" ${(agedTextureEnabled || effectiveAgedTexture === 'everywhere') ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="url(#clockFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ''}/>
                             
               <!-- Glass effect overlay -->
               ${glassEffectEnabled ? '<ellipse cx="100" cy="80" rx="60" ry="50" fill="white" opacity="0.15"/>' : ''}
@@ -313,14 +334,18 @@ class FoundryAnalogClockCard extends HTMLElement {
               </g>
 
               <!-- Second Hand -->
-              ${secondHandEnabled ? `
+              ${
+                secondHandEnabled
+                  ? `
               <g id="secondHand" style="transform-origin: 100px 100px; transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);">
                   <!-- Shaft -->
                   <rect x="99" y="30" width="2" height="85" fill="#C41E3A" />
                   <!-- Pointed Tip -->
                   <path d="M 99 30 L 100 20 L 101 30 Z" fill="#C41E3A" />
               </g>
-              ` : ''}
+              `
+                  : ''
+              }
 
               <!-- Center Cap -->
               <circle cx="100" cy="100" r="5" class="rivet"/>
@@ -353,17 +378,19 @@ class FoundryAnalogClockCard extends HTMLElement {
   }
 
   _attachActionListeners() {
-    const root = this.shadowRoot?.getElementById("actionRoot");
+    const root = this.shadowRoot?.getElementById('actionRoot');
     if (!root) return;
 
     // Simple direct click handler for now
     root.onclick = () => {
-      const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+      const tap = getActionConfig(this.config, 'tap_action', {
+        action: 'more-info',
+      });
       if (tap.action !== 'none') {
-        // For a clock, there isn't always a direct "entity" to show more-info for, 
+        // For a clock, there isn't always a direct "entity" to show more-info for,
         // but if one is configured, we use it.
         if (this.config.entity) {
-          this._handleAction("tap");
+          this._handleAction('tap');
         }
       }
     };
@@ -374,17 +401,24 @@ class FoundryAnalogClockCard extends HTMLElement {
     const entityId = this.config.entity;
     if (!entityId) return;
 
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
-    const hold = getActionConfig(this.config, "hold_action", { action: "more-info" });
-    const dbl = getActionConfig(this.config, "double_tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, 'tap_action', {
+      action: 'more-info',
+    });
+    const hold = getActionConfig(this.config, 'hold_action', {
+      action: 'more-info',
+    });
+    const dbl = getActionConfig(this.config, 'double_tap_action', {
+      action: 'more-info',
+    });
 
-    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    const actionConfig =
+      kind === 'hold' ? hold : kind === 'double_tap' ? dbl : tap;
 
     const action = actionConfig?.action;
-    if (!action || action === "none") return;
+    if (!action || action === 'none') return;
 
-    if (action === "more-info") {
-      fireEvent(this, "hass-more-info", { entityId });
+    if (action === 'more-info') {
+      fireEvent(this, 'hass-more-info', { entityId });
     }
   }
 
@@ -392,32 +426,43 @@ class FoundryAnalogClockCard extends HTMLElement {
     const lines = title.replace(/\\n/g, '\n').split('\n').slice(0, 3);
     const lineHeight = fontSize * 1.2;
     const totalHeight = (lines.length - 1) * lineHeight;
-    const startY = 140 - (totalHeight / 2); // Position below center for clock
+    const startY = 140 - totalHeight / 2; // Position below center for clock
 
-    return lines.map((line, index) => {
-      const y = startY + (index * lineHeight);
-      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
-    }).join('\n');
+    return lines
+      .map((line, index) => {
+        const y = startY + index * lineHeight;
+        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+      })
+      .join('\n');
   }
 
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
-      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "blue": return { grad: `blueRim-${uid}`, stroke: "#1e4f8f" };
-      case "green": return { grad: `greenRim-${uid}`, stroke: "#1f6b3a" };
-      case "red": return { grad: `redRim-${uid}`, stroke: "#8f1e1e" };
-      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8b5a2b" };
-      default: return null;
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#1e4f8f' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#1f6b3a' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8f1e1e' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8b5a2b' };
+      default:
+        return null;
     }
   }
 
   renderRim(ringStyle, uid) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
     return `
       <circle cx="100" cy="100" r="95" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="2"/>
       <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
@@ -426,25 +471,100 @@ class FoundryAnalogClockCard extends HTMLElement {
 
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return '';
-    const baseOpacity = (wearLevel / 100) * 0.25;
+    // baseOpacity removed as it was unused
     const allMarks = [
-      { type: 'circle', cx: 45, cy: 60, r: 2, fill: '#8B7355', baseOpacity: 0.2 },
-      { type: 'circle', cx: 155, cy: 75, r: 1.5, fill: '#8B7355', baseOpacity: 0.15 },
-      { type: 'circle', cx: 70, cy: 120, r: 1, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'ellipse', cx: 130, cy: 50, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'circle', cx: 35, cy: 140, r: 1.2, fill: '#8B7355', baseOpacity: 0.12 },
-      { type: 'circle', cx: 165, cy: 130, r: 1.8, fill: '#6d5d4b', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 50, cy: 90, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.08 },
-      { type: 'circle', cx: 120, cy: 145, r: 0.8, fill: '#6d5d4b', baseOpacity: 0.15 },
-      { type: 'circle', cx: 180, cy: 65, r: 1.3, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'ellipse', cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.09 }
+      {
+        type: 'circle',
+        cx: 45,
+        cy: 60,
+        r: 2,
+        fill: '#8B7355',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'circle',
+        cx: 155,
+        cy: 75,
+        r: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 70,
+        cy: 120,
+        r: 1,
+        fill: '#6d5d4b',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'ellipse',
+        cx: 130,
+        cy: 50,
+        rx: 3,
+        ry: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'circle',
+        cx: 35,
+        cy: 140,
+        r: 1.2,
+        fill: '#8B7355',
+        baseOpacity: 0.12,
+      },
+      {
+        type: 'circle',
+        cx: 165,
+        cy: 130,
+        r: 1.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.18,
+      },
+      {
+        type: 'ellipse',
+        cx: 50,
+        cy: 90,
+        rx: 2,
+        ry: 1,
+        fill: '#8B7355',
+        baseOpacity: 0.08,
+      },
+      {
+        type: 'circle',
+        cx: 120,
+        cy: 145,
+        r: 0.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 180,
+        cy: 65,
+        r: 1.3,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'ellipse',
+        cx: 25,
+        cy: 100,
+        rx: 2.5,
+        ry: 1.2,
+        fill: '#6d5d4b',
+        baseOpacity: 0.09,
+      },
     ];
     const markCount = Math.ceil((wearLevel / 100) * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
-    return marksToShow.map(mark => {
-      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-      return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
-    }).join('\n');
+    return marksToShow
+      .map((mark) => {
+        const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+        return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+      })
+      .join('\n');
   }
 
   drawClockTicks() {
@@ -460,11 +580,9 @@ class FoundryAnalogClockCard extends HTMLElement {
 
     // 12 hours
     for (let i = 1; i <= 12; i++) {
-      const angle = (i * 30) - 90; // 0 degrees is 3 o'clock in SVG trig, we want -90 to be 12 o'clock... actually simpler to rotate group
-      // Let's stick to standard math: angle in radians.
       // 12 o'clock = -90 deg. 1 = -60, 2 = -30, 3 = 0.
 
-      const angleRad = ((i * 30) - 90) * Math.PI / 180;
+      const angleRad = ((i * 30 - 90) * Math.PI) / 180;
 
       // Ticks
       const x1 = centerX + 75 * Math.cos(angleRad);
@@ -472,7 +590,10 @@ class FoundryAnalogClockCard extends HTMLElement {
       const x2 = centerX + 85 * Math.cos(angleRad);
       const y2 = centerY + 85 * Math.sin(angleRad);
 
-      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      const tick = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'line'
+      );
       tick.setAttribute('x1', x1);
       tick.setAttribute('y1', y1);
       tick.setAttribute('x2', x2);
@@ -487,7 +608,10 @@ class FoundryAnalogClockCard extends HTMLElement {
       const textX = centerX + textRadius * Math.cos(angleRad);
       const textY = centerY + textRadius * Math.sin(angleRad);
 
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'text'
+      );
       text.setAttribute('x', textX);
       text.setAttribute('y', textY);
       text.setAttribute('text-anchor', 'middle');
@@ -501,15 +625,18 @@ class FoundryAnalogClockCard extends HTMLElement {
 
       // Minutes/Seconds ticks (4 between each hour)
       for (let j = 1; j < 5; j++) {
-        const minorAngle = ((i * 30) - 90) + (j * 6);
-        const minorAngleRad = minorAngle * Math.PI / 180;
+        const minorAngle = i * 30 - 90 + j * 6;
+        const minorAngleRad = (minorAngle * Math.PI) / 180;
 
         const mx1 = centerX + 80 * Math.cos(minorAngleRad);
         const my1 = centerY + 80 * Math.sin(minorAngleRad);
         const mx2 = centerX + 85 * Math.cos(minorAngleRad);
         const my2 = centerY + 85 * Math.sin(minorAngleRad);
 
-        const minorTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const minorTick = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'line'
+        );
         minorTick.setAttribute('x1', mx1);
         minorTick.setAttribute('y1', my1);
         minorTick.setAttribute('x2', mx2);
@@ -522,13 +649,13 @@ class FoundryAnalogClockCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("foundry-analog-clock-editor");
+    return document.createElement('foundry-analog-clock-editor');
   }
 
   static getStubConfig() {
     return {
-      entity: "sun.sun",
-      title: "Local Time",
+      entity: 'sun.sun',
+      title: 'Local Time',
       title_font_size: 12,
       ring_style: 'brass',
       rivet_color: '#6a5816',
@@ -538,8 +665,8 @@ class FoundryAnalogClockCard extends HTMLElement {
       glass_effect_enabled: true,
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
-      second_hand_enabled: true
-    }
+      second_hand_enabled: true,
+    };
   }
 }
 
@@ -547,11 +674,10 @@ if (!customElements.get('foundry-analog-clock-card')) {
   customElements.define('foundry-analog-clock-card', FoundryAnalogClockCard);
 }
 
-
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-analog-clock-card",
-  name: "Foundry Analog Clock",
+  type: 'foundry-analog-clock-card',
+  name: 'Foundry Analog Clock',
   preview: true,
-  description: "A skeaumorphic analog clock with various styles."
+  description: 'A skeaumorphic analog clock with various styles.',
 });

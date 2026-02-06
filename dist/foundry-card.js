@@ -173,14 +173,18 @@ var FoundryGaugeCard = class extends HTMLElement {
     const min = config.min !== void 0 ? config.min : 0;
     const max = config.max !== void 0 ? config.max : 100;
     if (min >= max) {
-      console.warn("Foundry Gauge Card: min value must be less than max value. Using defaults.");
+      console.warn(
+        "Foundry Gauge Card: min value must be less than max value. Using defaults."
+      );
       this.config.min = 0;
       this.config.max = 100;
     }
     if (config.decimals !== void 0) {
       const decimals = parseInt(config.decimals);
       if (isNaN(decimals) || decimals < 0) {
-        console.warn("Foundry Gauge Card: decimals must be a non-negative integer. Using 0.");
+        console.warn(
+          "Foundry Gauge Card: decimals must be a non-negative integer. Using 0."
+        );
         this.config.decimals = 0;
       } else {
         this.config.decimals = Math.min(decimals, 10);
@@ -205,7 +209,9 @@ var FoundryGaugeCard = class extends HTMLElement {
     if (config.animation_duration !== void 0) {
       const duration = parseFloat(config.animation_duration);
       if (isNaN(duration) || duration <= 0) {
-        console.warn("Foundry Gauge Card: animation_duration must be positive. Using 1.2s.");
+        console.warn(
+          "Foundry Gauge Card: animation_duration must be positive. Using 1.2s."
+        );
         this.config.animation_duration = 1.2;
       } else {
         this.config.animation_duration = Math.min(duration, 10);
@@ -224,7 +230,10 @@ var FoundryGaugeCard = class extends HTMLElement {
       if (isNaN(intensity)) {
         this.config.aged_texture_intensity = 50;
       } else {
-        this.config.aged_texture_intensity = Math.max(0, Math.min(100, intensity));
+        this.config.aged_texture_intensity = Math.max(
+          0,
+          Math.min(100, intensity)
+        );
       }
     }
     if (config.high_needle_duration !== void 0) {
@@ -255,7 +264,6 @@ var FoundryGaugeCard = class extends HTMLElement {
     const title = config.title || "";
     const min = config.min !== void 0 ? config.min : 0;
     const max = config.max !== void 0 ? config.max : 100;
-    const unit = config.unit || "";
     const uid = this._uniqueId;
     const animationDuration = config.animation_duration !== void 0 ? config.animation_duration : 1.2;
     const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 12;
@@ -681,7 +689,9 @@ var FoundryGaugeCard = class extends HTMLElement {
     root.removeEventListener("contextmenu", this._boundHandleContextMenu);
     root.removeEventListener("keydown", this._boundHandleKeyDown);
     root.addEventListener("click", this._boundHandleClick, { passive: true });
-    root.addEventListener("dblclick", this._boundHandleDblClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
     root.addEventListener("contextmenu", this._boundHandleContextMenu);
     root.addEventListener("keydown", this._boundHandleKeyDown);
   }
@@ -708,9 +718,15 @@ var FoundryGaugeCard = class extends HTMLElement {
   _handleAction(kind) {
     if (!this._hass || !this.config) return;
     const entityId = this.config.entity;
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
-    const hold = getActionConfig(this.config, "hold_action", { action: "more-info" });
-    const dbl = getActionConfig(this.config, "double_tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
     const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
     if (actionConfig?.action === "shake") {
       this._shakeGauge();
@@ -777,7 +793,9 @@ var FoundryGaugeCard = class extends HTMLElement {
     }
     if (action === "toggle") {
       if (!entityId) return;
-      this._hass.callService("homeassistant", "toggle", { entity_id: entityId });
+      this._hass.callService("homeassistant", "toggle", {
+        entity_id: entityId
+      });
       return;
     }
     if (action === "call-service") {
@@ -786,7 +804,8 @@ var FoundryGaugeCard = class extends HTMLElement {
       const [domain, srv] = service.split(".");
       if (!domain || !srv) return;
       const data = { ...actionConfig.service_data || {} };
-      if (actionConfig.target?.entity_id) data.entity_id = actionConfig.target.entity_id;
+      if (actionConfig.target?.entity_id)
+        data.entity_id = actionConfig.target.entity_id;
       this._hass.callService(domain, srv, data);
       return;
     }
@@ -857,18 +876,90 @@ var FoundryGaugeCard = class extends HTMLElement {
   }
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return "";
-    const baseOpacity = wearLevel / 100 * 0.25;
     const allMarks = [
-      { type: "circle", cx: 45, cy: 60, r: 2, fill: "#8B7355", baseOpacity: 0.2 },
-      { type: "circle", cx: 155, cy: 75, r: 1.5, fill: "#8B7355", baseOpacity: 0.15 },
-      { type: "circle", cx: 70, cy: 120, r: 1, fill: "#6d5d4b", baseOpacity: 0.2 },
-      { type: "ellipse", cx: 130, cy: 50, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "circle", cx: 35, cy: 140, r: 1.2, fill: "#8B7355", baseOpacity: 0.12 },
-      { type: "circle", cx: 165, cy: 130, r: 1.8, fill: "#6d5d4b", baseOpacity: 0.18 },
-      { type: "ellipse", cx: 50, cy: 90, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.08 },
-      { type: "circle", cx: 120, cy: 145, r: 0.8, fill: "#6d5d4b", baseOpacity: 0.15 },
-      { type: "circle", cx: 180, cy: 65, r: 1.3, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "ellipse", cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.09 }
+      {
+        type: "circle",
+        cx: 45,
+        cy: 60,
+        r: 2,
+        fill: "#8B7355",
+        baseOpacity: 0.2
+      },
+      {
+        type: "circle",
+        cx: 155,
+        cy: 75,
+        r: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 70,
+        cy: 120,
+        r: 1,
+        fill: "#6d5d4b",
+        baseOpacity: 0.2
+      },
+      {
+        type: "ellipse",
+        cx: 130,
+        cy: 50,
+        rx: 3,
+        ry: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "circle",
+        cx: 35,
+        cy: 140,
+        r: 1.2,
+        fill: "#8B7355",
+        baseOpacity: 0.12
+      },
+      {
+        type: "circle",
+        cx: 165,
+        cy: 130,
+        r: 1.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.18
+      },
+      {
+        type: "ellipse",
+        cx: 50,
+        cy: 90,
+        rx: 2,
+        ry: 1,
+        fill: "#8B7355",
+        baseOpacity: 0.08
+      },
+      {
+        type: "circle",
+        cx: 120,
+        cy: 145,
+        r: 0.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 180,
+        cy: 65,
+        r: 1.3,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "ellipse",
+        cx: 25,
+        cy: 100,
+        rx: 2.5,
+        ry: 1.2,
+        fill: "#6d5d4b",
+        baseOpacity: 0.09
+      }
     ];
     const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
@@ -895,8 +986,17 @@ var FoundryGaugeCard = class extends HTMLElement {
       const toPercent = (segment.to - min) / (max - min) * 100;
       const segmentStartAngle = startAngle + totalAngle * fromPercent / 100;
       const segmentEndAngle = startAngle + totalAngle * toPercent / 100;
-      const path = this.describeArc(centerX, centerY, radius, segmentStartAngle, segmentEndAngle);
-      const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const path = this.describeArc(
+        centerX,
+        centerY,
+        radius,
+        segmentStartAngle,
+        segmentEndAngle
+      );
+      const pathElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
       pathElement.setAttribute("d", path);
       pathElement.setAttribute("fill", "none");
       pathElement.setAttribute("stroke", segment.color);
@@ -927,7 +1027,10 @@ var FoundryGaugeCard = class extends HTMLElement {
       const y1 = centerY + innerRadius * Math.sin(angleRad);
       const x2 = centerX + outerRadius * Math.cos(angleRad);
       const y2 = centerY + outerRadius * Math.sin(angleRad);
-      const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      const tick = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
       tick.setAttribute("x1", x1);
       tick.setAttribute("y1", y1);
       tick.setAttribute("x2", x2);
@@ -939,7 +1042,10 @@ var FoundryGaugeCard = class extends HTMLElement {
       const textRadius = 65;
       const textX = centerX + textRadius * Math.cos(angleRad);
       const textY = centerY + textRadius * Math.sin(angleRad);
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text"
+      );
       text.setAttribute("x", textX);
       text.setAttribute("y", textY);
       text.setAttribute("text-anchor", "middle");
@@ -959,7 +1065,10 @@ var FoundryGaugeCard = class extends HTMLElement {
           const my1 = centerY + 80 * Math.sin(minorAngleRad);
           const mx2 = centerX + 85 * Math.cos(minorAngleRad);
           const my2 = centerY + 85 * Math.sin(minorAngleRad);
-          const minorTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          const minorTick = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          );
           minorTick.setAttribute("x1", mx1);
           minorTick.setAttribute("y1", my1);
           minorTick.setAttribute("x2", mx2);
@@ -981,7 +1090,10 @@ var FoundryGaugeCard = class extends HTMLElement {
     const startAngleRad = startAngle * Math.PI / 180;
     const startX = centerX + 75 * Math.cos(startAngleRad);
     const startY = centerY + 75 * Math.sin(startAngleRad);
-    const startStopper = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const startStopper = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
     startStopper.setAttribute("cx", startX);
     startStopper.setAttribute("cy", startY);
     startStopper.setAttribute("r", "3");
@@ -992,7 +1104,10 @@ var FoundryGaugeCard = class extends HTMLElement {
     const endAngleRad = endAngle * Math.PI / 180;
     const endX = centerX + 75 * Math.cos(endAngleRad);
     const endY = centerY + 75 * Math.sin(endAngleRad);
-    const endStopper = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const endStopper = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
     endStopper.setAttribute("cx", endX);
     endStopper.setAttribute("cy", endY);
     endStopper.setAttribute("r", "3");
@@ -1073,7 +1188,10 @@ var FoundryGaugeCard = class extends HTMLElement {
     this.updateFlipDisplay(value);
     const range = max - min;
     const clampedValue = Math.max(min, Math.min(max, value));
-    const valuePosition = Math.max(0, Math.min(1, (clampedValue - min) / range));
+    const valuePosition = Math.max(
+      0,
+      Math.min(1, (clampedValue - min) / range)
+    );
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
     const totalAngle = endAngle >= startAngle ? endAngle - startAngle : 360 - startAngle + endAngle;
@@ -1111,7 +1229,11 @@ var FoundryGaugeCard = class extends HTMLElement {
       if (this._previousValue !== null) {
         valueIncreasing = clampedValue > this._previousValue;
       }
-      needleAngle = this._findDirectionalPath(this._previousNeedleAngle, needleAngle, valueIncreasing);
+      needleAngle = this._findDirectionalPath(
+        this._previousNeedleAngle,
+        needleAngle,
+        valueIncreasing
+      );
       needle.style.transform = `rotate(${needleAngle}deg)`;
       this._previousNeedleAngle = needleAngle;
       this._previousValue = clampedValue;
@@ -1138,12 +1260,18 @@ var FoundryGaugeCard = class extends HTMLElement {
             }, highNeedleDuration * 1e3);
           }
         }
-        const highValuePosition = Math.max(0, Math.min(1, (this._highNeedleValue - min) / range));
+        const highValuePosition = Math.max(
+          0,
+          Math.min(1, (this._highNeedleValue - min) / range)
+        );
         let highGaugeAngle = startAngle + totalAngle * highValuePosition;
         while (highGaugeAngle > 180) highGaugeAngle -= 360;
         while (highGaugeAngle < -180) highGaugeAngle += 360;
         if (endAngle >= startAngle) {
-          highGaugeAngle = Math.max(startAngle, Math.min(endAngle, highGaugeAngle));
+          highGaugeAngle = Math.max(
+            startAngle,
+            Math.min(endAngle, highGaugeAngle)
+          );
         } else {
           let normStart = startAngle;
           let normEnd = endAngle;
@@ -1171,7 +1299,11 @@ var FoundryGaugeCard = class extends HTMLElement {
         if (this._previousHighNeedleAngle !== null) {
           highValueIncreasing = this._highNeedleValue >= (this._previousHighValue || this._highNeedleValue);
         }
-        highNeedleAngle = this._findDirectionalPath(this._previousHighNeedleAngle, highNeedleAngle, highValueIncreasing);
+        highNeedleAngle = this._findDirectionalPath(
+          this._previousHighNeedleAngle,
+          highNeedleAngle,
+          highValueIncreasing
+        );
         highNeedle.style.transform = `rotate(${highNeedleAngle}deg)`;
         this._previousHighNeedleAngle = highNeedleAngle;
         this._previousHighValue = this._highNeedleValue;
@@ -1211,7 +1343,10 @@ var FoundryGaugeCard = class extends HTMLElement {
   _formatValueWithPadding(value, decimals) {
     const min = this.config.min !== void 0 ? this.config.min : 0;
     const max = this.config.max !== void 0 ? this.config.max : 100;
-    const maxAbsValue = Math.max(Math.abs(Math.floor(min)), Math.abs(Math.floor(max)));
+    const maxAbsValue = Math.max(
+      Math.abs(Math.floor(min)),
+      Math.abs(Math.floor(max))
+    );
     const maxIntegerDigits = maxAbsValue.toString().length;
     const isNegative = value < 0;
     const absoluteValue = Math.abs(value);
@@ -1238,7 +1373,12 @@ var FoundryGaugeCard = class extends HTMLElement {
     flipDisplay.dataset.numericValue = value;
     flipDisplay.dataset.value = displayText;
     if (isFirstUpdate) {
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(value, decimals), unit, null);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(value, decimals),
+        unit,
+        null
+      );
     } else {
       this.animateOdometer(flipDisplay, prevValue, value, decimals, unit);
     }
@@ -1250,7 +1390,12 @@ var FoundryGaugeCard = class extends HTMLElement {
     const diff = Math.abs(toValue - fromValue);
     const steps = Math.min(Math.ceil(diff), 20);
     if (steps <= 1 || diff === 0) {
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(toValue, decimals), unit, null);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(toValue, decimals),
+        unit,
+        null
+      );
       return;
     }
     const increment = (toValue - fromValue) / steps;
@@ -1266,10 +1411,15 @@ var FoundryGaugeCard = class extends HTMLElement {
         this._odometerAnimation = null;
         currentValue = toValue;
       }
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(currentValue, decimals), unit, fromValue);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(currentValue, decimals),
+        // Duplicate line removed
+        unit
+      );
     }, stepDuration);
   }
-  renderRotaryDisplay(flipDisplay, displayText, unit, previousValue) {
+  renderRotaryDisplay(flipDisplay, displayText, unit) {
     const isNegative = displayText.startsWith("-");
     const absDisplayText = isNegative ? displayText.substring(1) : displayText;
     const chars = absDisplayText.split("");
@@ -1340,7 +1490,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       }
       digitIndex++;
     }
-    chars.forEach((char, charIndex) => {
+    chars.forEach((char, _charIndex) => {
       if (char === ".") {
         afterDecimal = true;
       } else {
@@ -1390,12 +1540,14 @@ var FoundryGaugeCard = class extends HTMLElement {
             inner.style.transform = `translateY(${offset}px)`;
             const handleTransitionEnd = () => {
               const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
-              const finalOffset = Math.round(-newPosition * finalDigitHeight);
+              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
               inner.style.transform = `translateY(${finalOffset}px)`;
               inner.removeEventListener("transitionend", handleTransitionEnd);
             };
             inner.removeEventListener("transitionend", handleTransitionEnd);
-            inner.addEventListener("transitionend", handleTransitionEnd, { once: true });
+            inner.addEventListener("transitionend", handleTransitionEnd, {
+              once: true
+            });
           }
         }
         digitIndex++;
@@ -1616,13 +1768,19 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
       this._form1 = document.createElement("ha-form");
-      this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form1.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form1);
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
       this._root.appendChild(this._segmentsContainer);
       this._form2 = document.createElement("ha-form");
-      this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form2.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form2);
       this._validationContainer = document.createElement("div");
       this._root.appendChild(this._validationContainer);
@@ -1652,32 +1810,44 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     const min = config.min !== void 0 ? config.min : 0;
     const max = config.max !== void 0 ? config.max : 100;
     if (min >= max) {
-      messages.push({ type: "error", text: "\u26A0\uFE0F Minimum value must be less than maximum value" });
+      messages.push({
+        type: "error",
+        text: "\u26A0\uFE0F Minimum value must be less than maximum value"
+      });
     }
     const segments = config.segments || [];
     if (segments.length > 0) {
       segments.forEach((seg, idx) => {
         if (seg.from >= seg.to) {
-          messages.push({ type: "warning", text: `\u26A0\uFE0F Segment ${idx + 1}: "From" should be less than "To"` });
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: "From" should be less than "To"`
+          });
         }
         if (seg.from < min || seg.to > max) {
-          messages.push({ type: "warning", text: `\u26A0\uFE0F Segment ${idx + 1}: Range should be within min/max values` });
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: Range should be within min/max values`
+          });
         }
       });
     }
     if (config.decimals !== void 0 && (config.decimals < 0 || config.decimals > 10)) {
-      messages.push({ type: "warning", text: "\u26A0\uFE0F Decimals should be between 0 and 10" });
+      messages.push({
+        type: "warning",
+        text: "\u26A0\uFE0F Decimals should be between 0 and 10"
+      });
     }
     if (messages.length > 0) {
-      this._validationContainer.innerHTML = messages.map(
-        (msg) => `<div class="validation-${msg.type}">${msg.text}</div>`
-      ).join("");
+      this._validationContainer.innerHTML = messages.map((msg) => `<div class="validation-${msg.type}">${msg.text}</div>`).join("");
     } else {
       this._validationContainer.innerHTML = "";
     }
   }
   _resetToDefaults() {
-    if (!confirm("Reset all settings to defaults? This will keep your entity but reset all other configuration.")) {
+    if (!confirm(
+      "Reset all settings to defaults? This will keep your entity but reset all other configuration."
+    )) {
       return;
     }
     const entity = this._config.entity;
@@ -1797,11 +1967,13 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
   }
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._config },
-      bubbles: true,
-      composed: true
-    }));
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
   }
   // --- HA Form Logic ---
   _handleFormChanged(ev) {
@@ -1814,8 +1986,16 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [106, 88, 22],
-      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [140, 118, 38],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
+        106,
+        88,
+        22
+      ],
+      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
+        140,
+        118,
+        38
+      ],
       plate_transparent: config.plate_transparent,
       wear_level: config.wear_level,
       glass_effect_enabled: config.glass_effect_enabled,
@@ -1832,7 +2012,9 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     };
     data.high_needle = {
       high_needle_enabled: config.high_needle_enabled,
-      high_needle_color: this._hexToRgb(config.high_needle_color ?? "#FF9800") ?? [255, 152, 0],
+      high_needle_color: this._hexToRgb(
+        config.high_needle_color ?? "#FF9800"
+      ) ?? [255, 152, 0],
       high_needle_duration: config.high_needle_duration,
       high_needle_length: config.high_needle_length
     };
@@ -1854,7 +2036,8 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       high_needle_color: this._config?.high_needle_color ?? "#FF9800"
     };
     Object.keys(formData).forEach((key) => {
-      if (["appearance", "layout", "high_needle", "actions"].includes(key)) return;
+      if (["appearance", "layout", "high_needle", "actions"].includes(key))
+        return;
       config[key] = formData[key];
     });
     if (formData.appearance) Object.assign(config, formData.appearance);
@@ -1893,7 +2076,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
   }
   // --- Schemas ---
   // Schema 1: Top section (Entity, Title, Min/Max)
-  _getSchemaTop(formData) {
+  _getSchemaTop(_formData) {
     return [
       {
         name: "entity",
@@ -1913,7 +2096,10 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
         schema: [
           { name: "min", selector: { number: { mode: "box" } } },
           { name: "max", selector: { number: { mode: "box" } } },
-          { name: "decimals", selector: { number: { min: 0, max: 5, mode: "box" } } }
+          {
+            name: "decimals",
+            selector: { number: { min: 0, max: 5, mode: "box" } }
+          }
         ]
       }
     ];
@@ -1932,10 +2118,13 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     if ([r, g, b].some((n) => Number.isNaN(n))) return null;
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -1975,13 +2164,33 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } }
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level", selector: { number: { min: 0, max: 100, mode: "slider" } } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture",
@@ -1996,7 +2205,11 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
         ]
       },
       // Layout
@@ -2009,14 +2222,38 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
-              { name: "odometer_font_size", label: "Odometer Size", selector: { number: { mode: "box" } } }
+              {
+                name: "title_font_size",
+                label: "Title Font Size",
+                selector: { number: { mode: "box" } }
+              },
+              {
+                name: "odometer_font_size",
+                label: "Odometer Size",
+                selector: { number: { mode: "box" } }
+              }
             ]
           },
-          { name: "odometer_vertical_position", label: "Odometer Position Y", selector: { number: { mode: "box" } } },
-          { name: "start_angle", label: "Start Angle", selector: { number: { min: 0, max: 360, mode: "slider" } } },
-          { name: "end_angle", label: "End Angle", selector: { number: { min: 0, max: 360, mode: "slider" } } },
-          { name: "animation_duration", label: "Animation Duration (s)", selector: { number: { mode: "box", step: 0.1, min: 0.1 } } }
+          {
+            name: "odometer_vertical_position",
+            label: "Odometer Position Y",
+            selector: { number: { mode: "box" } }
+          },
+          {
+            name: "start_angle",
+            label: "Start Angle",
+            selector: { number: { min: 0, max: 360, mode: "slider" } }
+          },
+          {
+            name: "end_angle",
+            label: "End Angle",
+            selector: { number: { min: 0, max: 360, mode: "slider" } }
+          },
+          {
+            name: "animation_duration",
+            label: "Animation Duration (s)",
+            selector: { number: { mode: "box", step: 0.1, min: 0.1 } }
+          }
         ]
       },
       // High Needle
@@ -2025,14 +2262,30 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
         type: "expandable",
         title: "High Value Needle",
         schema: [
-          { name: "high_needle_enabled", label: "Enable High Needle", selector: { boolean: {} } },
-          { name: "high_needle_color", label: "Needle Color", selector: { color_rgb: {} } },
+          {
+            name: "high_needle_enabled",
+            label: "Enable High Needle",
+            selector: { boolean: {} }
+          },
+          {
+            name: "high_needle_color",
+            label: "Needle Color",
+            selector: { color_rgb: {} }
+          },
           {
             type: "grid",
             name: "",
             schema: [
-              { name: "high_needle_duration", label: "Hold Duration (s)", selector: { number: { mode: "box" } } },
-              { name: "high_needle_length", label: "Length (%)", selector: { number: { mode: "box" } } }
+              {
+                name: "high_needle_duration",
+                label: "Hold Duration (s)",
+                selector: { number: { mode: "box" } }
+              },
+              {
+                name: "high_needle_length",
+                label: "Length (%)",
+                selector: { number: { mode: "box" } }
+              }
             ]
           }
         ]
@@ -2073,11 +2326,23 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       }
     ];
     if (currentAction === "navigate") {
-      schema.push({ name: `${type}_action_navigation_path`, label: "Navigation Path", selector: { text: {} } });
+      schema.push({
+        name: `${type}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
     }
     if (currentAction === "call-service") {
-      schema.push({ name: `${type}_action_service`, label: "Service", selector: { text: {} } });
-      schema.push({ name: `${type}_action_target_entity`, label: "Target Entity", selector: { entity: {} } });
+      schema.push({
+        name: `${type}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema.push({
+        name: `${type}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
     }
     return schema;
   }
@@ -2352,16 +2617,16 @@ var FoundryThermostatCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -2387,13 +2652,15 @@ var FoundryThermostatCard = class extends HTMLElement {
       { cx: x + offset, cy: y + h - offset },
       { cx: x + w - offset, cy: y + h - offset }
     ];
-    return rivets.map((r) => `
+    return rivets.map(
+      (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join("");
+    `
+    ).join("");
   }
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
@@ -2434,17 +2701,20 @@ var FoundryThermostatCard = class extends HTMLElement {
       throw new Error("You need to define an entity");
     }
     this.config = { ...config };
-    if (!this.config.tap_action) this.config.tap_action = { action: "more-info" };
+    if (!this.config.tap_action)
+      this.config.tap_action = { action: "more-info" };
     if (this.config.ring_style === void 0) this.config.ring_style = "brass";
     if (this.config.min === void 0) this.config.min = -40;
     if (this.config.max === void 0) this.config.max = 120;
     if (this.config.mercury_width === void 0) this.config.mercury_width = 50;
-    if (this.config.segments_under_mercury === void 0) this.config.segments_under_mercury = true;
+    if (this.config.segments_under_mercury === void 0)
+      this.config.segments_under_mercury = true;
     this.config.plate_color = this.config.plate_color || "#8c7626";
     this.config.rivet_color = this.config.rivet_color || "#6a5816";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
     this.config.title_font_color = this.config.title_font_color || "#3e2723";
     this._uniqueId = Math.random().toString(36).substr(2, 9);
+    ensureLedFont();
     this.render();
   }
   _attachActionListeners() {
@@ -2525,11 +2795,7 @@ var FoundryThermostatCard = class extends HTMLElement {
     if (!entity) return;
     const val = parseFloat(entity.state);
     if (isNaN(val)) return;
-    const yTop = 55;
-    const yBottom = 285;
-    const zeroY = this._valueToY(this.config.min);
     const valY = this._valueToY(val);
-    const height = yBottom - valY;
     const liquidCol = this.shadowRoot.getElementById("liquid-col");
     if (liquidCol) {
       const liquidBottom = 295;
@@ -2689,14 +2955,20 @@ var FoundryThermostatEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(this._root);
       this._form1 = document.createElement("ha-form");
       this._form1.computeLabel = this._computeLabel;
-      this._form1.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form1.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form1);
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
       this._root.appendChild(this._segmentsContainer);
       this._form2 = document.createElement("ha-form");
       this._form2.computeLabel = this._computeLabel;
-      this._form2.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form2.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form2);
     }
     const formData = this._configToForm(this._config);
@@ -2753,7 +3025,10 @@ var FoundryThermostatEditor = class extends HTMLElement {
       });
     });
     this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => this._removeSegment(parseInt(e.target.dataset.idx)));
+      btn.addEventListener(
+        "click",
+        (e) => this._removeSegment(parseInt(e.target.dataset.idx))
+      );
     });
     const addBtn = this._segmentsContainer.querySelector("#add-btn");
     if (addBtn) addBtn.addEventListener("click", () => this._addSegment());
@@ -2790,11 +3065,29 @@ var FoundryThermostatEditor = class extends HTMLElement {
   }
   _configToForm(config) {
     const data = { ...config };
-    data.liquid_color = this._hexToRgb(config.liquid_color ?? "#cc0000") || [204, 0, 0];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") || [245, 245, 245];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") || [109, 93, 75];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") || [255, 255, 255];
-    data.title_font_color = this._hexToRgb(config.title_font_color ?? "#3e2723") || [62, 39, 35];
+    data.liquid_color = this._hexToRgb(config.liquid_color ?? "#cc0000") || [
+      204,
+      0,
+      0
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") || [
+      245,
+      245,
+      245
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") || [
+      109,
+      93,
+      75
+    ];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") || [
+      255,
+      255,
+      255
+    ];
+    data.title_font_color = this._hexToRgb(
+      config.title_font_color ?? "#3e2723"
+    ) || [62, 39, 35];
     data.ring_style = config.ring_style ?? "brass";
     data.min = config.min ?? -40;
     data.max = config.max ?? 120;
@@ -2810,11 +3103,16 @@ var FoundryThermostatEditor = class extends HTMLElement {
   }
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
-    if (config.liquid_color) config.liquid_color = this._rgbToHex(config.liquid_color);
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
-    if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.title_font_color) config.title_font_color = this._rgbToHex(config.title_font_color);
+    if (config.liquid_color)
+      config.liquid_color = this._rgbToHex(config.liquid_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.title_font_color)
+      config.title_font_color = this._rgbToHex(config.title_font_color);
     return config;
   }
   _getSchemaTop() {
@@ -2825,7 +3123,11 @@ var FoundryThermostatEditor = class extends HTMLElement {
         name: "",
         schema: [
           { name: "title", selector: { text: {} } },
-          { name: "title_font_color", label: "Title Color", selector: { color_rgb: {} } }
+          {
+            name: "title_font_color",
+            label: "Title Color",
+            selector: { color_rgb: {} }
+          }
         ]
       },
       { name: "unit", selector: { text: {} } },
@@ -2835,7 +3137,11 @@ var FoundryThermostatEditor = class extends HTMLElement {
         schema: [
           { name: "min", selector: { number: { mode: "box" } } },
           { name: "max", selector: { number: { mode: "box" } } },
-          { name: "segments_under_mercury", label: "Segments Behind Liquid", selector: { boolean: {} } },
+          {
+            name: "segments_under_mercury",
+            label: "Segments Behind Liquid",
+            selector: { boolean: {} }
+          },
           {
             name: "mercury_width",
             label: "Mercury Width (%)",
@@ -2880,15 +3186,43 @@ var FoundryThermostatEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "liquid_color", label: "Mercury Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } },
-              { name: "font_bg_color", label: "Tube Background", selector: { color_rgb: {} } }
+              {
+                name: "liquid_color",
+                label: "Mercury Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_bg_color",
+                label: "Tube Background",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture Style",
@@ -2903,8 +3237,16 @@ var FoundryThermostatEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
-          { name: "tap_action", label: "Tap Action", selector: { "ui-action": {} } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "tap_action",
+            label: "Tap Action",
+            selector: { "ui-action": {} }
+          }
         ]
       }
     ];
@@ -2923,10 +3265,13 @@ var FoundryThermostatEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
@@ -2989,9 +3334,11 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     let time = now;
     if (this.config.time_zone) {
       try {
-        const tzString = (/* @__PURE__ */ new Date()).toLocaleString("en-US", { timeZone: this.config.time_zone });
+        const tzString = (/* @__PURE__ */ new Date()).toLocaleString("en-US", {
+          timeZone: this.config.time_zone
+        });
         time = new Date(tzString);
-      } catch (e) {
+      } catch (_e) {
         console.warn("Invalid time zone:", this.config.time_zone);
       }
     }
@@ -3031,7 +3378,6 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 12;
     const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
-    const rimData = this.getRimStyleData(ringStyle, uid);
     const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
     const plateColor = config.plate_color !== void 0 ? config.plate_color : "#f5f5f5";
     const plateTransparent = config.plate_transparent !== void 0 ? config.plate_transparent : false;
@@ -3255,7 +3601,9 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     const root = this.shadowRoot?.getElementById("actionRoot");
     if (!root) return;
     root.onclick = () => {
-      const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+      const tap = getActionConfig(this.config, "tap_action", {
+        action: "more-info"
+      });
       if (tap.action !== "none") {
         if (this.config.entity) {
           this._handleAction("tap");
@@ -3267,9 +3615,15 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     if (!this._hass || !this.config) return;
     const entityId = this.config.entity;
     if (!entityId) return;
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
-    const hold = getActionConfig(this.config, "hold_action", { action: "more-info" });
-    const dbl = getActionConfig(this.config, "double_tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
     const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
     const action = actionConfig?.action;
     if (!action || action === "none") return;
@@ -3320,18 +3674,90 @@ var FoundryAnalogClockCard = class extends HTMLElement {
   }
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return "";
-    const baseOpacity = wearLevel / 100 * 0.25;
     const allMarks = [
-      { type: "circle", cx: 45, cy: 60, r: 2, fill: "#8B7355", baseOpacity: 0.2 },
-      { type: "circle", cx: 155, cy: 75, r: 1.5, fill: "#8B7355", baseOpacity: 0.15 },
-      { type: "circle", cx: 70, cy: 120, r: 1, fill: "#6d5d4b", baseOpacity: 0.2 },
-      { type: "ellipse", cx: 130, cy: 50, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "circle", cx: 35, cy: 140, r: 1.2, fill: "#8B7355", baseOpacity: 0.12 },
-      { type: "circle", cx: 165, cy: 130, r: 1.8, fill: "#6d5d4b", baseOpacity: 0.18 },
-      { type: "ellipse", cx: 50, cy: 90, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.08 },
-      { type: "circle", cx: 120, cy: 145, r: 0.8, fill: "#6d5d4b", baseOpacity: 0.15 },
-      { type: "circle", cx: 180, cy: 65, r: 1.3, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "ellipse", cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.09 }
+      {
+        type: "circle",
+        cx: 45,
+        cy: 60,
+        r: 2,
+        fill: "#8B7355",
+        baseOpacity: 0.2
+      },
+      {
+        type: "circle",
+        cx: 155,
+        cy: 75,
+        r: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 70,
+        cy: 120,
+        r: 1,
+        fill: "#6d5d4b",
+        baseOpacity: 0.2
+      },
+      {
+        type: "ellipse",
+        cx: 130,
+        cy: 50,
+        rx: 3,
+        ry: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "circle",
+        cx: 35,
+        cy: 140,
+        r: 1.2,
+        fill: "#8B7355",
+        baseOpacity: 0.12
+      },
+      {
+        type: "circle",
+        cx: 165,
+        cy: 130,
+        r: 1.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.18
+      },
+      {
+        type: "ellipse",
+        cx: 50,
+        cy: 90,
+        rx: 2,
+        ry: 1,
+        fill: "#8B7355",
+        baseOpacity: 0.08
+      },
+      {
+        type: "circle",
+        cx: 120,
+        cy: 145,
+        r: 0.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 180,
+        cy: 65,
+        r: 1.3,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "ellipse",
+        cx: 25,
+        cy: 100,
+        rx: 2.5,
+        ry: 1.2,
+        fill: "#6d5d4b",
+        baseOpacity: 0.09
+      }
     ];
     const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
@@ -3349,13 +3775,15 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     const centerX = 100;
     const centerY = 100;
     for (let i = 1; i <= 12; i++) {
-      const angle = i * 30 - 90;
       const angleRad = (i * 30 - 90) * Math.PI / 180;
       const x1 = centerX + 75 * Math.cos(angleRad);
       const y1 = centerY + 75 * Math.sin(angleRad);
       const x2 = centerX + 85 * Math.cos(angleRad);
       const y2 = centerY + 85 * Math.sin(angleRad);
-      const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      const tick = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
       tick.setAttribute("x1", x1);
       tick.setAttribute("y1", y1);
       tick.setAttribute("x2", x2);
@@ -3366,7 +3794,10 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       const textRadius = 65;
       const textX = centerX + textRadius * Math.cos(angleRad);
       const textY = centerY + textRadius * Math.sin(angleRad);
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text"
+      );
       text.setAttribute("x", textX);
       text.setAttribute("y", textY);
       text.setAttribute("text-anchor", "middle");
@@ -3384,7 +3815,10 @@ var FoundryAnalogClockCard = class extends HTMLElement {
         const my1 = centerY + 80 * Math.sin(minorAngleRad);
         const mx2 = centerX + 85 * Math.cos(minorAngleRad);
         const my2 = centerY + 85 * Math.sin(minorAngleRad);
-        const minorTick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        const minorTick = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
         minorTick.setAttribute("x1", mx1);
         minorTick.setAttribute("y1", my1);
         minorTick.setAttribute("x2", mx2);
@@ -3467,10 +3901,16 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
       this._form1 = document.createElement("ha-form");
-      this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form1.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form1);
       this._form2 = document.createElement("ha-form");
-      this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form2.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form2);
       const resetBtn = document.createElement("button");
       resetBtn.className = "reset-btn";
@@ -3490,7 +3930,9 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     this._form2.computeLabel = this._computeLabel;
   }
   _resetToDefaults() {
-    if (!confirm("Reset all settings to defaults? This will keep your entity but reset all other configuration.")) {
+    if (!confirm(
+      "Reset all settings to defaults? This will keep your entity but reset all other configuration."
+    )) {
       return;
     }
     const entity = this._config.entity;
@@ -3515,11 +3957,13 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
   }
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._config },
-      bubbles: true,
-      composed: true
-    }));
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
   }
   _handleFormChanged(ev) {
     const newConfig = this._formToConfig(ev.detail.value);
@@ -3531,8 +3975,16 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [106, 88, 22],
-      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [140, 118, 38],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
+        106,
+        88,
+        22
+      ],
+      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
+        140,
+        118,
+        38
+      ],
       plate_transparent: config.plate_transparent,
       wear_level: config.wear_level,
       glass_effect_enabled: config.glass_effect_enabled,
@@ -3593,7 +4045,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     if (schema.name === "entity") return "Entity (Optional)";
     return schema.name.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   }
-  _getSchemaTop(formData) {
+  _getSchemaTop(_formData) {
     return [
       {
         name: "entity",
@@ -3616,7 +4068,10 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
                   { value: "America/New_York", label: "New York (Eastern)" },
                   { value: "America/Chicago", label: "Chicago (Central)" },
                   { value: "America/Denver", label: "Denver (Mountain)" },
-                  { value: "America/Los_Angeles", label: "Los Angeles (Pacific)" },
+                  {
+                    value: "America/Los_Angeles",
+                    label: "Los Angeles (Pacific)"
+                  },
                   { value: "America/Phoenix", label: "Phoenix (MST)" },
                   { value: "America/Anchorage", label: "Anchorage (Alaska)" },
                   { value: "Pacific/Honolulu", label: "Honolulu (Hawaii)" },
@@ -3652,10 +4107,13 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     if ([r, g, b].some((n) => Number.isNaN(n))) return null;
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -3693,14 +4151,38 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } }
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "second_hand_enabled", label: "Show Second Hand", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level", selector: { number: { min: 0, max: 100, mode: "slider" } } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "second_hand_enabled",
+            label: "Show Second Hand",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture",
@@ -3715,7 +4197,11 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
         ]
       },
       {
@@ -3723,7 +4209,11 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
         type: "expandable",
         title: "Layout & Text",
         schema: [
-          { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } }
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box" } }
+          }
         ]
       },
       {
@@ -3760,17 +4250,32 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       }
     ];
     if (currentAction === "navigate") {
-      schema.push({ name: `${type}_action_navigation_path`, label: "Navigation Path", selector: { text: {} } });
+      schema.push({
+        name: `${type}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
     }
     if (currentAction === "call-service") {
-      schema.push({ name: `${type}_action_service`, label: "Service", selector: { text: {} } });
-      schema.push({ name: `${type}_action_target_entity`, label: "Target Entity", selector: { entity: {} } });
+      schema.push({
+        name: `${type}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema.push({
+        name: `${type}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
     }
     return schema;
   }
 };
 if (!customElements.get("foundry-analog-clock-editor")) {
-  customElements.define("foundry-analog-clock-editor", FoundryAnalogClockCardEditor);
+  customElements.define(
+    "foundry-analog-clock-editor",
+    FoundryAnalogClockCardEditor
+  );
 }
 
 // src/cards/foundry-digital-clock-card.js
@@ -3829,9 +4334,11 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     let time = now;
     if (this.config.time_zone) {
       try {
-        const tzString = (/* @__PURE__ */ new Date()).toLocaleString("en-US", { timeZone: this.config.time_zone });
+        const tzString = (/* @__PURE__ */ new Date()).toLocaleString("en-US", {
+          timeZone: this.config.time_zone
+        });
         time = new Date(tzString);
-      } catch (e) {
+      } catch (_e) {
         console.warn("Invalid time zone:", this.config.time_zone);
       }
     }
@@ -3868,7 +4375,6 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
-    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
     const titleFontFamily = "Georgia, serif";
     this.shadowRoot.innerHTML = `
       <style>
@@ -3991,28 +4497,102 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       { cx: 20, cy: 125 },
       { cx: 240, cy: 125 }
     ];
-    return rivets.map((r) => `
+    return rivets.map(
+      (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join("");
+    `
+    ).join("");
   }
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return "";
-    const baseOpacity = wearLevel / 100 * 0.25;
     const allMarks = [
-      { type: "circle", cx: 50, cy: 45, r: 2, fill: "#8B7355", baseOpacity: 0.2 },
-      { type: "circle", cx: 210, cy: 56, r: 1.5, fill: "#8B7355", baseOpacity: 0.15 },
-      { type: "circle", cx: 77, cy: 90, r: 1, fill: "#6d5d4b", baseOpacity: 0.2 },
-      { type: "ellipse", cx: 163, cy: 37, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "circle", cx: 38, cy: 105, r: 1.2, fill: "#8B7355", baseOpacity: 0.12 },
-      { type: "circle", cx: 220, cy: 97, r: 1.8, fill: "#6d5d4b", baseOpacity: 0.18 },
-      { type: "ellipse", cx: 55, cy: 67, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.08 },
-      { type: "circle", cx: 152, cy: 108, r: 0.8, fill: "#6d5d4b", baseOpacity: 0.15 },
-      { type: "circle", cx: 238, cy: 48, r: 1.3, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "ellipse", cx: 27, cy: 75, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.09 }
+      {
+        type: "circle",
+        cx: 50,
+        cy: 45,
+        r: 2,
+        fill: "#8B7355",
+        baseOpacity: 0.2
+      },
+      {
+        type: "circle",
+        cx: 210,
+        cy: 56,
+        r: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 77,
+        cy: 90,
+        r: 1,
+        fill: "#6d5d4b",
+        baseOpacity: 0.2
+      },
+      {
+        type: "ellipse",
+        cx: 163,
+        cy: 37,
+        rx: 3,
+        ry: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "circle",
+        cx: 38,
+        cy: 105,
+        r: 1.2,
+        fill: "#8B7355",
+        baseOpacity: 0.12
+      },
+      {
+        type: "circle",
+        cx: 220,
+        cy: 97,
+        r: 1.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.18
+      },
+      {
+        type: "ellipse",
+        cx: 55,
+        cy: 67,
+        rx: 2,
+        ry: 1,
+        fill: "#8B7355",
+        baseOpacity: 0.08
+      },
+      {
+        type: "circle",
+        cx: 152,
+        cy: 108,
+        r: 0.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 238,
+        cy: 48,
+        r: 1.3,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "ellipse",
+        cx: 27,
+        cy: 75,
+        rx: 2.5,
+        ry: 1.2,
+        fill: "#6d5d4b",
+        baseOpacity: 0.09
+      }
     ];
     const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
@@ -4147,7 +4727,9 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const root = this.shadowRoot?.getElementById("actionRoot");
     if (!root) return;
     root.onclick = () => {
-      const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+      const tap = getActionConfig(this.config, "tap_action", {
+        action: "more-info"
+      });
       if (tap.action !== "none") {
         if (this.config.entity) {
           this._handleAction("tap");
@@ -4155,11 +4737,13 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       }
     };
   }
-  _handleAction(kind) {
+  _handleAction(_kind) {
     if (!this._hass || !this.config) return;
     const entityId = this.config.entity;
     if (!entityId) return;
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
     const actionConfig = tap;
     const action = actionConfig?.action;
     if (!action || action === "none") return;
@@ -4242,10 +4826,16 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
       this._form1 = document.createElement("ha-form");
-      this._form1.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form1.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form1);
       this._form2 = document.createElement("ha-form");
-      this._form2.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form2.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form2);
     }
     if (this._form1) this._form1.hass = this._hass;
@@ -4262,21 +4852,35 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     const newConfig = this._formToConfig(ev.detail.value);
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
-      this.dispatchEvent(new CustomEvent("config-changed", {
-        detail: { config: this._config },
-        bubbles: true,
-        composed: true
-      }));
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true
+        })
+      );
     }
   }
   _configToForm(config) {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? "brass",
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255],
+      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+        255,
+        255,
+        255
+      ],
       font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75],
-      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+        109,
+        93,
+        75
+      ],
+      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+        245,
+        245,
+        245
+      ],
       plate_transparent: config.plate_transparent ?? false,
       wear_level: config.wear_level ?? 50,
       glass_effect_enabled: config.glass_effect_enabled ?? true,
@@ -4308,7 +4912,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     }
     return config;
   }
-  _getSchemaTop(formData) {
+  _getSchemaTop(_formData) {
     return [
       { name: "entity", selector: { entity: {} } },
       { name: "title", selector: { text: {} } },
@@ -4347,14 +4951,26 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
         type: "expandable",
         title: "Layout & Text",
         schema: [
-          { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } },
-          { name: "use_24h_format", label: "Use 24h Format", selector: { boolean: {} } },
-          { name: "show_seconds", label: "Show Seconds", selector: { boolean: {} } }
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box" } }
+          },
+          {
+            name: "use_24h_format",
+            label: "Use 24h Format",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_seconds",
+            label: "Show Seconds",
+            selector: { boolean: {} }
+          }
         ]
       }
     ];
   }
-  _getSchemaBottom(formData) {
+  _getSchemaBottom(_formData) {
     return [
       {
         name: "appearance",
@@ -4385,15 +5001,43 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "font_bg_color", label: "Screen Background", selector: { color_rgb: {} } },
-              { name: "font_color", label: "Digital Font Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }
+              {
+                name: "font_bg_color",
+                label: "Screen Background",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture Style",
@@ -4408,7 +5052,11 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
         ]
       }
     ];
@@ -4427,10 +5075,13 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
@@ -4440,7 +5091,10 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
   }
 };
 if (!customElements.get("foundry-digital-clock-editor")) {
-  customElements.define("foundry-digital-clock-editor", FoundryDigitalClockCardEditor);
+  customElements.define(
+    "foundry-digital-clock-editor",
+    FoundryDigitalClockCardEditor
+  );
 }
 
 // src/cards/foundry-entities-card.js
@@ -4507,7 +5161,8 @@ var FoundryEntitiesCard = class extends HTMLElement {
             let secondary = "";
             if (diff < 60) secondary = `${diff}s ago`;
             else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
-            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
+            else if (diff < 86400)
+              secondary = `${Math.floor(diff / 3600)}h ago`;
             else secondary = `${Math.floor(diff / 86400)}d ago`;
             secondaryEl.textContent = secondary;
           }
@@ -4693,13 +5348,15 @@ var FoundryEntitiesCard = class extends HTMLElement {
       { cx: x + offset, cy: y + h - offset },
       { cx: x + w - offset, cy: y + h - offset }
     ];
-    return rivets.map((r) => `
+    return rivets.map(
+      (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join("");
+    `
+    ).join("");
   }
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
@@ -4736,7 +5393,6 @@ var FoundryEntitiesCard = class extends HTMLElement {
   // Reuse from Digital Clock
   renderWearMarks(wearLevel, viewBoxHeight) {
     if (wearLevel === 0) return "";
-    const baseOpacity = wearLevel / 100 * 0.25;
     return `
         <circle cx="50" cy="45" r="2" fill="#8B7355" opacity="${Math.min(0.2 * (wearLevel / 50), 0.25)}"/>
         <circle cx="210" cy="${viewBoxHeight - 40}" r="1.5" fill="#8B7355" opacity="${Math.min(0.15 * (wearLevel / 50), 0.25)}"/>
@@ -4956,7 +5612,10 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     this._root.appendChild(header);
     this._advancedForm = document.createElement("ha-form");
     this._advancedForm.computeLabel = this._computeLabel;
-    this._advancedForm.addEventListener("value-changed", (ev) => this._handleFormChangedAdvanced(ev));
+    this._advancedForm.addEventListener(
+      "value-changed",
+      (ev) => this._handleFormChangedAdvanced(ev)
+    );
     this._root.appendChild(this._advancedForm);
   }
   _updateAdvancedUI() {
@@ -4969,7 +5628,10 @@ var FoundryEntitiesEditor = class extends HTMLElement {
   _buildStandardUI() {
     this._entitiesForm = document.createElement("ha-form");
     this._entitiesForm.computeLabel = this._computeLabel;
-    this._entitiesForm.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+    this._entitiesForm.addEventListener(
+      "value-changed",
+      (ev) => this._handleFormChanged(ev)
+    );
     this._root.appendChild(this._entitiesForm);
     this._toggleBtn = document.createElement("button");
     this._toggleBtn.className = "toggle-button";
@@ -4981,7 +5643,10 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     this._root.appendChild(this._toggleBtn);
     this._settingsForm = document.createElement("ha-form");
     this._settingsForm.computeLabel = this._computeLabel;
-    this._settingsForm.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+    this._settingsForm.addEventListener(
+      "value-changed",
+      (ev) => this._handleFormChanged(ev)
+    );
     this._root.appendChild(this._settingsForm);
   }
   _updateStandardUI() {
@@ -5029,10 +5694,26 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     data.title = config.title ?? "Entities";
     data.title_font_size = config.title_font_size ?? 14;
     data.ring_style = config.ring_style ?? "brass";
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255];
-    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+      255,
+      255,
+      255
+    ];
+    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [
+      0,
+      0,
+      0
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+      109,
+      93,
+      75
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+      245,
+      245,
+      245
+    ];
     data.plate_transparent = config.plate_transparent ?? false;
     data.wear_level = config.wear_level ?? 50;
     data.glass_effect_enabled = config.glass_effect_enabled ?? true;
@@ -5067,10 +5748,14 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     if (formData.entities !== void 0) {
       config.entities = mergedEntities;
     }
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
-    if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.font_color)
+      config.font_color = this._rgbToHex(config.font_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
     return config;
   }
   _formToConfigAdvanced(formData) {
@@ -5105,7 +5790,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         title: "Layout & Text",
         schema: [
           { name: "title", label: "Title", selector: { text: {} } },
-          { name: "title_font_size", label: "Title Font Size", selector: { number: { mode: "box" } } }
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box" } }
+          }
         ]
       }
     ];
@@ -5141,15 +5830,43 @@ var FoundryEntitiesEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "font_bg_color", label: "Screen Background", selector: { color_rgb: {} } },
-              { name: "font_color", label: "Digital Font Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }
+              {
+                name: "font_bg_color",
+                label: "Screen Background",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture Style",
@@ -5164,7 +5881,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
         ]
       }
     ];
@@ -5200,7 +5921,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       });
     });
     if (schema.length === 0) {
-      schema.push({ name: "", type: "constant", value: "No entities selected. Go back to add entities." });
+      schema.push({
+        name: "",
+        type: "constant",
+        value: "No entities selected. Go back to add entities."
+      });
     }
     return schema;
   }
@@ -5218,10 +5943,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
@@ -5483,7 +6211,7 @@ var FoundryButtonCard = class extends HTMLElement {
       iconEl.setAttribute("icon", this.config.icon);
     }
   }
-  renderRivets(w, h, x, y) {
+  renderRivets(_w, _h, _x, _y) {
     return "";
   }
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
@@ -5696,7 +6424,10 @@ var FoundryButtonEditor = class extends HTMLElement {
     if (!this._form) {
       this._form = document.createElement("ha-form");
       this._form.computeLabel = this._computeLabel;
-      this._form.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form);
     }
     this._form.hass = this._hass;
@@ -5713,9 +6444,21 @@ var FoundryButtonEditor = class extends HTMLElement {
   _configToForm(config) {
     const data = { ...config };
     data.ring_style = config.ring_style ?? "brass";
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [245, 245, 245];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255];
-    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0];
+    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+      245,
+      245,
+      245
+    ];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+      255,
+      255,
+      255
+    ];
+    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [
+      0,
+      0,
+      0
+    ];
     data.plate_transparent = config.plate_transparent ?? false;
     data.wear_level = config.wear_level ?? 50;
     data.glass_effect_enabled = config.glass_effect_enabled ?? true;
@@ -5725,9 +6468,12 @@ var FoundryButtonEditor = class extends HTMLElement {
   }
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.font_color)
+      config.font_color = this._rgbToHex(config.font_color);
     return config;
   }
   _getSchema() {
@@ -5767,10 +6513,26 @@ var FoundryButtonEditor = class extends HTMLElement {
         type: "expandable",
         title: "Content Templates (Jinja2 Supported)",
         schema: [
-          { name: "primary_info", label: "Primary Info", selector: { template: {} } },
-          { name: "secondary_info", label: "Secondary Info", selector: { template: {} } },
-          { name: "secondary_info_2", label: "Secondary Info 2", selector: { template: {} } },
-          { name: "icon_color", label: "Icon Color", selector: { template: {} } }
+          {
+            name: "primary_info",
+            label: "Primary Info",
+            selector: { template: {} }
+          },
+          {
+            name: "secondary_info",
+            label: "Secondary Info",
+            selector: { template: {} }
+          },
+          {
+            name: "secondary_info_2",
+            label: "Secondary Info 2",
+            selector: { template: {} }
+          },
+          {
+            name: "icon_color",
+            label: "Icon Color",
+            selector: { template: {} }
+          }
         ]
       },
       {
@@ -5802,14 +6564,38 @@ var FoundryButtonEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "font_bg_color", label: "Screen Background", selector: { color_rgb: {} } },
-              { name: "font_color", label: "Digital Font Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } }
+              {
+                name: "font_bg_color",
+                label: "Screen Background",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
           {
             name: "aged_texture",
             label: "Aged Texture Style",
@@ -5824,8 +6610,16 @@ var FoundryButtonEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
-          { name: "card_width", label: "Card Max Width (px)", selector: { number: { min: 100, max: 500, mode: "box" } } }
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "card_width",
+            label: "Card Max Width (px)",
+            selector: { number: { min: 100, max: 500, mode: "box" } }
+          }
         ]
       }
     ];
@@ -5844,10 +6638,13 @@ var FoundryButtonEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
@@ -5877,8 +6674,24 @@ var FoundryUptimeCard = class extends HTMLElement {
     this.config.hours_to_show = this.config.hours_to_show || 24;
     this.config.update_interval = this.config.update_interval || 60;
     this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
-    this.config.ok = this.config.ok || ["on", "connected", "home", "open", "true", "running", "active"];
-    this.config.ko = this.config.ko || ["off", "disconnected", "not_home", "closed", "false", "stopped", "inactive"];
+    this.config.ok = this.config.ok || [
+      "on",
+      "connected",
+      "home",
+      "open",
+      "true",
+      "running",
+      "active"
+    ];
+    this.config.ko = this.config.ko || [
+      "off",
+      "disconnected",
+      "not_home",
+      "closed",
+      "false",
+      "stopped",
+      "inactive"
+    ];
     this.config.alias.ok = this.config.alias.ok || "Up";
     this.config.alias.ko = this.config.alias.ko || "Down";
     if (this.config.duration) {
@@ -5908,7 +6721,10 @@ var FoundryUptimeCard = class extends HTMLElement {
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
     if (this._interval) clearInterval(this._interval);
-    this._interval = setInterval(() => this._fetchHistory(), this.config.update_interval * 1e3);
+    this._interval = setInterval(
+      () => this._fetchHistory(),
+      this.config.update_interval * 1e3
+    );
   }
   static getStubConfig() {
     return {
@@ -5957,7 +6773,10 @@ var FoundryUptimeCard = class extends HTMLElement {
     startTime.setHours(startTime.getHours() - hours);
     const isoStart = startTime.toISOString();
     try {
-      const history2 = await this._hass.callApi("GET", `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${(/* @__PURE__ */ new Date()).toISOString()}`);
+      const history2 = await this._hass.callApi(
+        "GET",
+        `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${(/* @__PURE__ */ new Date()).toISOString()}`
+      );
       if (history2 && history2.length > 0) {
         this._history = history2[0];
       } else {
@@ -5991,7 +6810,9 @@ var FoundryUptimeCard = class extends HTMLElement {
     let currentState = "unknown";
     let lastChangeTs = startTs;
     if (this._history.length > 0) {
-      const sortedHistory = [...this._history].sort((a, b) => new Date(a.last_changed) - new Date(b.last_changed));
+      const sortedHistory = [...this._history].sort(
+        (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+      );
       if (new Date(sortedHistory[0].last_changed).getTime() > startTs) {
         currentState = sortedHistory[0].state;
       } else {
@@ -6038,7 +6859,6 @@ var FoundryUptimeCard = class extends HTMLElement {
       totalTrackedTime += bucketDur;
     }
     const uptimePct = totalTrackedTime > 0 ? totalUpTime / totalTrackedTime * 100 : 0;
-    const finalScoreColor = this._getColorForScore(uptimePct);
     const scoreEl = this.shadowRoot.getElementById("uptime-score");
     if (scoreEl) {
       scoreEl.textContent = `${uptimePct.toFixed(2)}%`;
@@ -6082,7 +6902,10 @@ var FoundryUptimeCard = class extends HTMLElement {
       coalesced.forEach((group, idx) => {
         const isLast = idx === coalesced.length - 1;
         const totalWidth = group.count * barWidth;
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        const rect = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "rect"
+        );
         rect.setAttribute("x", currentX);
         rect.setAttribute("y", 0);
         rect.setAttribute("width", totalWidth);
@@ -6091,7 +6914,10 @@ var FoundryUptimeCard = class extends HTMLElement {
         bandsContainer.appendChild(rect);
         currentX += totalWidth;
         if (!isLast) {
-          const div = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          const div = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect"
+          );
           div.setAttribute("x", currentX - dividerWidth / 2);
           div.setAttribute("y", 0);
           div.setAttribute("width", dividerWidth);
@@ -6117,7 +6943,9 @@ var FoundryUptimeCard = class extends HTMLElement {
   _getColorForScore(pct) {
     if (this.config.segments) return this.config.font_color;
     if (this.config.color_thresholds) {
-      const thresholds = [...this.config.color_thresholds || []].sort((a, b) => a.value - b.value);
+      const thresholds = [...this.config.color_thresholds || []].sort(
+        (a, b) => a.value - b.value
+      );
       const match = thresholds.find((th) => pct <= th.value);
       if (match) return this._resolveColor(match.color);
     }
@@ -6161,8 +6989,6 @@ var FoundryUptimeCard = class extends HTMLElement {
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
-    const wearLevel = config.wear_level;
-    const glassEffectEnabled = config.glass_effect_enabled;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
@@ -6313,13 +7139,15 @@ var FoundryUptimeCard = class extends HTMLElement {
       { cx: x + offset, cy: y + h - offset },
       { cx: x + w - offset, cy: y + h - offset }
     ];
-    return rivets.map((r) => `
+    return rivets.map(
+      (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join("");
+    `
+    ).join("");
   }
   renderWearMarks(wearLevel, viewBoxHeight) {
     if (wearLevel === 0) return "";
@@ -6341,15 +7169,15 @@ var FoundryUptimeCard = class extends HTMLElement {
   // Helper to get rim data, shared between render and renderSquareRim
   getRimStyleData(s, uid) {
     const switchS = {
-      "brass": { grad: `brassRim-${uid}`, stroke: "#8B7355" },
-      "silver": { grad: `silverRim-${uid}`, stroke: "#999999" },
-      "chrome": { grad: `silverRim-${uid}`, stroke: "#999999" },
-      "white": { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
-      "black": { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
-      "copper": { grad: `copperRim-${uid}`, stroke: "#8B4513" },
-      "blue": { grad: `blueRim-${uid}`, stroke: "#104E8B" },
-      "green": { grad: `greenRim-${uid}`, stroke: "#006400" },
-      "red": { grad: `redRim-${uid}`, stroke: "#8B0000" }
+      brass: { grad: `brassRim-${uid}`, stroke: "#8B7355" },
+      silver: { grad: `silverRim-${uid}`, stroke: "#999999" },
+      chrome: { grad: `silverRim-${uid}`, stroke: "#999999" },
+      white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
+      black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
+      copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
+      green: { grad: `greenRim-${uid}`, stroke: "#006400" },
+      red: { grad: `redRim-${uid}`, stroke: "#8B0000" }
     };
     return switchS[s] || switchS["brass"];
   }
@@ -6509,7 +7337,10 @@ var FoundryUptimeEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(this._root);
       this._form1 = document.createElement("ha-form");
       this._form1.computeLabel = this._computeLabel;
-      this._form1.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form1.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form1);
       this._thresholdsPanel = document.createElement("ha-expansion-panel");
       this._thresholdsPanel.header = "Color Thresholds";
@@ -6525,7 +7356,10 @@ var FoundryUptimeEditor = class extends HTMLElement {
       this._root.appendChild(this._thresholdsPanel);
       this._form2 = document.createElement("ha-form");
       this._form2.computeLabel = this._computeLabel;
-      this._form2.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form2.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form2);
     }
     const data = this._configToForm(this._config);
@@ -6580,7 +7414,10 @@ var FoundryUptimeEditor = class extends HTMLElement {
         });
       });
       this._thresholdsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => this._removeThreshold(parseInt(e.target.dataset.idx)));
+        btn.addEventListener(
+          "click",
+          (e) => this._removeThreshold(parseInt(e.target.dataset.idx))
+        );
       });
       const addBtn = this._thresholdsContainer.querySelector("#add-btn");
       if (addBtn) addBtn.addEventListener("click", () => this._addThreshold());
@@ -6612,7 +7449,9 @@ var FoundryUptimeEditor = class extends HTMLElement {
   _addThreshold() {
     const thresholds = [...this._config.color_thresholds || []];
     thresholds.push({ value: 90, color: "#4CAF50" });
-    this._updateConfig({ color_thresholds: thresholds.sort((a, b) => a.value - b.value) });
+    this._updateConfig({
+      color_thresholds: thresholds.sort((a, b) => a.value - b.value)
+    });
   }
   _removeThreshold(index) {
     const thresholds = [...this._config.color_thresholds || []];
@@ -6635,10 +7474,13 @@ var FoundryUptimeEditor = class extends HTMLElement {
   }
   _configToForm(config) {
     const data = { ...config };
-    if (config.font_bg_color) data.font_bg_color = this._hexToRgb(config.font_bg_color);
+    if (config.font_bg_color)
+      data.font_bg_color = this._hexToRgb(config.font_bg_color);
     if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
-    if (config.plate_color) data.plate_color = this._hexToRgb(config.plate_color);
-    if (config.rivet_color) data.rivet_color = this._hexToRgb(config.rivet_color);
+    if (config.plate_color)
+      data.plate_color = this._hexToRgb(config.plate_color);
+    if (config.rivet_color)
+      data.rivet_color = this._hexToRgb(config.rivet_color);
     if (config.alias) {
       data.alias_ok = config.alias.ok;
       data.alias_ko = config.alias.ko;
@@ -6648,10 +7490,13 @@ var FoundryUptimeEditor = class extends HTMLElement {
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
     const ensureHex = (val) => Array.isArray(val) ? this._rgbToHex(val) : val;
-    if (formData.font_bg_color) config.font_bg_color = ensureHex(formData.font_bg_color);
+    if (formData.font_bg_color)
+      config.font_bg_color = ensureHex(formData.font_bg_color);
     if (formData.font_color) config.font_color = ensureHex(formData.font_color);
-    if (formData.plate_color) config.plate_color = ensureHex(formData.plate_color);
-    if (formData.rivet_color) config.rivet_color = ensureHex(formData.rivet_color);
+    if (formData.plate_color)
+      config.plate_color = ensureHex(formData.plate_color);
+    if (formData.rivet_color)
+      config.rivet_color = ensureHex(formData.rivet_color);
     if (formData.alias_ok !== void 0 || formData.alias_ko !== void 0) {
       config.alias = { ...config.alias };
       if (formData.alias_ok !== void 0) config.alias.ok = formData.alias_ok;
@@ -6665,7 +7510,8 @@ var FoundryUptimeEditor = class extends HTMLElement {
     if (!hex || typeof hex !== "string") return void 0;
     if (!hex.startsWith("#")) return void 0;
     let c = hex.substring(1);
-    if (c.length === 3) c = c.split("").map((s) => s + s).join("");
+    if (c.length === 3)
+      c = c.split("").map((s) => s + s).join("");
     if (c.length !== 6) return void 0;
     const num = parseInt(c, 16);
     return [num >> 16, num >> 8 & 255, num & 255];
@@ -6682,10 +7528,26 @@ var FoundryUptimeEditor = class extends HTMLElement {
         type: "expandable",
         title: "Uptime Settings",
         schema: [
-          { name: "hours_to_show", label: "Hours to Show", selector: { number: { min: 1, max: 168 } } },
-          { name: "update_interval", label: "Update Interval (s)", selector: { number: { min: 10, max: 3600 } } },
-          { name: "ok", label: "OK State (CSV or single)", selector: { text: {} } },
-          { name: "ko", label: "KO State (CSV or single)", selector: { text: {} } },
+          {
+            name: "hours_to_show",
+            label: "Hours to Show",
+            selector: { number: { min: 1, max: 168 } }
+          },
+          {
+            name: "update_interval",
+            label: "Update Interval (s)",
+            selector: { number: { min: 10, max: 3600 } }
+          },
+          {
+            name: "ok",
+            label: "OK State (CSV or single)",
+            selector: { text: {} }
+          },
+          {
+            name: "ko",
+            label: "KO State (CSV or single)",
+            selector: { text: {} }
+          },
           { name: "alias_ok", label: "Alias for OK", selector: { text: {} } },
           { name: "alias_ko", label: "Alias for KO", selector: { text: {} } }
         ]
@@ -6724,15 +7586,43 @@ var FoundryUptimeEditor = class extends HTMLElement {
             type: "grid",
             name: "",
             schema: [
-              { name: "font_bg_color", label: "Screen Background", selector: { color_rgb: {} } },
-              { name: "font_color", label: "Font Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }
+              {
+                name: "font_bg_color",
+                label: "Screen Background",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
             ]
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } }
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
         ]
       }
     ];

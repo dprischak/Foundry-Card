@@ -1,5 +1,4 @@
-
-import { debounce, fireEvent, getActionConfig } from "./utils.js";
+import { debounce, fireEvent, getActionConfig } from './utils.js';
 
 class FoundryGaugeCard extends HTMLElement {
   constructor() {
@@ -24,11 +23,11 @@ class FoundryGaugeCard extends HTMLElement {
     // Error state tracking
     this._entityError = null;
 
-    this._boundHandleClick = () => this._handleAction("tap");
-    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleClick = () => this._handleAction('tap');
+    this._boundHandleDblClick = () => this._handleAction('double_tap');
     this._boundHandleContextMenu = (e) => {
       e.preventDefault();
-      this._handleAction("hold");
+      this._handleAction('hold');
     };
     this._boundHandleKeyDown = (e) => this._handleKeyDown(e);
 
@@ -67,14 +66,15 @@ class FoundryGaugeCard extends HTMLElement {
     const digitsRow = flipDisplay.querySelector('.digits-row');
     if (!digitsRow) return;
 
-    const digitElements = Array.from(digitsRow.children).filter(el =>
-      el.classList.contains('flip-digit') &&
-      !el.classList.contains('decimal') &&
-      !el.classList.contains('minus-sign') &&
-      !el.classList.contains('unit')
+    const digitElements = Array.from(digitsRow.children).filter(
+      (el) =>
+        el.classList.contains('flip-digit') &&
+        !el.classList.contains('decimal') &&
+        !el.classList.contains('minus-sign') &&
+        !el.classList.contains('unit')
     );
 
-    digitElements.forEach(digitEl => {
+    digitElements.forEach((digitEl) => {
       const inner = digitEl.querySelector('.flip-digit-inner');
       const position = digitEl.dataset.position;
 
@@ -114,7 +114,7 @@ class FoundryGaugeCard extends HTMLElement {
 
     // Default behavior like built-in cards
     if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
+      this.config.tap_action = { action: 'more-info' };
     }
 
     // Default ring style to brass if not specified
@@ -136,7 +136,9 @@ class FoundryGaugeCard extends HTMLElement {
     const min = config.min !== undefined ? config.min : 0;
     const max = config.max !== undefined ? config.max : 100;
     if (min >= max) {
-      console.warn('Foundry Gauge Card: min value must be less than max value. Using defaults.');
+      console.warn(
+        'Foundry Gauge Card: min value must be less than max value. Using defaults.'
+      );
       this.config.min = 0;
       this.config.max = 100;
     }
@@ -145,7 +147,9 @@ class FoundryGaugeCard extends HTMLElement {
     if (config.decimals !== undefined) {
       const decimals = parseInt(config.decimals);
       if (isNaN(decimals) || decimals < 0) {
-        console.warn('Foundry Gauge Card: decimals must be a non-negative integer. Using 0.');
+        console.warn(
+          'Foundry Gauge Card: decimals must be a non-negative integer. Using 0.'
+        );
         this.config.decimals = 0;
       } else {
         this.config.decimals = Math.min(decimals, 10); // Cap at 10 decimals
@@ -174,7 +178,9 @@ class FoundryGaugeCard extends HTMLElement {
     if (config.animation_duration !== undefined) {
       const duration = parseFloat(config.animation_duration);
       if (isNaN(duration) || duration <= 0) {
-        console.warn('Foundry Gauge Card: animation_duration must be positive. Using 1.2s.');
+        console.warn(
+          'Foundry Gauge Card: animation_duration must be positive. Using 1.2s.'
+        );
         this.config.animation_duration = 1.2;
       } else {
         this.config.animation_duration = Math.min(duration, 10); // Cap at 10 seconds
@@ -197,7 +203,10 @@ class FoundryGaugeCard extends HTMLElement {
       if (isNaN(intensity)) {
         this.config.aged_texture_intensity = 50;
       } else {
-        this.config.aged_texture_intensity = Math.max(0, Math.min(100, intensity));
+        this.config.aged_texture_intensity = Math.max(
+          0,
+          Math.min(100, intensity)
+        );
       }
     }
 
@@ -232,11 +241,14 @@ class FoundryGaugeCard extends HTMLElement {
     const title = config.title || '';
     const min = config.min !== undefined ? config.min : 0;
     const max = config.max !== undefined ? config.max : 100;
-    const unit = config.unit || '';
+    // unit removed
     const uid = this._uniqueId;
-    const animationDuration = config.animation_duration !== undefined ? config.animation_duration : 1.2;
-    const titleFontSize = config.title_font_size !== undefined ? config.title_font_size : 12;
-    const odometerFontSize = config.odometer_font_size !== undefined ? config.odometer_font_size : 60;
+    const animationDuration =
+      config.animation_duration !== undefined ? config.animation_duration : 1.2;
+    const titleFontSize =
+      config.title_font_size !== undefined ? config.title_font_size : 12;
+    const odometerFontSize =
+      config.odometer_font_size !== undefined ? config.odometer_font_size : 60;
 
     // Fixed pixel sizes relative to the 200x200 SVG coordinate system
     // This ensures consistent scaling with the rest of the SVG
@@ -245,28 +257,52 @@ class FoundryGaugeCard extends HTMLElement {
     const odoDigitH = `${odometerFontSize * 0.22}px`;
     const odoGap = `${odometerFontSize * 0.03}px`;
 
-
-    const odometerVerticalPosition = config.odometer_vertical_position !== undefined ? config.odometer_vertical_position : 120;
-    const ringStyle = config.ring_style !== undefined ? config.ring_style : 'brass';
+    const odometerVerticalPosition =
+      config.odometer_vertical_position !== undefined
+        ? config.odometer_vertical_position
+        : 120;
+    const ringStyle =
+      config.ring_style !== undefined ? config.ring_style : 'brass';
     const rimData = this.getRimStyleData(ringStyle, uid);
-    const rivetColor = config.rivet_color !== undefined ? config.rivet_color : '#6d5d4b';
-    const highNeedleEnabled = config.high_needle_enabled !== undefined ? config.high_needle_enabled : false;
-    const highNeedleColor = config.high_needle_color !== undefined ? config.high_needle_color : '#FF9800';
-    const highNeedleLength = config.high_needle_length !== undefined ? config.high_needle_length : 100;
-    const plateColor = config.plate_color !== undefined ? config.plate_color : 'transparent';
-    const plateTransparent = config.plate_transparent !== undefined ? config.plate_transparent : false;
+    const rivetColor =
+      config.rivet_color !== undefined ? config.rivet_color : '#6d5d4b';
+    const highNeedleEnabled =
+      config.high_needle_enabled !== undefined
+        ? config.high_needle_enabled
+        : false;
+    const highNeedleColor =
+      config.high_needle_color !== undefined
+        ? config.high_needle_color
+        : '#FF9800';
+    const highNeedleLength =
+      config.high_needle_length !== undefined ? config.high_needle_length : 100;
+    const plateColor =
+      config.plate_color !== undefined ? config.plate_color : 'transparent';
+    const plateTransparent =
+      config.plate_transparent !== undefined ? config.plate_transparent : false;
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'glass_only';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'glass_only';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
     // If plate is transparent and aged_texture is everywhere, treat as glass_only
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
 
     // Angle configuration (0 = top, clockwise)
     // Convert from 0=top to SVG coordinate system where 0=right
-    const startAngleDeg = config.start_angle !== undefined ? config.start_angle : 200;
+    const startAngleDeg =
+      config.start_angle !== undefined ? config.start_angle : 200;
     const endAngleDeg = config.end_angle !== undefined ? config.end_angle : 160;
     // Convert to SVG coordinates (subtract 90 because SVG 0° is right, we want 0° to be top)
     this._startAngle = startAngleDeg - 90;
@@ -277,7 +313,7 @@ class FoundryGaugeCard extends HTMLElement {
     const segments = config.segments || [
       { from: 0, to: 33, color: '#4CAF50' },
       { from: 33, to: 66, color: '#FFC107' },
-      { from: 66, to: 100, color: '#F44336' }
+      { from: 66, to: 100, color: '#F44336' },
     ];
 
     this.shadowRoot.innerHTML = `
@@ -563,7 +599,7 @@ class FoundryGaugeCard extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
-              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${(agedTextureEnabled || effectiveAgedTexture === 'everywhere') ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
                             
 
               <!-- Glass effect overlay -->
@@ -666,27 +702,29 @@ class FoundryGaugeCard extends HTMLElement {
     requestAnimationFrame(() => this._reflowFlipDisplay());
   }
   _attachActionListeners() {
-    const root = this.shadowRoot?.getElementById("actionRoot");
+    const root = this.shadowRoot?.getElementById('actionRoot');
     if (!root) return;
 
     // Remove old listeners (render() can run many times)
-    root.removeEventListener("click", this._boundHandleClick);
-    root.removeEventListener("dblclick", this._boundHandleDblClick);
-    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
-    root.removeEventListener("keydown", this._boundHandleKeyDown);
+    root.removeEventListener('click', this._boundHandleClick);
+    root.removeEventListener('dblclick', this._boundHandleDblClick);
+    root.removeEventListener('contextmenu', this._boundHandleContextMenu);
+    root.removeEventListener('keydown', this._boundHandleKeyDown);
 
     // Add listeners
-    root.addEventListener("click", this._boundHandleClick, { passive: true });
-    root.addEventListener("dblclick", this._boundHandleDblClick, { passive: true });
-    root.addEventListener("contextmenu", this._boundHandleContextMenu);
-    root.addEventListener("keydown", this._boundHandleKeyDown);
+    root.addEventListener('click', this._boundHandleClick, { passive: true });
+    root.addEventListener('dblclick', this._boundHandleDblClick, {
+      passive: true,
+    });
+    root.addEventListener('contextmenu', this._boundHandleContextMenu);
+    root.addEventListener('keydown', this._boundHandleKeyDown);
   }
 
   _handleKeyDown(e) {
     // Enter or Space activates tap action
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      this._handleAction("tap");
+      this._handleAction('tap');
     }
     // 'h' or long press simulation not practical, so just use Enter/Space
   }
@@ -723,17 +761,21 @@ class FoundryGaugeCard extends HTMLElement {
 
     const entityId = this.config.entity;
 
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
-    const hold = getActionConfig(this.config, "hold_action", { action: "more-info" });
-    const dbl = getActionConfig(this.config, "double_tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, 'tap_action', {
+      action: 'more-info',
+    });
+    const hold = getActionConfig(this.config, 'hold_action', {
+      action: 'more-info',
+    });
+    const dbl = getActionConfig(this.config, 'double_tap_action', {
+      action: 'more-info',
+    });
 
     const actionConfig =
-      kind === "hold" ? hold :
-        kind === "double_tap" ? dbl :
-          tap;
+      kind === 'hold' ? hold : kind === 'double_tap' ? dbl : tap;
 
     // Check if action is "shake" - custom action for this card
-    if (actionConfig?.action === "shake") {
+    if (actionConfig?.action === 'shake') {
       this._shakeGauge();
       return;
     }
@@ -757,7 +799,7 @@ class FoundryGaugeCard extends HTMLElement {
     const clampedValue = Math.max(min, Math.min(max, value));
 
     // Calculate random deviation between 10% and 50% of the range
-    const deviationPercent = 0.10 + Math.random() * 0.40; // 10% to 50%
+    const deviationPercent = 0.1 + Math.random() * 0.4; // 10% to 50%
     const deviation = range * deviationPercent * (Math.random() > 0.5 ? 1 : -1);
     const targetValue = Math.max(min, Math.min(max, clampedValue + deviation));
 
@@ -765,8 +807,11 @@ class FoundryGaugeCard extends HTMLElement {
     const valuePosition = Math.max(0, Math.min(1, (targetValue - min) / range));
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
-    let targetGaugeAngle = startAngle + (totalAngle * valuePosition);
+    const totalAngle =
+      endAngle >= startAngle
+        ? endAngle - startAngle
+        : 360 - startAngle + endAngle;
+    let targetGaugeAngle = startAngle + totalAngle * valuePosition;
 
     // Normalize angle
     while (targetGaugeAngle > 180) targetGaugeAngle -= 360;
@@ -807,41 +852,44 @@ class FoundryGaugeCard extends HTMLElement {
   _runAction(actionConfig, entityId) {
     const action = actionConfig?.action;
 
-    if (!action || action === "none") return;
+    if (!action || action === 'none') return;
 
     // 1) more-info
-    if (action === "more-info") {
-      fireEvent(this, "hass-more-info", { entityId });
+    if (action === 'more-info') {
+      fireEvent(this, 'hass-more-info', { entityId });
       return;
     }
 
     // 2) navigate
-    if (action === "navigate") {
+    if (action === 'navigate') {
       const path = actionConfig.navigation_path;
       if (!path) return;
-      history.pushState(null, "", path);
-      fireEvent(window, "location-changed", { replace: false });
+      history.pushState(null, '', path);
+      fireEvent(window, 'location-changed', { replace: false });
       return;
     }
 
     // 3) toggle (HA shorthand used by some cards)
-    if (action === "toggle") {
+    if (action === 'toggle') {
       if (!entityId) return;
-      this._hass.callService("homeassistant", "toggle", { entity_id: entityId });
+      this._hass.callService('homeassistant', 'toggle', {
+        entity_id: entityId,
+      });
       return;
     }
 
     // 4) call-service
-    if (action === "call-service") {
+    if (action === 'call-service') {
       const service = actionConfig.service; // "domain.service"
       if (!service) return;
-      const [domain, srv] = service.split(".");
+      const [domain, srv] = service.split('.');
       if (!domain || !srv) return;
 
       const data = { ...(actionConfig.service_data || {}) };
 
       // Support target.entity_id if present (HA UI sometimes sets target)
-      if (actionConfig.target?.entity_id) data.entity_id = actionConfig.target.entity_id;
+      if (actionConfig.target?.entity_id)
+        data.entity_id = actionConfig.target.entity_id;
 
       this._hass.callService(domain, srv, data);
       return;
@@ -855,33 +903,35 @@ class FoundryGaugeCard extends HTMLElement {
     const lines = title.replace(/\\n/g, '\n').split('\n').slice(0, 3); // Max 3 lines
     const lineHeight = fontSize * 1.2; // 20% spacing between lines
     const totalHeight = (lines.length - 1) * lineHeight;
-    const startY = 75 - (totalHeight / 2); // Center vertically around y=75
+    const startY = 75 - totalHeight / 2; // Center vertically around y=75
 
-    return lines.map((line, index) => {
-      const y = startY + (index * lineHeight);
-      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
-    }).join('\n');
+    return lines
+      .map((line, index) => {
+        const y = startY + index * lineHeight;
+        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+      })
+      .join('\n');
   }
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass":
-        return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome":
-        return { grad: `silverRim-${uid}`, stroke: "#999999" };
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
 
-      case "white":
-        return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "blue":
-        return { grad: `blueRim-${uid}`, stroke: "#1e4f8f" };
-      case "green":
-        return { grad: `greenRim-${uid}`, stroke: "#1f6b3a" };
-      case "red":
-        return { grad: `redRim-${uid}`, stroke: "#8f1e1e" };
-      case "black":
-        return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper":
-        return { grad: `copperRim-${uid}`, stroke: "#8b5a2b" };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#1e4f8f' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#1f6b3a' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8f1e1e' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8b5a2b' };
 
       default:
         return null; // "none" or unknown
@@ -889,7 +939,7 @@ class FoundryGaugeCard extends HTMLElement {
   }
   renderRim(ringStyle, uid) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return ""; // none
+    if (!data) return ''; // none
 
     return `
 		<circle cx="100" cy="100" r="95" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="2"/>
@@ -927,21 +977,91 @@ class FoundryGaugeCard extends HTMLElement {
     // Scale from 0-100: 0 = no marks, 100 = maximum marks
     if (wearLevel === 0) return '';
 
-    // Base opacity scales with wear level (0 to 0.25 max)
-    const baseOpacity = (wearLevel / 100) * 0.25;
-
     // Define all possible wear marks with their properties
     const allMarks = [
-      { type: 'circle', cx: 45, cy: 60, r: 2, fill: '#8B7355', baseOpacity: 0.2 },
-      { type: 'circle', cx: 155, cy: 75, r: 1.5, fill: '#8B7355', baseOpacity: 0.15 },
-      { type: 'circle', cx: 70, cy: 120, r: 1, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'ellipse', cx: 130, cy: 50, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'circle', cx: 35, cy: 140, r: 1.2, fill: '#8B7355', baseOpacity: 0.12 },
-      { type: 'circle', cx: 165, cy: 130, r: 1.8, fill: '#6d5d4b', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 50, cy: 90, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.08 },
-      { type: 'circle', cx: 120, cy: 145, r: 0.8, fill: '#6d5d4b', baseOpacity: 0.15 },
-      { type: 'circle', cx: 180, cy: 65, r: 1.3, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'ellipse', cx: 25, cy: 100, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.09 }
+      {
+        type: 'circle',
+        cx: 45,
+        cy: 60,
+        r: 2,
+        fill: '#8B7355',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'circle',
+        cx: 155,
+        cy: 75,
+        r: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 70,
+        cy: 120,
+        r: 1,
+        fill: '#6d5d4b',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'ellipse',
+        cx: 130,
+        cy: 50,
+        rx: 3,
+        ry: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'circle',
+        cx: 35,
+        cy: 140,
+        r: 1.2,
+        fill: '#8B7355',
+        baseOpacity: 0.12,
+      },
+      {
+        type: 'circle',
+        cx: 165,
+        cy: 130,
+        r: 1.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.18,
+      },
+      {
+        type: 'ellipse',
+        cx: 50,
+        cy: 90,
+        rx: 2,
+        ry: 1,
+        fill: '#8B7355',
+        baseOpacity: 0.08,
+      },
+      {
+        type: 'circle',
+        cx: 120,
+        cy: 145,
+        r: 0.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 180,
+        cy: 65,
+        r: 1.3,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'ellipse',
+        cx: 25,
+        cy: 100,
+        rx: 2.5,
+        ry: 1.2,
+        fill: '#6d5d4b',
+        baseOpacity: 0.09,
+      },
     ];
 
     // Calculate how many marks to show based on wear level
@@ -949,15 +1069,17 @@ class FoundryGaugeCard extends HTMLElement {
     const marksToShow = allMarks.slice(0, markCount);
 
     // Generate SVG for visible marks
-    return marksToShow.map(mark => {
-      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-      if (mark.type === 'circle') {
-        return `<circle cx="${mark.cx}" cy="${mark.cy}" r="${mark.r}" fill="${mark.fill}" opacity="${opacity}"/>`;
-      } else if (mark.type === 'ellipse') {
-        return `<ellipse cx="${mark.cx}" cy="${mark.cy}" rx="${mark.rx}" ry="${mark.ry}" fill="${mark.fill}" opacity="${opacity}"/>`;
-      }
-      return '';
-    }).join('\n              ');
+    return marksToShow
+      .map((mark) => {
+        const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+        if (mark.type === 'circle') {
+          return `<circle cx="${mark.cx}" cy="${mark.cy}" r="${mark.r}" fill="${mark.fill}" opacity="${opacity}"/>`;
+        } else if (mark.type === 'ellipse') {
+          return `<ellipse cx="${mark.cx}" cy="${mark.cy}" rx="${mark.rx}" ry="${mark.ry}" fill="${mark.fill}" opacity="${opacity}"/>`;
+        }
+        return '';
+      })
+      .join('\n              ');
   }
 
   drawSegments(segments, min, max) {
@@ -968,18 +1090,30 @@ class FoundryGaugeCard extends HTMLElement {
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
     // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
+    const totalAngle =
+      endAngle >= startAngle
+        ? endAngle - startAngle
+        : 360 - startAngle + endAngle;
 
-    segments.forEach(segment => {
+    segments.forEach((segment) => {
       const fromPercent = ((segment.from - min) / (max - min)) * 100;
       const toPercent = ((segment.to - min) / (max - min)) * 100;
 
-      const segmentStartAngle = startAngle + (totalAngle * fromPercent / 100);
-      const segmentEndAngle = startAngle + (totalAngle * toPercent / 100);
+      const segmentStartAngle = startAngle + (totalAngle * fromPercent) / 100;
+      const segmentEndAngle = startAngle + (totalAngle * toPercent) / 100;
 
-      const path = this.describeArc(centerX, centerY, radius, segmentStartAngle, segmentEndAngle);
+      const path = this.describeArc(
+        centerX,
+        centerY,
+        radius,
+        segmentStartAngle,
+        segmentEndAngle
+      );
 
-      const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const pathElement = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'path'
+      );
       pathElement.setAttribute('d', path);
       pathElement.setAttribute('fill', 'none');
       pathElement.setAttribute('stroke', segment.color);
@@ -998,7 +1132,10 @@ class FoundryGaugeCard extends HTMLElement {
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
     // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
+    const totalAngle =
+      endAngle >= startAngle
+        ? endAngle - startAngle
+        : 360 - startAngle + endAngle;
     const numTicks = 10;
 
     // Clear any existing ticks and numbers
@@ -1006,7 +1143,7 @@ class FoundryGaugeCard extends HTMLElement {
     numbersGroup.innerHTML = '';
 
     for (let i = 0; i <= numTicks; i++) {
-      let angle = startAngle + (totalAngle * i / numTicks);
+      let angle = startAngle + (totalAngle * i) / numTicks;
       // Normalize angle to -180 to 180 range for proper rendering
       while (angle > 180) angle -= 360;
       while (angle < -180) angle += 360;
@@ -1021,7 +1158,10 @@ class FoundryGaugeCard extends HTMLElement {
       const x2 = centerX + outerRadius * Math.cos(angleRad);
       const y2 = centerY + outerRadius * Math.sin(angleRad);
 
-      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      const tick = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'line'
+      );
       tick.setAttribute('x1', x1);
       tick.setAttribute('y1', y1);
       tick.setAttribute('x2', x2);
@@ -1031,12 +1171,15 @@ class FoundryGaugeCard extends HTMLElement {
       ticksGroup.appendChild(tick);
 
       // Numbers
-      const value = min + ((max - min) * i / numTicks);
+      const value = min + ((max - min) * i) / numTicks;
       const textRadius = 65;
       const textX = centerX + textRadius * Math.cos(angleRad);
       const textY = centerY + textRadius * Math.sin(angleRad);
 
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'text'
+      );
       text.setAttribute('x', textX);
       text.setAttribute('y', textY);
       text.setAttribute('text-anchor', 'middle');
@@ -1045,7 +1188,8 @@ class FoundryGaugeCard extends HTMLElement {
       text.setAttribute('font-weight', 'bold');
       text.setAttribute('fill', '#3e2723');
       text.setAttribute('font-family', 'Georgia, serif');
-      const displayValue = (max - min) <= 10 ? value.toFixed(1) : Math.round(value);
+      const displayValue =
+        max - min <= 10 ? value.toFixed(1) : Math.round(value);
       text.textContent = displayValue;
       numbersGroup.appendChild(text);
 
@@ -1060,7 +1204,10 @@ class FoundryGaugeCard extends HTMLElement {
           const mx2 = centerX + 85 * Math.cos(minorAngleRad);
           const my2 = centerY + 85 * Math.sin(minorAngleRad);
 
-          const minorTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          const minorTick = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'line'
+          );
           minorTick.setAttribute('x1', mx1);
           minorTick.setAttribute('y1', my1);
           minorTick.setAttribute('x2', mx2);
@@ -1087,7 +1234,10 @@ class FoundryGaugeCard extends HTMLElement {
     const startX = centerX + 75 * Math.cos(startAngleRad);
     const startY = centerY + 75 * Math.sin(startAngleRad);
 
-    const startStopper = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const startStopper = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'circle'
+    );
     startStopper.setAttribute('cx', startX);
     startStopper.setAttribute('cy', startY);
     startStopper.setAttribute('r', '3');
@@ -1101,7 +1251,10 @@ class FoundryGaugeCard extends HTMLElement {
     const endX = centerX + 75 * Math.cos(endAngleRad);
     const endY = centerY + 75 * Math.sin(endAngleRad);
 
-    const endStopper = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const endStopper = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'circle'
+    );
     endStopper.setAttribute('cx', endX);
     endStopper.setAttribute('cy', endY);
     endStopper.setAttribute('r', '3');
@@ -1114,31 +1267,43 @@ class FoundryGaugeCard extends HTMLElement {
   describeArc(x, y, radius, startAngle, endAngle) {
     const start = this.polarToCartesian(x, y, radius, endAngle);
     const end = this.polarToCartesian(x, y, radius, startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
 
     return [
-      "M", start.x, start.y,
-      "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
-    ].join(" ");
+      'M',
+      start.x,
+      start.y,
+      'A',
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+    ].join(' ');
   }
 
   polarToCartesian(centerX, centerY, radius, angleInDegrees) {
     const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
     return {
-      x: centerX + (radius * Math.cos(angleInRadians)),
-      y: centerY + (radius * Math.sin(angleInRadians))
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
     };
   }
 
   darkenColor(color, amount) {
     // Normalize to hex string
     if (Array.isArray(color) && color.length === 3) {
-      const toHex = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+      const toHex = (n) =>
+        Math.max(0, Math.min(255, Math.round(n)))
+          .toString(16)
+          .padStart(2, '0');
       color = `#${toHex(color[0])}${toHex(color[1])}${toHex(color[2])}`;
     }
 
-    if (typeof color !== "string" || color.trim() === "") {
-      color = "#000000";
+    if (typeof color !== 'string' || color.trim() === '') {
+      color = '#000000';
     }
 
     // Convert hex to RGB, darken, and convert back
@@ -1188,8 +1353,14 @@ class FoundryGaugeCard extends HTMLElement {
 
     const min = this.config.min !== undefined ? this.config.min : 0;
     const max = this.config.max !== undefined ? this.config.max : 100;
-    const highNeedleEnabled = this.config.high_needle_enabled !== undefined ? this.config.high_needle_enabled : false;
-    const highNeedleDuration = this.config.high_needle_duration !== undefined ? this.config.high_needle_duration : 60;
+    const highNeedleEnabled =
+      this.config.high_needle_enabled !== undefined
+        ? this.config.high_needle_enabled
+        : false;
+    const highNeedleDuration =
+      this.config.high_needle_duration !== undefined
+        ? this.config.high_needle_duration
+        : 60;
 
     // Update flip display
     this.updateFlipDisplay(value);
@@ -1197,17 +1368,23 @@ class FoundryGaugeCard extends HTMLElement {
     // Calculate the position of the value within the min-max range
     const range = max - min;
     const clampedValue = Math.max(min, Math.min(max, value));
-    const valuePosition = Math.max(0, Math.min(1, (clampedValue - min) / range));
+    const valuePosition = Math.max(
+      0,
+      Math.min(1, (clampedValue - min) / range)
+    );
 
     // Use configured start and end angles
     const startAngle = this._startAngle;
     const endAngle = this._endAngle;
     // Handle wrapping around 360 degrees
-    const totalAngle = endAngle >= startAngle ? endAngle - startAngle : (360 - startAngle) + endAngle;
+    const totalAngle =
+      endAngle >= startAngle
+        ? endAngle - startAngle
+        : 360 - startAngle + endAngle;
 
     // Calculate gauge angle - always interpolate along the valid arc
     // to prevent needle from crossing the dead zone
-    let gaugeAngle = startAngle + (totalAngle * valuePosition);
+    let gaugeAngle = startAngle + totalAngle * valuePosition;
 
     // Normalize the calculated angle to -180 to 180 range first
     while (gaugeAngle > 180) gaugeAngle -= 360;
@@ -1229,9 +1406,10 @@ class FoundryGaugeCard extends HTMLElement {
 
       // Check if needle is in the dead zone (between end and start)
       // Dead zone is from endAngle (moving clockwise) to startAngle
-      const inDeadZone = normEnd < normStart ?
-        (gaugeAngle > normEnd && gaugeAngle < normStart) :
-        (gaugeAngle > normEnd || gaugeAngle < normStart);
+      const inDeadZone =
+        normEnd < normStart
+          ? gaugeAngle > normEnd && gaugeAngle < normStart
+          : gaugeAngle > normEnd || gaugeAngle < normStart;
 
       if (inDeadZone) {
         // Clamp to nearest boundary without crossing dead zone
@@ -1262,7 +1440,11 @@ class FoundryGaugeCard extends HTMLElement {
       }
 
       // Use directional path to ensure correct rotation direction
-      needleAngle = this._findDirectionalPath(this._previousNeedleAngle, needleAngle, valueIncreasing);
+      needleAngle = this._findDirectionalPath(
+        this._previousNeedleAngle,
+        needleAngle,
+        valueIncreasing
+      );
       needle.style.transform = `rotate(${needleAngle}deg)`;
       this._previousNeedleAngle = needleAngle;
       this._previousValue = clampedValue;
@@ -1303,8 +1485,11 @@ class FoundryGaugeCard extends HTMLElement {
         }
 
         // Calculate high needle position
-        const highValuePosition = Math.max(0, Math.min(1, (this._highNeedleValue - min) / range));
-        let highGaugeAngle = startAngle + (totalAngle * highValuePosition);
+        const highValuePosition = Math.max(
+          0,
+          Math.min(1, (this._highNeedleValue - min) / range)
+        );
+        let highGaugeAngle = startAngle + totalAngle * highValuePosition;
 
         // Normalize high needle angle
         while (highGaugeAngle > 180) highGaugeAngle -= 360;
@@ -1312,7 +1497,10 @@ class FoundryGaugeCard extends HTMLElement {
 
         // Apply same clamping logic as main needle
         if (endAngle >= startAngle) {
-          highGaugeAngle = Math.max(startAngle, Math.min(endAngle, highGaugeAngle));
+          highGaugeAngle = Math.max(
+            startAngle,
+            Math.min(endAngle, highGaugeAngle)
+          );
         } else {
           let normStart = startAngle;
           let normEnd = endAngle;
@@ -1321,9 +1509,10 @@ class FoundryGaugeCard extends HTMLElement {
           while (normEnd > 180) normEnd -= 360;
           while (normEnd < -180) normEnd += 360;
 
-          const inDeadZone = normEnd < normStart ?
-            (highGaugeAngle > normEnd && highGaugeAngle < normStart) :
-            (highGaugeAngle > normEnd || highGaugeAngle < normStart);
+          const inDeadZone =
+            normEnd < normStart
+              ? highGaugeAngle > normEnd && highGaugeAngle < normStart
+              : highGaugeAngle > normEnd || highGaugeAngle < normStart;
 
           if (inDeadZone) {
             const distToStart = Math.min(
@@ -1345,9 +1534,15 @@ class FoundryGaugeCard extends HTMLElement {
         let highValueIncreasing = null;
         if (this._previousHighNeedleAngle !== null) {
           // For high needle, compare the current high value with the tracked high value
-          highValueIncreasing = this._highNeedleValue >= (this._previousHighValue || this._highNeedleValue);
+          highValueIncreasing =
+            this._highNeedleValue >=
+            (this._previousHighValue || this._highNeedleValue);
         }
-        highNeedleAngle = this._findDirectionalPath(this._previousHighNeedleAngle, highNeedleAngle, highValueIncreasing);
+        highNeedleAngle = this._findDirectionalPath(
+          this._previousHighNeedleAngle,
+          highNeedleAngle,
+          highValueIncreasing
+        );
         highNeedle.style.transform = `rotate(${highNeedleAngle}deg)`;
         this._previousHighNeedleAngle = highNeedleAngle;
         this._previousHighValue = this._highNeedleValue;
@@ -1380,14 +1575,16 @@ class FoundryGaugeCard extends HTMLElement {
 
     const digitsRow = flipDisplay.querySelector('.digits-row');
     if (digitsRow) {
-      digitsRow.innerHTML = '<div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div>';
+      digitsRow.innerHTML =
+        '<div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div><div class="flip-digit"><div class="digit-item">-</div></div>';
     }
   }
 
   _updateAriaLive(value) {
     const ariaLive = this.shadowRoot?.getElementById('ariaLive');
     if (ariaLive) {
-      const decimals = this.config.decimals !== undefined ? this.config.decimals : 0;
+      const decimals =
+        this.config.decimals !== undefined ? this.config.decimals : 0;
       const unit = this.config.unit || '';
       const title = this.config.title || 'Gauge';
       ariaLive.textContent = `${title}: ${value.toFixed(decimals)} ${unit}`;
@@ -1400,17 +1597,24 @@ class FoundryGaugeCard extends HTMLElement {
     const max = this.config.max !== undefined ? this.config.max : 100;
 
     // Calculate the maximum number of integer digits needed
-    const maxAbsValue = Math.max(Math.abs(Math.floor(min)), Math.abs(Math.floor(max)));
+    const maxAbsValue = Math.max(
+      Math.abs(Math.floor(min)),
+      Math.abs(Math.floor(max))
+    );
     const maxIntegerDigits = maxAbsValue.toString().length;
 
     // Split value into integer and decimal parts
     const isNegative = value < 0;
     const absoluteValue = Math.abs(value);
     const integerPart = Math.floor(absoluteValue);
-    const decimalPart = (absoluteValue - integerPart).toFixed(decimals).substring(2); // Remove "0."
+    const decimalPart = (absoluteValue - integerPart)
+      .toFixed(decimals)
+      .substring(2); // Remove "0."
 
     // Pad the integer part with leading zeros
-    const paddedInteger = integerPart.toString().padStart(maxIntegerDigits, '0');
+    const paddedInteger = integerPart
+      .toString()
+      .padStart(maxIntegerDigits, '0');
 
     // Build the final string
     let result = isNegative ? '-' : '';
@@ -1426,10 +1630,13 @@ class FoundryGaugeCard extends HTMLElement {
     const flipDisplay = this.shadowRoot.getElementById('flipDisplay');
     if (!flipDisplay) return;
 
-    const decimals = this.config.decimals !== undefined ? this.config.decimals : 0;
+    const decimals =
+      this.config.decimals !== undefined ? this.config.decimals : 0;
     const unit = this.config.unit || '';
 
-    let displayText = isNaN(value) ? '--' : this._formatValueWithPadding(value, decimals);
+    let displayText = isNaN(value)
+      ? '--'
+      : this._formatValueWithPadding(value, decimals);
     const oldText = flipDisplay.dataset.value || '';
 
     if (displayText === oldText) return; // No change
@@ -1438,13 +1645,20 @@ class FoundryGaugeCard extends HTMLElement {
     const isFirstUpdate = !flipDisplay.dataset.numericValue;
 
     // Store previous numeric value for animation
-    const prevValue = flipDisplay.dataset.numericValue ? parseFloat(flipDisplay.dataset.numericValue) : value;
+    const prevValue = flipDisplay.dataset.numericValue
+      ? parseFloat(flipDisplay.dataset.numericValue)
+      : value;
     flipDisplay.dataset.numericValue = value;
     flipDisplay.dataset.value = displayText;
 
     // On first update, render directly without animation to avoid glitches
     if (isFirstUpdate) {
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(value, decimals), unit, null);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(value, decimals),
+        unit,
+        null
+      );
     } else {
       // Animate through intermediate values like a real odometer
       this.animateOdometer(flipDisplay, prevValue, value, decimals, unit);
@@ -1462,7 +1676,12 @@ class FoundryGaugeCard extends HTMLElement {
 
     if (steps <= 1 || diff === 0) {
       // Small change or no change, just render directly
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(toValue, decimals), unit, null);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(toValue, decimals),
+        unit,
+        null
+      );
       return;
     }
 
@@ -1483,11 +1702,16 @@ class FoundryGaugeCard extends HTMLElement {
         currentValue = toValue; // Ensure we end at exact value
       }
 
-      this.renderRotaryDisplay(flipDisplay, this._formatValueWithPadding(currentValue, decimals), unit, fromValue);
+      this.renderRotaryDisplay(
+        flipDisplay,
+        this._formatValueWithPadding(currentValue, decimals),
+        // Duplicate line removed
+        unit
+      );
     }, stepDuration);
   }
 
-  renderRotaryDisplay(flipDisplay, displayText, unit, previousValue) {
+  renderRotaryDisplay(flipDisplay, displayText, unit) {
     // Determine if negative and get absolute value
     const isNegative = displayText.startsWith('-');
     const absDisplayText = isNegative ? displayText.substring(1) : displayText;
@@ -1506,7 +1730,7 @@ class FoundryGaugeCard extends HTMLElement {
     }
 
     // Calculate expected structure: minus sign (if min < 0) + digits (excluding decimal point)
-    const digitCount = chars.filter(c => c !== '.').length;
+    const digitCount = chars.filter((c) => c !== '.').length;
     const expectedLength = (allowNegative ? 1 : 0) + digitCount;
     let existingDigits = Array.from(digitsRow.children);
 
@@ -1531,7 +1755,7 @@ class FoundryGaugeCard extends HTMLElement {
 
         // Create two items: minus and plus
         const signs = ['-', '+'];
-        signs.forEach(s => {
+        signs.forEach((s) => {
           const item = document.createElement('div');
           item.className = 'digit-item';
           item.textContent = s;
@@ -1589,22 +1813,28 @@ class FoundryGaugeCard extends HTMLElement {
     }
 
     // Process remaining characters (digits and decimal points)
-    chars.forEach((char, charIndex) => {
+    chars.forEach((char, _charIndex) => {
       if (char === '.') {
         afterDecimal = true;
         // Skip creating decimal point element but keep tracking position
       } else {
         let digitEl = existingDigits[digitIndex];
-        if (!digitEl || digitEl.classList.contains('decimal') || digitEl.classList.contains('minus-sign')) {
+        if (
+          !digitEl ||
+          digitEl.classList.contains('decimal') ||
+          digitEl.classList.contains('minus-sign')
+        ) {
           // Create new rotary digit with single set of digits 0-9
           digitEl = document.createElement('div');
-          digitEl.className = afterDecimal ? 'flip-digit fractional' : 'flip-digit';
+          digitEl.className = afterDecimal
+            ? 'flip-digit fractional'
+            : 'flip-digit';
           const inner = document.createElement('div');
           inner.className = 'flip-digit-inner';
 
           // Create single set of digits 0-9
           const baseDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-          baseDigits.forEach(d => {
+          baseDigits.forEach((d) => {
             const item = document.createElement('div');
             item.className = 'digit-item';
             item.textContent = d;
@@ -1667,13 +1897,17 @@ class FoundryGaugeCard extends HTMLElement {
             // Add transitionend listener to ensure perfect alignment
             const handleTransitionEnd = () => {
               // Recalculate and snap to exact position after animation completes
-              const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
-              const finalOffset = Math.round(-newPosition * finalDigitHeight);
+              const finalDigitHeight = digitItem
+                ? digitItem.getBoundingClientRect().height
+                : 28;
+              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
               inner.style.transform = `translateY(${finalOffset}px)`;
               inner.removeEventListener('transitionend', handleTransitionEnd);
             };
             inner.removeEventListener('transitionend', handleTransitionEnd); // Remove any old listeners
-            inner.addEventListener('transitionend', handleTransitionEnd, { once: true });
+            inner.addEventListener('transitionend', handleTransitionEnd, {
+              once: true,
+            });
           }
         }
 
@@ -1738,17 +1972,15 @@ class FoundryGaugeCard extends HTMLElement {
       segments: [
         { from: 0, to: 33, color: '#4CAF50' },
         { from: 33, to: 66, color: '#FFC107' },
-        { from: 66, to: 100, color: '#F44336' }
-      ]
+        { from: 66, to: 100, color: '#F44336' },
+      ],
     };
   }
 }
 
-
 if (!customElements.get('foundry-gauge-card')) {
   customElements.define('foundry-gauge-card', FoundryGaugeCard);
 }
-
 
 window.customCards = window.customCards || [];
 window.customCards.push({
@@ -1756,6 +1988,5 @@ window.customCards.push({
   name: 'Foundry Gauge Card',
   preview: true,
   description: 'A vintage industrial style gauge card',
-  documentationURL: 'https://github.com/dprischak/Foundry-Card'
+  documentationURL: 'https://github.com/dprischak/Foundry-Card',
 });
-
