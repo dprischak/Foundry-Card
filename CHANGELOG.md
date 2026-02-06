@@ -4,7 +4,7 @@
 
 - **Version Change:** Moving from sequential versioning to year.month.patch versioning.
 
-### 📦 Build Chnages
+### 📦 Build Changes
 
 - **Linter:** Added Linter to ensure code quality.
 - **Format:** Added format to ensure consistent code style.
