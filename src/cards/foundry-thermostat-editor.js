@@ -1,16 +1,3 @@
-const fireEvent = (node, type, detail, options) => {
-  options = options || {};
-  detail = detail === null || detail === undefined ? {} : detail;
-  const event = new Event(type, {
-    bubbles: options.bubbles === undefined ? true : options.bubbles,
-    cancelable: Boolean(options.cancelable),
-    composed: options.composed === undefined ? true : options.composed,
-  });
-  event.detail = detail;
-  node.dispatchEvent(event);
-  return event;
-};
-
 class FoundryThermostatEditor extends HTMLElement {
   constructor() {
     super();
@@ -28,7 +15,8 @@ class FoundryThermostatEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
   }
 
   render() {
@@ -238,7 +226,14 @@ class FoundryThermostatEditor extends HTMLElement {
 
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    fireEvent(this, 'config-changed', { config: this._config });
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   _handleFormChanged(ev) {
@@ -250,6 +245,7 @@ class FoundryThermostatEditor extends HTMLElement {
 
   _configToForm(config) {
     const data = { ...config };
+    delete data.segments; // Do not pass segments to ha-form
 
     // Color Conversions
     data.liquid_color = this._hexToRgb(config.liquid_color ?? '#cc0000') || [
@@ -286,7 +282,16 @@ class FoundryThermostatEditor extends HTMLElement {
   }
 
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+
+    Object.keys(formData).forEach((key) => {
+      config[key] = formData[key];
+    });
+
+    // Explicitly preserve segments if they were somehow lost/empty in formData
+    if (this._config.segments) {
+      config.segments = this._config.segments;
+    }
 
     if (config.liquid_color)
       config.liquid_color = this._rgbToHex(config.liquid_color);
