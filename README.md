@@ -1,12 +1,11 @@
-
-
-[![hacs][hacs-default]][hacs-default-link] 
+[![hacs][hacs-default]][hacs-default-link]
 ![Downloads][downloads]
 [![forum][forum-badge]][forum-url]
-[![Stable][releases-shield]][releases] 
-[![License][license-shield]](LICENSE) 
+[![Stable][releases-shield]][releases]
+[![License][license-shield]](LICENSE)
 
 <!--Badges-->
+
 [downloads]: https://img.shields.io/github/downloads/dprischak/Foundry-Card/total
 [hacs-badge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg
 [hacs-link]: https://hacs.xyz/
@@ -19,23 +18,24 @@
 [license-shield]: https://img.shields.io/github/license/dprischak/Foundry-Card.svg
 
 # 🏭Foundry Card
-A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
+A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
 <p></p>
 <a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card.gif" style="border-radius: 8px"></a>
 
 ## Table of Contents
+
 1. [Cards Included](#cards-included)
 2. [Installation](#installation)
 3. [Usage](#usage)
-    - [Foundry Gauge Card](#foundry-gauge-card)
-    - [Foundry Analog Clock](#foundry-analog-clock)
-    - [Foundry Digital Clock](#foundry-digital-clock)
-    - [Foundry Button Card](#foundry-button-card)
-    - [Foundry Thermostat](#foundry-thermostat)
-    - [Foundry Entities Card](#foundry-entities-card)
-    - [Foundry Uptime Card](#foundry-uptime-card)
+   - [Foundry Gauge Card](#foundry-gauge-card)
+   - [Foundry Analog Clock](#foundry-analog-clock)
+   - [Foundry Digital Clock](#foundry-digital-clock)
+   - [Foundry Button Card](#foundry-button-card)
+   - [Foundry Thermostat](#foundry-thermostat)
+   - [Foundry Entities Card](#foundry-entities-card)
+   - [Foundry Uptime Card](#foundry-uptime-card)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
 6. [Support](#support)
@@ -43,66 +43,89 @@ A collection of custom dashboard cards for Home Assistant that are designed with
 8. [Credits](#credits)
 
 <a name="cards-included"></a>
+
 ## Cards Included
 
 <a name="foundry-gauge-card"></a>
+
 ### ⏱️ Foundry Gauge Card
+
 Display your sensor data with a beautiful foundry gauge visualization featuring:
+
 - Customizable min/max values
 - Smooth needle animation
 - Theme-aware colors
 - Responsive design
 
 <a name="foundry-analog-clock"></a>
+
 ### 🕰️ Foundry Analog Clock
+
 A skeuomorphic analog clock with:
+
 - Realistic hand movements
 - Multiple ring styles (Brass, Silver, Copper, etc.)
 - Time zone support
 - Second hand toggling
 
 <a name="foundry-digital-clock"></a>
+
 ### 📟 Foundry Digital Clock
+
 A vintage industrial digital display featuring:
+
 - Retro LCD/LED aesthetics
 - 12h/24h formats
 - Custom backlight and digit colors
 - Wear and age effects
 
 <a name="foundry-button-card"></a>
+
 ### 🔘 Foundry Button Card
+
 A tactile industrial push-button:
+
 - Realistic press animation
 - Configurable indicator light
-- Everything Customizable 
+- Everything Customizable
 - Jinja2 templating support
 
 <a name="foundry-thermostat"></a>
+
 ### 🌡️ Foundry Thermostat
+
 An industrial liquid thermometer card:
+
 - Realistic liquid column animation
 - Color-coded temperature segments
 - Vintage glass tube effects
 - Customizable range and units
 
 <a name="foundry-entities-card"></a>
+
 ### 📋 Foundry Entities Card
+
 A digital list display for multiple entities:
+
 - Supports secondary info (last-updated, last-changed, etc.)
 - Vintage digital VFD/LCD aesthetic
 - Customizable fonts and colors
 - Same industrial casing options
 
 <a name="foundry-uptime-card"></a>
+
 ### ⚡ Foundry Uptime Card
+
 A vintage uptime monitor:
+
 - Industrial tube visualization
 - Metallic dividers and bezels
 - Color-coded status thresholds
 - Detailed history tracking
 
 <a name="installation"></a>
-## Installation 
+
+## Installation
 
 ### [HACS](https://hacs.xyz) (Home Assistant Community Store)
 
@@ -113,12 +136,13 @@ Use this link to directly go to the repository in HACS
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin)
 
 or
+
 1. If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/#getting-started-with-hacs](https://hacs.xyz/docs/use/#getting-started-with-hacs)
 2. Open HACS in Home Assistant
 3. Search for `Foundry Card`
 4. Click the download button. ⬇️
-1. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
-1. Add vehicle-status-card to your dashboard
+5. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
+6. Add vehicle-status-card to your dashboard
 
 ### Manual Installation
 
@@ -132,6 +156,7 @@ or
 4. Refresh your browser
 
 <a name="usage"></a>
+
 ## Usage
 
 ### Foundry Gauge Card
@@ -141,10 +166,10 @@ Add the card to your dashboard:
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.temperature
-name: "Temperature"
+name: 'Temperature'
 min: 0
 max: 100
-unit: "°C"
+unit: '°C'
 ```
 
 ### Design Features
@@ -170,38 +195,39 @@ unit: "°C"
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | **Yes** | - | Entity ID to display |
-| `title` | string | No | - | Card title (supports multi-line with `\n`) |
-| `min` | number | No | 0 | Minimum gauge value |
-| `max` | number | No | 100 | Maximum gauge value |
-| `unit` | string | No | '' | Unit of measurement |
-| `decimals` | number | No | 0 | Number of decimal places to display |
-| `segments` | array | No | See below | Color segments configuration |
-| `start_angle` | number | No | 200 | Start angle of gauge arc (0 = top, clockwise) |
-| `end_angle` | number | No | 160 | End angle of gauge arc (0 = top, clockwise) |
-| `animation_duration` | number | No | 1.2 | Animation duration in seconds |
-| `title_font_size` | number | No | 12 | Font size for the title text |
-| `odometer_font_size` | number | No | 60 | Size of the odometer display (25-200) |
-| `odometer_vertical_position` | number | No | 120 | Vertical position of odometer in pixels (50-150) |
-| `ring_style` | string | No | 'brass' | Decorative ring style: 'none', 'brass', or 'silver' |
-| `rivet_color` | string | No | '#6a5816' | Color of the decorative rivets (hex color code) |
-| `plate_color` | string | No | '#8c7626' | Color of the gauge face plate (hex color code) |
-| `high_needle_enabled` | boolean | No | false | Enable the high value tracking needle |
-| `high_needle_color` | string | No | '#FF9800' | Color of the high needle (hex color code) |
-| `high_needle_duration` | number | No | 60 | Duration in seconds to track the high value |
-| `high_needle_length` | number | No | 75 | Length of the high needle as percentage (25-150) |
-| `plate_transparent` | boolean | No | false | Make the plate transparent (shows background) |
-| `wear_level` | number | No | 50 | Amount of wear marks and age spots (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', or 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100, higher = more visible) |
-| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap (see Actions below) |
-| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold (see Actions below) |
-| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap (see Actions below) |
+| Option                       | Type    | Required | Default                 | Description                                                     |
+| ---------------------------- | ------- | -------- | ----------------------- | --------------------------------------------------------------- |
+| `entity`                     | string  | **Yes**  | -                       | Entity ID to display                                            |
+| `title`                      | string  | No       | -                       | Card title (supports multi-line with `\n`)                      |
+| `min`                        | number  | No       | 0                       | Minimum gauge value                                             |
+| `max`                        | number  | No       | 100                     | Maximum gauge value                                             |
+| `unit`                       | string  | No       | ''                      | Unit of measurement                                             |
+| `decimals`                   | number  | No       | 0                       | Number of decimal places to display                             |
+| `segments`                   | array   | No       | See below               | Color segments configuration                                    |
+| `start_angle`                | number  | No       | 200                     | Start angle of gauge arc (0 = top, clockwise)                   |
+| `end_angle`                  | number  | No       | 160                     | End angle of gauge arc (0 = top, clockwise)                     |
+| `animation_duration`         | number  | No       | 1.2                     | Animation duration in seconds                                   |
+| `title_font_size`            | number  | No       | 12                      | Font size for the title text                                    |
+| `odometer_font_size`         | number  | No       | 60                      | Size of the odometer display (25-200)                           |
+| `odometer_vertical_position` | number  | No       | 120                     | Vertical position of odometer in pixels (50-150)                |
+| `ring_style`                 | string  | No       | 'brass'                 | Decorative ring style: 'none', 'brass', or 'silver'             |
+| `rivet_color`                | string  | No       | '#6a5816'               | Color of the decorative rivets (hex color code)                 |
+| `plate_color`                | string  | No       | '#8c7626'               | Color of the gauge face plate (hex color code)                  |
+| `high_needle_enabled`        | boolean | No       | false                   | Enable the high value tracking needle                           |
+| `high_needle_color`          | string  | No       | '#FF9800'               | Color of the high needle (hex color code)                       |
+| `high_needle_duration`       | number  | No       | 60                      | Duration in seconds to track the high value                     |
+| `high_needle_length`         | number  | No       | 75                      | Length of the high needle as percentage (25-150)                |
+| `plate_transparent`          | boolean | No       | false                   | Make the plate transparent (shows background)                   |
+| `wear_level`                 | number  | No       | 50                      | Amount of wear marks and age spots (0-100)                      |
+| `glass_effect_enabled`       | boolean | No       | true                    | Enable glass effect overlay                                     |
+| `aged_texture`               | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'        |
+| `aged_texture_intensity`     | number  | No       | 50                      | Intensity of aged texture effect (0-100, higher = more visible) |
+| `tap_action`                 | object  | No       | `{action: 'more-info'}` | Action to perform on tap (see Actions below)                    |
+| `hold_action`                | object  | No       | `{action: 'more-info'}` | Action to perform on hold (see Actions below)                   |
+| `double_tap_action`          | object  | No       | `{action: 'more-info'}` | Action to perform on double tap (see Actions below)             |
 
 #### Example Configurations
+
 <details>
   <summary>Click to see examples</summary>
 
@@ -219,42 +245,45 @@ unit: °F
 segments:
   - from: 50
     to: 68
-    color: "#1100ff"
+    color: '#1100ff'
   - from: 68
     to: 78
-    color: "#44ff00"
+    color: '#44ff00'
   - from: 78
     to: 90
-    color: "#F44336"
+    color: '#F44336'
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/temperature.png" width="300" alt="Preview"/>
 
 **Humidity Sensor:**
+
 ```yaml
 type: custom:foundry-gauge-card
 entity: sensor.bathroom_humidity
 title: Bathroom\nHumidity
 min: 0
 max: 100
-unit: "%"
+unit: '%'
 segments:
   - from: 0
     to: 30
-    color: "#1100ff"
+    color: '#1100ff'
   - from: 30
     to: 50
-    color: "#44ff00"
+    color: '#44ff00'
   - from: 50
     to: 85
-    color: "#f9bc39"
+    color: '#f9bc39'
   - from: 85
     to: 100
-    color: "#F44336"
+    color: '#F44336'
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/bathroom.png" width="300" alt="Preview"/>
 
-
 **Heavily weathered industrial gauge**
+
 ```yaml
 type: custom:Foundry-Card
 entity: sensor.sumppump_fill_rate
@@ -262,30 +291,31 @@ title: Sump Pump\nFill Rate
 aged_texture: everywhere
 aged_texture_intensity: 80
 plate_transparent: false
-plate_color: "#d4d4c8"
+plate_color: '#d4d4c8'
 unit: cm/min
 decimals: 1
 min: -3
 max: 3
-rivet_color: "#6a5816"
-high_needle_color: "#0040ff"
+rivet_color: '#6a5816'
+high_needle_color: '#0040ff'
 high_needle_enabled: true
 high_needle_length: 75
 high_needle_duration: 720
 segments:
   - from: -3
     to: 1.3
-    color: "#00ff11"
+    color: '#00ff11'
   - from: 1.3
     to: 2
-    color: "#fff700"
+    color: '#fff700'
   - from: 2
     to: 2.5
-    color: "#f9bc39"
+    color: '#f9bc39'
   - from: 2.5
     to: 3
-    color: "#F44336"
+    color: '#F44336'
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
@@ -294,11 +324,11 @@ segments:
 
 Each segment in the `segments` array can have:
 
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `from` | number | **Yes** | Start value of the segment |
-| `to` | number | **Yes** | End value of the segment |
-| `color` | string | **Yes** | Hex color code for the segment |
+| Option  | Type   | Required | Description                    |
+| ------- | ------ | -------- | ------------------------------ |
+| `from`  | number | **Yes**  | Start value of the segment     |
+| `to`    | number | **Yes**  | End value of the segment       |
+| `color` | string | **Yes**  | Hex color code for the segment |
 
 ### Angle Configuration
 
@@ -311,6 +341,7 @@ The gauge arc can be customized using `start_angle` and `end_angle`:
 - The needle will always travel along the shortest arc and never cross the "dead zone"
 
 **Common angle configurations:**
+
 - Default (200° to 160°): Classic lower 3/4 arc
 - Full semicircle (270° to 90°): Bottom half
 - Upper arc (180° to 0°): Top half
@@ -321,6 +352,7 @@ The gauge arc can be customized using `start_angle` and `end_angle`:
 The card supports tap, hold, and double-tap actions like standard Home Assistant cards. Actions can be configured using `tap_action`, `hold_action`, and `double_tap_action`.
 
 **Available action types:**
+
 - `more-info`: Show entity more-info dialog (default)
 - `navigate`: Navigate to a different view
 - `call-service`: Call a Home Assistant service
@@ -329,26 +361,26 @@ The card supports tap, hold, and double-tap actions like standard Home Assistant
 - `none`: No action
 
 **Shake Action Example:**
+
 <details>
   <summary>Click to see examples</summary>
-
 
 ```yaml
 type: custom:steam-gauge-card
 entity: sensor.temperature
 title: Temperature
 tap_action:
-  action: shake  # Tap to shake the gauge
+  action: shake # Tap to shake the gauge
 ```
 
 The shake action creates a fun visual effect where the needle moves 10-50% away from the current value and then smoothly returns to the actual value over 3 seconds.
+
 </details>
 
-
 **Standard Action Examples:**
+
 <details>
   <summary>Click to see examples</summary>
-
 
 ```yaml
 # Navigate to another view
@@ -371,6 +403,7 @@ tap_action:
 tap_action:
   action: none
 ```
+
 </details>
 
 ### High Needle Tracking
@@ -378,6 +411,7 @@ tap_action:
 The high needle feature tracks the highest (peak) value reached over a configurable time period. This is useful for monitoring maximum temperatures, peak power usage, or any metric where you want to see how high the value has climbed.
 
 **Features:**
+
 - High value tracking needle (customizable color) that marks the highest value
 - Automatically resets after the configured duration (default 60 seconds)
 - Adjustable needle length (25-150% of standard needle)
@@ -388,11 +422,11 @@ The high needle feature tracks the highest (peak) value reached over a configura
 The gauge features a realistic aged texture system that adds vintage character to the display. The texture uses procedural noise to simulate the appearance of aged, weathered gauges from the steam era.
 
 **Configuration Options:**
+
 - **`aged_texture`**: Controls where the texture is applied
   - `'none'`: No aged texture effect
   - `'glass_only'`: Applies texture only to the gauge face (default) - creates a subtle aged glass appearance
   - `'everywhere'`: Applies texture to both the background plate and gauge face - creates a fully weathered vintage look
-  
 - **`aged_texture_intensity`**: Controls the strength of the texture effect (0-100)
   - `0`: No visible texture (clean, modern look)
   - `50`: Moderate texture (default) - balanced vintage appearance
@@ -405,25 +439,24 @@ Add a vintage analog clock to your dashboard:
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | No | - | Entity ID (optional, for tap action context) |
-| `title` | string | No | "Local Time" | Card title (supports multi-line with `\n`) |
-| `title_font_size` | number | No | 12 | Font size for the title text |
-| `time_zone` | string | No | Local | Time zone (e.g., "America/New_York") |
-| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
-| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
-| `plate_color` | string | No | '#f5f5f5' | Background plate color |
-| `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
-| `second_hand_enabled` | boolean | No | true | Show/hide the second hand |
-| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
-| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold |
-| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap |
-
+| Option                   | Type    | Required | Default                 | Description                                                                                         |
+| ------------------------ | ------- | -------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | No       | -                       | Entity ID (optional, for tap action context)                                                        |
+| `title`                  | string  | No       | "Local Time"            | Card title (supports multi-line with `\n`)                                                          |
+| `title_font_size`        | number  | No       | 12                      | Font size for the title text                                                                        |
+| `time_zone`              | string  | No       | Local                   | Time zone (e.g., "America/New_York")                                                                |
+| `ring_style`             | string  | No       | 'brass'                 | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `rivet_color`            | string  | No       | '#6d5d4b'               | Color of rivets                                                                                     |
+| `plate_color`            | string  | No       | '#f5f5f5'               | Background plate color                                                                              |
+| `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                                          |
+| `wear_level`             | number  | No       | 50                      | Intensity of wear marks (0-100)                                                                     |
+| `glass_effect_enabled`   | boolean | No       | true                    | Enable glass effect overlay                                                                         |
+| `aged_texture`           | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                               |
+| `aged_texture_intensity` | number  | No       | 50                      | Intensity of aged texture effect (0-100)                                                            |
+| `second_hand_enabled`    | boolean | No       | true                    | Show/hide the second hand                                                                           |
+| `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                                            |
+| `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                           |
+| `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                                                     |
 
 <details>
   <summary>Click to see examples</summary>
@@ -434,8 +467,8 @@ entity: sun.sun
 title: Local Time
 title_font_size: 12
 ring_style: brass
-rivet_color: "#6a5816"
-plate_color: "#8c7626"
+rivet_color: '#6a5816'
+plate_color: '#8c7626'
 plate_transparent: false
 wear_level: 50
 glass_effect_enabled: true
@@ -449,8 +482,8 @@ hold_action:
 double_tap_action:
   action: more-info
 time_zone: America/New_York
-
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/analogclock.png" width="300" alt="Preview"/>
 
 </details>
@@ -459,30 +492,29 @@ time_zone: America/New_York
 
 A retro digital timepiece:
 
-
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | No | - | Entity ID (optional, for tap action context) |
-| `title` | string | No | "Local Time" | Card title |
-| `title_font_size` | number | No | 14 | Font size for the title text |
-| `use_24h_format` | boolean | No | true | Use 24-hour format (false for 12h) |
-| `show_seconds` | boolean | No | true | Show seconds display |
-| `time_zone` | string | No | Local | Time zone (e.g., "America/New_York") |
-| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
-| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
-| `plate_color` | string | No | '#f5f5f5' | Background plate color |
-| `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `font_color` | string | No | '#000000' | Color of the digital digits |
-| `font_bg_color` | string | No | '#ffffff' | Background color of the display area |
-| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
-| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
-| `hold_action` | object | No | `{action: 'more-info'}` | Action to perform on hold |
-| `double_tap_action` | object | No | `{action: 'more-info'}` | Action to perform on double tap |
+| Option                   | Type    | Required | Default                 | Description                                                                                 |
+| ------------------------ | ------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | No       | -                       | Entity ID (optional, for tap action context)                                                |
+| `title`                  | string  | No       | "Local Time"            | Card title                                                                                  |
+| `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                                |
+| `use_24h_format`         | boolean | No       | true                    | Use 24-hour format (false for 12h)                                                          |
+| `show_seconds`           | boolean | No       | true                    | Show seconds display                                                                        |
+| `time_zone`              | string  | No       | Local                   | Time zone (e.g., "America/New_York")                                                        |
+| `ring_style`             | string  | No       | 'brass'                 | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `rivet_color`            | string  | No       | '#6d5d4b'               | Color of rivets                                                                             |
+| `plate_color`            | string  | No       | '#f5f5f5'               | Background plate color                                                                      |
+| `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                                  |
+| `font_color`             | string  | No       | '#000000'               | Color of the digital digits                                                                 |
+| `font_bg_color`          | string  | No       | '#ffffff'               | Background color of the display area                                                        |
+| `wear_level`             | number  | No       | 50                      | Intensity of wear marks (0-100)                                                             |
+| `glass_effect_enabled`   | boolean | No       | true                    | Enable glass effect overlay                                                                 |
+| `aged_texture`           | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number  | No       | 50                      | Intensity of aged texture effect (0-100)                                                    |
+| `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                                    |
+| `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                   |
+| `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                                             |
 
 <details>
   <summary>Click to see examples</summary>
@@ -493,11 +525,11 @@ entity: sun.sun
 title: Local
 title_font_size: 12
 ring_style: brass
-rivet_color: "#6a5816"
-plate_color: "#8c7626"
+rivet_color: '#6a5816'
+plate_color: '#8c7626'
 plate_transparent: false
-font_bg_color: "#ffffff"
-font_color: "#000000"
+font_bg_color: '#ffffff'
+font_color: '#000000'
 show_seconds: true
 wear_level: 50
 glass_effect_enabled: true
@@ -506,6 +538,7 @@ aged_texture_intensity: 50
 use_24h_format: false
 time_zone: America/New_York
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/digitalclock.png" width="300" alt="Preview"/>
 
 </details>
@@ -518,23 +551,23 @@ A robust industrial push-button with integrated status text and icon.
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | No | - | Entity to control/monitor |
-| `icon` | string | No | - | Icon to display |
-| `primary_info` | string | No | - | Primary text (top line) |
-| `secondary_info` | string | No | - | Secondary text (middle line) |
-| `secondary_info_2` | string | No | - | Extra info text (bottom line) |
-| `card_width` | number | No | 240 | Maximum width of the card in pixels |
-| `ring_style` | string | No | 'brass' | Ring style: 'brass', 'silver', 'chrome', etc. |
-| `plate_color` | string | No | '#f5f5f5' | Button face color |
-| `font_color` | string | No | '#000000' | Text color |
-| `font_bg_color` | string | No | '#ffffff' | Text background inset color |
-| `icon_color` | string | No | - | Color of the icon |
-| `wear_level` | number | No | 50 | Wear intensity (0-100) |
-| `aged_texture` | string | No | 'everywhere' | Texture mode |
-| `aged_texture_intensity` | number | No | 50 | Texture intensity |
-| `tap_action` | object | No | - | Action on tap |
+| Option                   | Type   | Required | Default      | Description                                   |
+| ------------------------ | ------ | -------- | ------------ | --------------------------------------------- |
+| `entity`                 | string | No       | -            | Entity to control/monitor                     |
+| `icon`                   | string | No       | -            | Icon to display                               |
+| `primary_info`           | string | No       | -            | Primary text (top line)                       |
+| `secondary_info`         | string | No       | -            | Secondary text (middle line)                  |
+| `secondary_info_2`       | string | No       | -            | Extra info text (bottom line)                 |
+| `card_width`             | number | No       | 240          | Maximum width of the card in pixels           |
+| `ring_style`             | string | No       | 'brass'      | Ring style: 'brass', 'silver', 'chrome', etc. |
+| `plate_color`            | string | No       | '#f5f5f5'    | Button face color                             |
+| `font_color`             | string | No       | '#000000'    | Text color                                    |
+| `font_bg_color`          | string | No       | '#ffffff'    | Text background inset color                   |
+| `icon_color`             | string | No       | -            | Color of the icon                             |
+| `wear_level`             | number | No       | 50           | Wear intensity (0-100)                        |
+| `aged_texture`           | string | No       | 'everywhere' | Texture mode                                  |
+| `aged_texture_intensity` | number | No       | 50           | Texture intensity                             |
+| `tap_action`             | object | No       | -            | Action on tap                                 |
 
 <details>
   <summary>Click to see examples</summary>
@@ -546,9 +579,9 @@ icon: mdi:lightbulb
 primary_info: Basement
 secondary_info: "{{states('light.basement_cans_group')}}"
 ring_style: brass
-plate_color: "#8c7626"
-font_bg_color: "#ffffff"
-font_color: "#000000"
+plate_color: '#8c7626'
+font_bg_color: '#ffffff'
+font_color: '#000000'
 wear_level: 50
 glass_effect_enabled: true
 aged_texture: everywhere
@@ -573,37 +606,35 @@ tap_action:
 
 </details>
 
-
 ### Foundry Thermostat
 
 An industrial liquid-in-glass thermometer:
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | **Yes** | - | Temperature entity to monitor |
-| `title` | string | No | "Temperature" | Card title |
-| `title_font_color` | string | No | "#3e2723" | Color of the title text |
-| `unit` | string | No | - | Unit of measurement string to display |
-| `min` | number | No | -40 | Minimum temperature value |
-| `max` | number | No | 120 | Maximum temperature value |
-| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
-| `liquid_color` | string/array | No | '#cc0000' | Color of the liquid (mercury) |
-| `mercury_width` | number | No | 50 | Width of liquid column (percentage of tube) |
-| `segments_under_mercury` | boolean | No | true | Render colored segments behind the liquid tube |
-| `segments` | array | No | [] | Color zones (from/to/color) |
-| `animation_duration` | number | No | 1.5 | Animation speed in seconds |
-| `plate_color` | string | No | '#8c7626' | Background plate color |
-| `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `rivet_color` | string | No | '#6a5816' | Color of rivets |
-| `font_bg_color` | string | No | '#ffffff' | Background color of the tube scale area |
-| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
-| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
-
+| Option                   | Type         | Required | Default                 | Description                                                                                 |
+| ------------------------ | ------------ | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string       | **Yes**  | -                       | Temperature entity to monitor                                                               |
+| `title`                  | string       | No       | "Temperature"           | Card title                                                                                  |
+| `title_font_color`       | string       | No       | "#3e2723"               | Color of the title text                                                                     |
+| `unit`                   | string       | No       | -                       | Unit of measurement string to display                                                       |
+| `min`                    | number       | No       | -40                     | Minimum temperature value                                                                   |
+| `max`                    | number       | No       | 120                     | Maximum temperature value                                                                   |
+| `ring_style`             | string       | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `liquid_color`           | string/array | No       | '#cc0000'               | Color of the liquid (mercury)                                                               |
+| `mercury_width`          | number       | No       | 50                      | Width of liquid column (percentage of tube)                                                 |
+| `segments_under_mercury` | boolean      | No       | true                    | Render colored segments behind the liquid tube                                              |
+| `segments`               | array        | No       | []                      | Color zones (from/to/color)                                                                 |
+| `animation_duration`     | number       | No       | 1.5                     | Animation speed in seconds                                                                  |
+| `plate_color`            | string       | No       | '#8c7626'               | Background plate color                                                                      |
+| `plate_transparent`      | boolean      | No       | false                   | Make the plate transparent                                                                  |
+| `rivet_color`            | string       | No       | '#6a5816'               | Color of rivets                                                                             |
+| `font_bg_color`          | string       | No       | '#ffffff'               | Background color of the tube scale area                                                     |
+| `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                             |
+| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                 |
+| `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                    |
+| `tap_action`             | object       | No       | `{action: 'more-info'}` | Action to perform on tap                                                                    |
 
 <details>
   <summary>Click to see examples</summary>
@@ -618,33 +649,32 @@ title: Temp
 mercury_width: 50
 segments_under_mercury: true
 animation_duration: 1.5
-plate_color: "#8c7626"
-rivet_color: "#ffffff"
-font_bg_color: "#fcfcfc"
-title_font_color: "#000000"
+plate_color: '#8c7626'
+rivet_color: '#ffffff'
+font_bg_color: '#fcfcfc'
+title_font_color: '#000000'
 segments:
   - from: 0
     to: 33
-    color: "#4CAF50"
+    color: '#4CAF50'
   - from: 33
     to: 66
-    color: "#FFC107"
+    color: '#FFC107'
   - from: 66
     to: 100
-    color: "#F44336"
-liquid_color: "#cc0000"
+    color: '#F44336'
+liquid_color: '#cc0000'
 plate_transparent: false
 glass_effect_enabled: true
 wear_level: 50
 aged_texture: everywhere
 aged_texture_intensity: 50
 unit: °C
-
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/tempsensor.png" width="300" alt="Preview"/>
 
 </details>
-
 
 ### Foundry Entities Card
 
@@ -652,22 +682,22 @@ A digital display for a list of entities.
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entities` | array | **Yes** | - | List of entities to display. Can be strings or objects. |
-| `title` | string | No | "Entities" | Card title |
-| `title_font_size` | number | No | 14 | Font size for the title text |
-| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
-| `plate_color` | string | No | '#f5f5f5' | Background plate color |
-| `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
-| `font_bg_color` | string | No | '#ffffff' | Background color of digital display area |
-| `font_color` | string | No | '#000000' | Color of the digital text |
-| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
-| `tap_action` | object | No | `{action: 'more-info'}` | Action to perform on tap |
+| Option                   | Type    | Required | Default                 | Description                                                                         |
+| ------------------------ | ------- | -------- | ----------------------- | ----------------------------------------------------------------------------------- |
+| `entities`               | array   | **Yes**  | -                       | List of entities to display. Can be strings or objects.                             |
+| `title`                  | string  | No       | "Entities"              | Card title                                                                          |
+| `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                        |
+| `ring_style`             | string  | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color`            | string  | No       | '#f5f5f5'               | Background plate color                                                              |
+| `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                          |
+| `rivet_color`            | string  | No       | '#6d5d4b'               | Color of rivets                                                                     |
+| `font_bg_color`          | string  | No       | '#ffffff'               | Background color of digital display area                                            |
+| `font_color`             | string  | No       | '#000000'               | Color of the digital text                                                           |
+| `wear_level`             | number  | No       | 50                      | Intensity of wear marks (0-100)                                                     |
+| `glass_effect_enabled`   | boolean | No       | true                    | Enable glass effect overlay                                                         |
+| `aged_texture`           | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                               |
+| `aged_texture_intensity` | number  | No       | 50                      | Intensity of aged texture effect (0-100)                                            |
+| `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                            |
 
 <details>
   <summary>Click to see examples</summary>
@@ -684,20 +714,20 @@ entities:
 title: Entities
 title_font_size: 14
 ring_style: brass
-rivet_color: "#6a5816"
-plate_color: "#8c7626"
+rivet_color: '#6a5816'
+plate_color: '#8c7626'
 plate_transparent: false
-font_bg_color: "#ffffff"
-font_color: "#0a0000"
+font_bg_color: '#ffffff'
+font_color: '#0a0000'
 wear_level: 50
 glass_effect_enabled: true
 aged_texture: everywhere
 aged_texture_intensity: 50
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/entities.png" width="300" alt="Preview"/>
 
 </details>
-
 
 ### Foundry Uptime Card
 
@@ -705,29 +735,29 @@ A detailed uptime monitoring card simulating an industrial vacuum tube display.
 
 #### Configuration Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | string | **Yes** | - | Binary Sensor or entity to monitor |
-| `title` | string | No | "Uptime Monitor" | Card title |
-| `title_font_size` | number | No | 14 | Font size for the title text |
-| `hours_to_show` | number | No | 24 | Number of history hours to display |
-| `update_interval` | number | No | 60 | Refresh interval in seconds |
-| `show_footer` | boolean | No | true | Show start/end time labels |
-| `ring_style` | string | No | 'brass' | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
-| `plate_color` | string | No | '#f5f5f5' | Background plate color |
-| `plate_transparent` | boolean | No | false | Make the plate transparent |
-| `rivet_color` | string | No | '#6d5d4b' | Color of rivets |
-| `font_bg_color` | string | No | '#ffffff' | Background color of status area |
-| `font_color` | string | No | '#000000' | Color of status text |
-| `wear_level` | number | No | 50 | Intensity of wear marks (0-100) |
-| `glass_effect_enabled` | boolean | No | true | Enable glass effect overlay |
-| `aged_texture` | string | No | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere' |
-| `aged_texture_intensity` | number | No | 50 | Intensity of aged texture effect (0-100) |
-| `ok` | string/array | No | 'on',... | States considered "Up" |
-| `ko` | string/array | No | 'off',... | States considered "Down" |
-| `alias.ok` | string | No | "Up" | Display text for OK state |
-| `alias.ko` | string | No | "Down" | Display text for KO state |
-| `color_thresholds` | array | No | [] | Array of { value, color } for score coloring |
+| Option                   | Type         | Required | Default          | Description                                                                         |
+| ------------------------ | ------------ | -------- | ---------------- | ----------------------------------------------------------------------------------- |
+| `entity`                 | string       | **Yes**  | -                | Binary Sensor or entity to monitor                                                  |
+| `title`                  | string       | No       | "Uptime Monitor" | Card title                                                                          |
+| `title_font_size`        | number       | No       | 14               | Font size for the title text                                                        |
+| `hours_to_show`          | number       | No       | 24               | Number of history hours to display                                                  |
+| `update_interval`        | number       | No       | 60               | Refresh interval in seconds                                                         |
+| `show_footer`            | boolean      | No       | true             | Show start/end time labels                                                          |
+| `ring_style`             | string       | No       | 'brass'          | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `plate_color`            | string       | No       | '#f5f5f5'        | Background plate color                                                              |
+| `plate_transparent`      | boolean      | No       | false            | Make the plate transparent                                                          |
+| `rivet_color`            | string       | No       | '#6d5d4b'        | Color of rivets                                                                     |
+| `font_bg_color`          | string       | No       | '#ffffff'        | Background color of status area                                                     |
+| `font_color`             | string       | No       | '#000000'        | Color of status text                                                                |
+| `wear_level`             | number       | No       | 50               | Intensity of wear marks (0-100)                                                     |
+| `glass_effect_enabled`   | boolean      | No       | true             | Enable glass effect overlay                                                         |
+| `aged_texture`           | string       | No       | 'everywhere'     | Aged texture mode: 'none', 'glass_only', 'everywhere'                               |
+| `aged_texture_intensity` | number       | No       | 50               | Intensity of aged texture effect (0-100)                                            |
+| `ok`                     | string/array | No       | 'on',...         | States considered "Up"                                                              |
+| `ko`                     | string/array | No       | 'off',...        | States considered "Down"                                                            |
+| `alias.ok`               | string       | No       | "Up"             | Display text for OK state                                                           |
+| `alias.ko`               | string       | No       | "Down"           | Display text for KO state                                                           |
+| `color_thresholds`       | array        | No       | []               | Array of { value, color } for score coloring                                        |
 
 <details>
   <summary>Click to see examples</summary>
@@ -737,32 +767,33 @@ type: custom:foundry-uptime-card
 entity: binary_sensor.google_com
 title: Uptime Monitor
 hours_to_show: 24
-ok: "on"
-ko: "off"
+ok: 'on'
+ko: 'off'
 ring_style: brass
-rivet_color: "#6a5816"
-plate_color: "#8c7626"
+rivet_color: '#6a5816'
+plate_color: '#8c7626'
 plate_transparent: false
-font_bg_color: "#ffffff"
-font_color: "#000000"
+font_bg_color: '#ffffff'
+font_color: '#000000'
 wear_level: 50
 glass_effect_enabled: true
 color_thresholds:
   - value: 20
-    color: "#c229b5"
+    color: '#c229b5'
   - value: 60
-    color: "#F44336"
+    color: '#F44336'
   - value: 99.9
-    color: "#FF9800"
+    color: '#FF9800'
   - value: 100
-    color: "#4CAF50"
+    color: '#4CAF50'
 ```
+
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/uptime.png" width="300" alt="Preview"/>
 
 </details>
 
-
 <a name="development"></a>
+
 ## Development
 
 Want to contribute or customize the cards?
@@ -772,7 +803,6 @@ Want to contribute or customize the cards?
 1. **Install Node.js**
    - Download and install Node.js from [nodejs.org](https://nodejs.org/), which includes `npm`.
 
-
 ### Setting Up Your Development Environment
 
 1. **Clone the Repository**
@@ -780,14 +810,15 @@ Want to contribute or customize the cards?
    git clone https://github.com/dprischak/Foundry-Card.git
    cd Foundry-Card
    ```
-   
 2. **Install Dependencies**
    ```bash
    npm install
    ```
+
 ### Development Workflow
 
 1. **Create a branch and make the changes into that branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -798,20 +829,44 @@ Want to contribute or customize the cards?
    - Write clean, readable code
    - Follow the existing code style
    - Add comments for complex logic
-   - Update documentation if needed 
+   - Update documentation if needed
 
 3. **Build the Project**
+
    ```bash
    npm run build
    ```
 
-4. Commit your changes
+4. **Code Quality**
+
+   The project enforces code quality through linting and formatting. These checks run automatically on Pull Requests and must pass.
+
+   **Run checks locally:**
+
+   ```bash
+   # Check for linting errors
+   npm run lint
+
+   # Check for formatting issues
+   npm run format
+   ```
+
+   **Fix issues automatically:**
+
+   ```bash
+   # Fix linting errors
+   npm run lint:fix
+
+   # Fix formatting issues
+   npm run format:fix
+   ```
+
+5. **Commit your changes**
    ```bash
    git add .
    git commit -m "feat: add new feature" # or "fix: resolve bug"
    ```
-   
-5. Push and Create a Pull Request:
+6. **Push and Create a Pull Request**
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -819,39 +874,42 @@ Want to contribute or customize the cards?
 Then open a pull request on GitHub with a clear description of your changes.
 
 ## Ways to Contribute
+
 - **Report Bugs:** Open an issue with detailed steps to reproduce
 - **Suggest Features:** Share your ideas for improvements
 - **Fix Issues:** Look for open issues and submit fixes
 - **Improve Documentation:** Help make the docs clearer and more comprehensive
 
-
-
 <a name="roadmap"></a>
+
 ## Roadmap
 
 Future cards planned for the Foundry Card collection:
+
 - Retro Sliders
 - Seismic Graph Card
 - Industrial Energy Map
 - Industrial Climate Card
 
-
 <a name="support"></a>
+
 ## Support
 
 If you encounter any issues or have feature requests:
+
 - [Open an issue](https://github.com/dprischak/Foundry-Card/issues)
 - [Start a discussion](https://github.com/dprischak/Foundry-Card/discussions)
 
 <a name="license"></a>
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 <a name="credits"></a>
+
 ## Credits
 
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
 
 If you find this project useful, consider giving it a ⭐ on GitHub!
-

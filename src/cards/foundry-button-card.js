@@ -1,5 +1,5 @@
-import { handleAction } from "./utils.js";
-import { ensureLedFont } from "./fonts.js";
+import { handleAction } from './utils.js';
+import { ensureLedFont } from './fonts.js';
 
 class FoundryButtonCard extends HTMLElement {
   constructor() {
@@ -10,29 +10,38 @@ class FoundryButtonCard extends HTMLElement {
 
   // ... (existing code)
 
-
-
   setConfig(config) {
     this.config = { ...config };
     // ... snip ...
 
-
-
-
     // Defaults
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent = this.config.plate_transparent !== undefined ? this.config.plate_transparent : false;
+    this.config.plate_transparent =
+      this.config.plate_transparent !== undefined
+        ? this.config.plate_transparent
+        : false;
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
     this.config.font_color = this.config.font_color || '#000000';
     this.config.card_width = this.config.card_width || 240;
 
-    this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== undefined ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== undefined ? this.config.aged_texture : 'everywhere';
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== undefined ? this.config.aged_texture_intensity : 50;
+    this.config.wear_level =
+      this.config.wear_level !== undefined ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled =
+      this.config.glass_effect_enabled !== undefined
+        ? this.config.glass_effect_enabled
+        : true;
+    this.config.aged_texture =
+      this.config.aged_texture !== undefined
+        ? this.config.aged_texture
+        : 'everywhere';
+    this.config.aged_texture_intensity =
+      this.config.aged_texture_intensity !== undefined
+        ? this.config.aged_texture_intensity
+        : 50;
 
-    this.config.icon_color = this.config.icon_color || 'var(--primary-text-color)';
+    this.config.icon_color =
+      this.config.icon_color || 'var(--primary-text-color)';
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
@@ -53,9 +62,9 @@ class FoundryButtonCard extends HTMLElement {
   }
 
   _unsubscribeAll() {
-    this._subscribedTemplates.forEach(unsub => {
+    this._subscribedTemplates.forEach((unsub) => {
       if (typeof unsub === 'function') unsub();
-      else if (unsub && unsub.then) unsub.then(u => u && u());
+      else if (unsub && unsub.then) unsub.then((u) => u && u());
     });
     this._subscribedTemplates.clear();
   }
@@ -68,7 +77,7 @@ class FoundryButtonCard extends HTMLElement {
       primary_info: this.config.primary_info,
       secondary_info: this.config.secondary_info,
       secondary_info_2: this.config.secondary_info_2,
-      icon_color: this.config.icon_color
+      icon_color: this.config.icon_color,
     };
 
     for (const [key, template] of Object.entries(templates)) {
@@ -95,7 +104,7 @@ class FoundryButtonCard extends HTMLElement {
             this._requestRender();
           },
           {
-            type: "render_template",
+            type: 'render_template',
             template: template,
             variables: {
               entity: this.config.entity,
@@ -105,7 +114,7 @@ class FoundryButtonCard extends HTMLElement {
         );
         this._subscribedTemplates.set(key, unsub);
       } catch (e) {
-        console.error("Error subscribing to template", e);
+        console.error('Error subscribing to template', e);
         this[`_${key}`] = `Error: ${e.message}`;
         this._requestRender();
       }
@@ -121,7 +130,6 @@ class FoundryButtonCard extends HTMLElement {
       });
     }
   }
-
 
   _updateRender() {
     if (!this.shadowRoot) return;
@@ -145,11 +153,21 @@ class FoundryButtonCard extends HTMLElement {
     // const fontColor = config.font_color; // Used in text update
 
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
 
     // Dimensions for 100x100ish button
     const width = 110;
@@ -166,7 +184,6 @@ class FoundryButtonCard extends HTMLElement {
     const rimHeight = plateHeight - 10;
     const rimX = plateX + 5;
     const rimY = plateY + 5;
-
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -268,14 +285,10 @@ class FoundryButtonCard extends HTMLElement {
       </ha-card>
     `;
 
-
-
     // Bind click for tap action
-    const card = this.shadowRoot.querySelector("ha-card");
-    card.addEventListener("click", this._handleTap.bind(this));
+    const card = this.shadowRoot.querySelector('ha-card');
+    card.addEventListener('click', this._handleTap.bind(this));
   }
-
-
 
   _handleTap(e) {
     if (e) {
@@ -284,7 +297,7 @@ class FoundryButtonCard extends HTMLElement {
     const config = this.config;
     if (!config || !config.tap_action) return;
 
-    if (config.tap_action.action === "none") return;
+    if (config.tap_action.action === 'none') return;
 
     handleAction(this, this._hass, config, config.tap_action);
   }
@@ -304,19 +317,18 @@ class FoundryButtonCard extends HTMLElement {
       iconEl.style.color = this._icon_color;
     }
     if (iconEl && this.config.icon) {
-      iconEl.setAttribute("icon", this.config.icon);
+      iconEl.setAttribute('icon', this.config.icon);
     }
   }
 
-
-  renderRivets(w, h, x, y) {
+  renderRivets(_w, _h, _x, _y) {
     // Removed rivets as per requirement
     return '';
   }
 
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
 
     // Inner bevel inset - thinner
     const bevelX = x + 4;
@@ -361,28 +373,47 @@ class FoundryButtonCard extends HTMLElement {
   adjustColor(color, percent) {
     if (!color) return color;
     if (color.startsWith('#')) {
-      let num = parseInt(color.replace("#", ""), 16),
+      let num = parseInt(color.replace('#', ''), 16),
         amt = Math.round(2.55 * percent),
         R = (num >> 16) + amt,
-        G = (num >> 8 & 0x00FF) + amt,
-        B = (num & 0x0000FF) + amt;
-      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        G = ((num >> 8) & 0x00ff) + amt,
+        B = (num & 0x0000ff) + amt;
+      return (
+        '#' +
+        (
+          0x1000000 +
+          (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+          (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+          (B < 255 ? (B < 1 ? 0 : B) : 255)
+        )
+          .toString(16)
+          .slice(1)
+      );
     }
     return color;
   }
 
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
-      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
-      case "blue": return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
-      case "green": return { grad: `greenRim-${uid}`, stroke: "#006400" };
-      case "red": return { grad: `redRim-${uid}`, stroke: "#8B0000" };
-      default: return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8B4513' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#104E8B' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#006400' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8B0000' };
+      default:
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
     }
   }
 
@@ -447,7 +478,7 @@ class FoundryButtonCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("foundry-button-editor");
+    return document.createElement('foundry-button-editor');
   }
 
   static get supportsCardResize() {
@@ -464,11 +495,12 @@ class FoundryButtonCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      entity: "light.sun_porch",
-      icon: "mdi:lightbulb",
-      primary_info: "Porch",
+      entity: 'light.sun_porch',
+      icon: 'mdi:lightbulb',
+      primary_info: 'Porch',
       secondary_info: "{{ states('light.sun_porch') }}",
-      icon_color: "{{ 'amber' if states('light.sun_porch') == 'on' else 'grey' }}",
+      icon_color:
+        "{{ 'amber' if states('light.sun_porch') == 'on' else 'grey' }}",
       ring_style: 'brass',
       plate_color: '#8c7626',
       font_bg_color: '#ffffff',
@@ -478,7 +510,7 @@ class FoundryButtonCard extends HTMLElement {
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
       card_width: 240,
-    }
+    };
   }
 }
 
@@ -488,8 +520,8 @@ if (!customElements.get('foundry-button-card')) {
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-button-card",
-  name: "Foundry Button",
+  type: 'foundry-button-card',
+  name: 'Foundry Button',
   preview: true,
-  description: "A compact industrial button card."
+  description: 'A compact industrial button card.',
 });

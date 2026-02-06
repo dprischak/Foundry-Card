@@ -1,4 +1,3 @@
-
 const fireEvent = (node, type, detail, options) => {
   options = options || {};
   detail = detail === null || detail === undefined ? {} : detail;
@@ -15,14 +14,14 @@ const fireEvent = (node, type, detail, options) => {
 class FoundryThermostatEditor extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
+    this.attachShadow({ mode: 'open' });
   }
 
   setConfig(config) {
     // Ensure segments is an array
     this._config = {
       ...config,
-      segments: Array.isArray(config.segments) ? config.segments : []
+      segments: Array.isArray(config.segments) ? config.segments : [],
     };
     this.render();
   }
@@ -36,9 +35,9 @@ class FoundryThermostatEditor extends HTMLElement {
     if (!this._hass || !this._config) return;
 
     if (!this._root) {
-      this._root = document.createElement("div");
-      this._root.className = "card-config";
-      const style = document.createElement("style");
+      this._root = document.createElement('div');
+      this._root.className = 'card-config';
+      const style = document.createElement('style');
       style.textContent = `
                 .card-config { display: flex; flex-direction: column; gap: 16px; }
                 
@@ -117,20 +116,24 @@ class FoundryThermostatEditor extends HTMLElement {
       this.shadowRoot.appendChild(this._root);
 
       // Form 1: Entity, Range, Segments, Title Color
-      this._form1 = document.createElement("ha-form");
+      this._form1 = document.createElement('ha-form');
       this._form1.computeLabel = this._computeLabel;
-      this._form1.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form1.addEventListener('value-changed', (ev) =>
+        this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form1);
 
       // Segments UI
-      this._segmentsContainer = document.createElement("div");
-      this._segmentsContainer.className = "segments-section";
+      this._segmentsContainer = document.createElement('div');
+      this._segmentsContainer.className = 'segments-section';
       this._root.appendChild(this._segmentsContainer);
 
       // Form 2: Appearance
-      this._form2 = document.createElement("ha-form");
+      this._form2 = document.createElement('ha-form');
       this._form2.computeLabel = this._computeLabel;
-      this._form2.addEventListener("value-changed", (ev) => this._handleFormChanged(ev));
+      this._form2.addEventListener('value-changed', (ev) =>
+        this._handleFormChanged(ev)
+      );
       this._root.appendChild(this._form2);
     }
 
@@ -165,7 +168,7 @@ class FoundryThermostatEditor extends HTMLElement {
     segments.forEach((seg, index) => {
       const fromVal = seg.from !== undefined ? seg.from : 0;
       const toVal = seg.to !== undefined ? seg.to : 0;
-      const colVal = seg.color || "#000000";
+      const colVal = seg.color || '#000000';
 
       html += `
                 <div class="segment-row">
@@ -190,7 +193,7 @@ class FoundryThermostatEditor extends HTMLElement {
     this._segmentsContainer.innerHTML = html;
 
     // Listeners for inputs
-    this._segmentsContainer.querySelectorAll('.seg-input').forEach(input => {
+    this._segmentsContainer.querySelectorAll('.seg-input').forEach((input) => {
       input.addEventListener('change', (e) => {
         const idx = parseInt(e.target.dataset.idx);
         const key = e.target.dataset.key;
@@ -201,8 +204,10 @@ class FoundryThermostatEditor extends HTMLElement {
     });
 
     // Listeners for buttons
-    this._segmentsContainer.querySelectorAll('.remove-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this._removeSegment(parseInt(e.target.dataset.idx)));
+    this._segmentsContainer.querySelectorAll('.remove-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) =>
+        this._removeSegment(parseInt(e.target.dataset.idx))
+      );
     });
     const addBtn = this._segmentsContainer.querySelector('#add-btn');
     if (addBtn) addBtn.addEventListener('click', () => this._addSegment());
@@ -219,9 +224,9 @@ class FoundryThermostatEditor extends HTMLElement {
   _addSegment() {
     const segments = [...(this._config.segments || [])];
     const last = segments[segments.length - 1];
-    const from = last ? last.to : (this._config.min || 0);
+    const from = last ? last.to : this._config.min || 0;
     const to = from + 10;
-    segments.push({ from, to, color: "#4CAF50" });
+    segments.push({ from, to, color: '#4CAF50' });
     this._updateConfig({ segments });
   }
 
@@ -233,7 +238,7 @@ class FoundryThermostatEditor extends HTMLElement {
 
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
-    fireEvent(this, "config-changed", { config: this._config });
+    fireEvent(this, 'config-changed', { config: this._config });
   }
 
   _handleFormChanged(ev) {
@@ -247,14 +252,24 @@ class FoundryThermostatEditor extends HTMLElement {
     const data = { ...config };
 
     // Color Conversions
-    data.liquid_color = this._hexToRgb(config.liquid_color ?? "#cc0000") || [204, 0, 0];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") || [245, 245, 245];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") || [109, 93, 75];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") || [255, 255, 255];
-    data.title_font_color = this._hexToRgb(config.title_font_color ?? "#3e2723") || [62, 39, 35];
+    data.liquid_color = this._hexToRgb(config.liquid_color ?? '#cc0000') || [
+      204, 0, 0,
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? '#f5f5f5') || [
+      245, 245, 245,
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') || [
+      109, 93, 75,
+    ];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#ffffff') || [
+      255, 255, 255,
+    ];
+    data.title_font_color = this._hexToRgb(
+      config.title_font_color ?? '#3e2723'
+    ) || [62, 39, 35];
 
     // Defaults
-    data.ring_style = config.ring_style ?? "brass";
+    data.ring_style = config.ring_style ?? 'brass';
     data.min = config.min ?? -40;
     data.max = config.max ?? 120;
     data.mercury_width = config.mercury_width ?? 50;
@@ -264,7 +279,7 @@ class FoundryThermostatEditor extends HTMLElement {
     data.plate_transparent = config.plate_transparent ?? false;
     data.glass_effect_enabled = config.glass_effect_enabled ?? true;
     data.wear_level = config.wear_level ?? 50;
-    data.aged_texture = config.aged_texture ?? "everywhere";
+    data.aged_texture = config.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
 
     return data;
@@ -273,113 +288,162 @@ class FoundryThermostatEditor extends HTMLElement {
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
 
-    if (config.liquid_color) config.liquid_color = this._rgbToHex(config.liquid_color);
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
-    if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.title_font_color) config.title_font_color = this._rgbToHex(config.title_font_color);
+    if (config.liquid_color)
+      config.liquid_color = this._rgbToHex(config.liquid_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.title_font_color)
+      config.title_font_color = this._rgbToHex(config.title_font_color);
 
     return config;
   }
 
   _getSchemaTop() {
     return [
-      { name: "entity", selector: { entity: { domain: "sensor" } } },
+      { name: 'entity', selector: { entity: { domain: 'sensor' } } },
       {
-        type: "grid",
-        name: "",
+        type: 'grid',
+        name: '',
         schema: [
-          { name: "title", selector: { text: {} } },
-          { name: "title_font_color", label: "Title Color", selector: { color_rgb: {} } },
-        ]
+          { name: 'title', selector: { text: {} } },
+          {
+            name: 'title_font_color',
+            label: 'Title Color',
+            selector: { color_rgb: {} },
+          },
+        ],
       },
 
-      { name: "unit", selector: { text: {} } },
+      { name: 'unit', selector: { text: {} } },
       {
-        type: "grid",
-        name: "",
+        type: 'grid',
+        name: '',
         schema: [
-          { name: "min", selector: { number: { mode: "box" } } },
-          { name: "max", selector: { number: { mode: "box" } } },
-          { name: "segments_under_mercury", label: "Segments Behind Liquid", selector: { boolean: {} } },
+          { name: 'min', selector: { number: { mode: 'box' } } },
+          { name: 'max', selector: { number: { mode: 'box' } } },
           {
-            name: "mercury_width",
-            label: "Mercury Width (%)",
-            selector: { number: { min: 5, max: 100, mode: "slider" } }
+            name: 'segments_under_mercury',
+            label: 'Segments Behind Liquid',
+            selector: { boolean: {} },
           },
           {
-            name: "animation_duration",
-            label: "Anim. Duration (s)",
-            selector: { number: { min: 0.1, max: 10, step: 0.1, mode: "box" } }
-          }
-        ]
-      }
+            name: 'mercury_width',
+            label: 'Mercury Width (%)',
+            selector: { number: { min: 5, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'animation_duration',
+            label: 'Anim. Duration (s)',
+            selector: { number: { min: 0.1, max: 10, step: 0.1, mode: 'box' } },
+          },
+        ],
+      },
     ];
   }
 
   _getSchemaBottom() {
     return [
       {
-        name: "",
-        type: "expandable",
-        title: "Appearance",
+        name: '',
+        type: 'expandable',
+        title: 'Appearance',
         schema: [
           {
-            name: "ring_style",
-            label: "Casing Style",
+            name: 'ring_style',
+            label: 'Casing Style',
             selector: {
               select: {
-                mode: "dropdown",
+                mode: 'dropdown',
                 options: [
-                  { value: "brass", label: "Brass" },
-                  { value: "silver", label: "Silver" },
-                  { value: "copper", label: "Copper" },
-                  { value: "black", label: "Black" },
-                  { value: "white", label: "White" },
-                  { value: "blue", label: "Blue" },
-                  { value: "green", label: "Green" },
-                  { value: "red", label: "Red" }
-                ]
-              }
-            }
+                  { value: 'brass', label: 'Brass' },
+                  { value: 'silver', label: 'Silver' },
+                  { value: 'copper', label: 'Copper' },
+                  { value: 'black', label: 'Black' },
+                  { value: 'white', label: 'White' },
+                  { value: 'blue', label: 'Blue' },
+                  { value: 'green', label: 'Green' },
+                  { value: 'red', label: 'Red' },
+                ],
+              },
+            },
           },
           {
-            type: "grid",
-            name: "",
+            type: 'grid',
+            name: '',
             schema: [
-              { name: "liquid_color", label: "Mercury Color", selector: { color_rgb: {} } },
-              { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-              { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } },
-              { name: "font_bg_color", label: "Tube Background", selector: { color_rgb: {} } },
-            ]
+              {
+                name: 'liquid_color',
+                label: 'Mercury Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'plate_color',
+                label: 'Plate Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'rivet_color',
+                label: 'Rivet Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'font_bg_color',
+                label: 'Tube Background',
+                selector: { color_rgb: {} },
+              },
+            ],
           },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "wear_level", label: "Wear Level (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
           {
-            name: "aged_texture",
-            label: "Aged Texture Style",
+            name: 'plate_transparent',
+            label: 'Transparent Plate',
+            selector: { boolean: {} },
+          },
+          {
+            name: 'glass_effect_enabled',
+            label: 'Glass Effect',
+            selector: { boolean: {} },
+          },
+          {
+            name: 'wear_level',
+            label: 'Wear Level (%)',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'aged_texture',
+            label: 'Aged Texture Style',
             selector: {
               select: {
-                mode: "dropdown",
+                mode: 'dropdown',
                 options: [
-                  { value: "none", label: "None" },
-                  { value: "glass_only", label: "Glass Only" },
-                  { value: "everywhere", label: "Everywhere" }
-                ]
-              }
-            }
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
           },
-          { name: "aged_texture_intensity", label: "Texture Intensity (%)", selector: { number: { min: 0, max: 100, mode: "slider" } } },
-          { name: "tap_action", label: "Tap Action", selector: { "ui-action": {} } }
-        ]
-      }
+          {
+            name: 'aged_texture_intensity',
+            label: 'Texture Intensity (%)',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'tap_action',
+            label: 'Tap Action',
+            selector: { 'ui-action': {} },
+          },
+        ],
+      },
     ];
   }
 
   _hexToRgb(hex) {
-    if (typeof hex !== "string") return null;
-    const h = hex.replace("#", "").trim();
+    if (typeof hex !== 'string') return null;
+    const h = hex.replace('#', '').trim();
     if (h.length !== 6) return null;
     const r = parseInt(h.slice(0, 2), 16);
     const g = parseInt(h.slice(2, 4), 16);
@@ -390,13 +454,16 @@ class FoundryThermostatEditor extends HTMLElement {
 
   _rgbToHex(input) {
     let rgb = input;
-    if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
+    if (rgb && typeof rgb === 'object' && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ('r' in rgb && 'g' in rgb && 'b' in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
-    const toHex = (n) => n.toString(16).padStart(2, "0");
+    const [r, g, b] = rgb.map((n) =>
+      Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
+    const toHex = (n) => n.toString(16).padStart(2, '0');
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }
 
@@ -406,6 +473,6 @@ class FoundryThermostatEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get("foundry-thermostat-editor")) {
-  customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
+if (!customElements.get('foundry-thermostat-editor')) {
+  customElements.define('foundry-thermostat-editor', FoundryThermostatEditor);
 }
