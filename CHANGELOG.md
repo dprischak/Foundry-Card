@@ -1,3 +1,9 @@
+## v26.2.1
+### Version Changes
+ - **Version Change:**  Moving from sequential versioning to year.month.patch versioning.
+
+
+
 ## v5.0
 ### 🚀 New Cards
 
