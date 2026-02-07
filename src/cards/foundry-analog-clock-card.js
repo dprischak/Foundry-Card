@@ -307,7 +307,7 @@ class FoundryAnalogClockCard extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Clock face -->
-              <circle cx="100" cy="100" r="85" fill="url(#clockFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="${config.background_style === 'solid' ? config.face_color || '#f8f8f0' : `url(#clockFace-${uid})`}" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ''}/>
                             
               <!-- Glass effect overlay -->
               ${glassEffectEnabled ? '<ellipse cx="100" cy="80" rx="60" ry="50" fill="white" opacity="0.15"/>' : ''}
@@ -317,20 +317,20 @@ class FoundryAnalogClockCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ''}
               
               <!-- Hands -->
               
               <!-- Hour Hand -->
               <g id="hourHand" style="transform-origin: 100px 100px;">
-                  <rect x="97" y="50" width="6" height="55" rx="2" fill="#3e2723" stroke="#2c1810" stroke-width="0.5" />
-                   <path d="M 100 100 L 97 55 L 100 45 L 103 55 Z" fill="#3e2723" />
+                  <rect x="97" y="50" width="6" height="55" rx="2" fill="${config.hour_hand_color || '#3e2723'}" stroke="#2c1810" stroke-width="0.5" />
+                   <path d="M 100 100 L 97 55 L 100 45 L 103 55 Z" fill="${config.hour_hand_color || '#3e2723'}" />
               </g>
 
               <!-- Minute Hand -->
               <g id="minuteHand" style="transform-origin: 100px 100px;">
-                  <rect x="98" y="30" width="4" height="75" rx="2" fill="#3e2723" stroke="#2c1810" stroke-width="0.5" />
-                  <path d="M 100 100 L 98 35 L 100 25 L 102 35 Z" fill="#3e2723" />
+                  <rect x="98" y="30" width="4" height="75" rx="2" fill="${config.minute_hand_color || '#3e2723'}" stroke="#2c1810" stroke-width="0.5" />
+                  <path d="M 100 100 L 98 35 L 100 25 L 102 35 Z" fill="${config.minute_hand_color || '#3e2723'}" />
               </g>
 
               <!-- Second Hand -->
@@ -339,9 +339,9 @@ class FoundryAnalogClockCard extends HTMLElement {
                   ? `
               <g id="secondHand" style="transform-origin: 100px 100px; transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);">
                   <!-- Shaft -->
-                  <rect x="99" y="30" width="2" height="85" fill="#C41E3A" />
+                  <rect x="99" y="30" width="2" height="85" fill="${config.second_hand_color || '#C41E3A'}" />
                   <!-- Pointed Tip -->
-                  <path d="M 99 30 L 100 20 L 101 30 Z" fill="#C41E3A" />
+                  <path d="M 99 30 L 100 20 L 101 30 Z" fill="${config.second_hand_color || '#C41E3A'}" />
               </g>
               `
                   : ''
@@ -374,7 +374,7 @@ class FoundryAnalogClockCard extends HTMLElement {
       </ha-card>
     `;
     this._attachActionListeners();
-    this.drawClockTicks();
+    this.drawClockTicks(config);
   }
 
   _attachActionListeners() {
@@ -422,7 +422,7 @@ class FoundryAnalogClockCard extends HTMLElement {
     }
   }
 
-  renderTitleText(title, fontSize) {
+  renderTitleText(title, fontSize, color = '#3e2723') {
     const lines = title.replace(/\\n/g, '\n').split('\n').slice(0, 3);
     const lineHeight = fontSize * 1.2;
     const totalHeight = (lines.length - 1) * lineHeight;
@@ -431,7 +431,7 @@ class FoundryAnalogClockCard extends HTMLElement {
     return lines
       .map((line, index) => {
         const y = startY + index * lineHeight;
-        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
       })
       .join('\n');
   }
@@ -567,7 +567,7 @@ class FoundryAnalogClockCard extends HTMLElement {
       .join('\n');
   }
 
-  drawClockTicks() {
+  drawClockTicks(config = {}) {
     const ticksGroup = this.shadowRoot.getElementById('ticks');
     const numbersGroup = this.shadowRoot.getElementById('numbers');
     if (!ticksGroup || !numbersGroup) return;
@@ -598,7 +598,7 @@ class FoundryAnalogClockCard extends HTMLElement {
       tick.setAttribute('y1', y1);
       tick.setAttribute('x2', x2);
       tick.setAttribute('y2', y2);
-      tick.setAttribute('stroke', '#3e2723');
+      tick.setAttribute('stroke', config.primary_tick_color || '#3e2723');
       tick.setAttribute('stroke-width', '2');
       ticksGroup.appendChild(tick);
 
@@ -618,8 +618,7 @@ class FoundryAnalogClockCard extends HTMLElement {
       text.setAttribute('dominant-baseline', 'middle');
       text.setAttribute('font-size', '14');
       text.setAttribute('font-weight', 'bold');
-      text.setAttribute('fill', '#3e2723');
-      text.setAttribute('font-family', 'Georgia, serif');
+      text.setAttribute('fill', config.number_color || '#3e2723');
       text.textContent = i.toString();
       numbersGroup.appendChild(text);
 
@@ -641,7 +640,10 @@ class FoundryAnalogClockCard extends HTMLElement {
         minorTick.setAttribute('y1', my1);
         minorTick.setAttribute('x2', mx2);
         minorTick.setAttribute('y2', my2);
-        minorTick.setAttribute('stroke', '#5d4e37');
+        minorTick.setAttribute(
+          'stroke',
+          config.secondary_tick_color || '#5d4e37'
+        );
         minorTick.setAttribute('stroke-width', '1');
         ticksGroup.appendChild(minorTick);
       }
@@ -666,6 +668,15 @@ class FoundryAnalogClockCard extends HTMLElement {
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
       second_hand_enabled: true,
+      background_style: 'gradient',
+      face_color: '#f8f8f0',
+      title_font_color: '#3e2723',
+      number_color: '#3e2723',
+      primary_tick_color: '#3e2723',
+      secondary_tick_color: '#5d4e37',
+      hour_hand_color: '#3e2723',
+      minute_hand_color: '#3e2723',
+      second_hand_color: '#C41E3A',
     };
   }
 }

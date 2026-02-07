@@ -581,7 +581,7 @@ var FoundryGaugeCard = class extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
-              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ""}/>
+              <circle cx="100" cy="100" r="85" fill="${config.background_style === "solid" ? config.face_color || "#f8f8f0" : `url(#gaugeFace-${uid})`}" ${agedTextureEnabled || effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ""}/>
                             
 
               <!-- Glass effect overlay -->
@@ -597,7 +597,7 @@ var FoundryGaugeCard = class extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize) : ""}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ""}
               
               <!-- Center hub background -->
 			  <circle cx="100" cy="100" r="12"
@@ -626,8 +626,8 @@ var FoundryGaugeCard = class extends HTMLElement {
                       transform="translate(2,2)"/>
                 <!-- Needle body -->
                 <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="#C41E3A" 
-                      stroke="#8B0000" 
+                      fill="${config.needle_color || "#C41E3A"}" 
+                      stroke="${this.darkenColor(config.needle_color || "#C41E3A", 0.2)}" 
                       stroke-width="0.5"/>
                 <!-- Needle highlight -->
                 <path d="M 100 100 L 98 95 L 99 30 L 100 25 L 99.5 30 Z" 
@@ -672,7 +672,7 @@ var FoundryGaugeCard = class extends HTMLElement {
     `;
     this._attachActionListeners();
     this.drawSegments(segments, min, max);
-    this.drawTicks(min, max);
+    this.drawTicks(min, max, config);
     this.drawStoppers();
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
@@ -810,14 +810,14 @@ var FoundryGaugeCard = class extends HTMLElement {
       return;
     }
   }
-  renderTitleText(title, fontSize) {
+  renderTitleText(title, fontSize, color = "#3e2723", fontFamily = "Georgia, serif") {
     const lines = title.replace(/\\n/g, "\n").split("\n").slice(0, 3);
     const lineHeight = fontSize * 1.2;
     const totalHeight = (lines.length - 1) * lineHeight;
     const startY = 75 - totalHeight / 2;
     return lines.map((line, index) => {
       const y = startY + index * lineHeight;
-      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="${fontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
     }).join("\n");
   }
   getRimStyleData(ringStyle, uid) {
@@ -1005,7 +1005,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       segmentsGroup.appendChild(pathElement);
     });
   }
-  drawTicks(min, max) {
+  drawTicks(min, max, config) {
     const ticksGroup = this.shadowRoot.getElementById("ticks");
     const numbersGroup = this.shadowRoot.getElementById("numbers");
     const centerX = 100;
@@ -1035,7 +1035,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       tick.setAttribute("y1", y1);
       tick.setAttribute("x2", x2);
       tick.setAttribute("y2", y2);
-      tick.setAttribute("stroke", "#3e2723");
+      tick.setAttribute("stroke", config.primary_tick_color || "#3e2723");
       tick.setAttribute("stroke-width", "2");
       ticksGroup.appendChild(tick);
       const value = min + (max - min) * i / numTicks;
@@ -1052,7 +1052,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       text.setAttribute("dominant-baseline", "middle");
       text.setAttribute("font-size", "9");
       text.setAttribute("font-weight", "bold");
-      text.setAttribute("fill", "#3e2723");
+      text.setAttribute("fill", config.number_color || "#3e2723");
       text.setAttribute("font-family", "Georgia, serif");
       const displayValue = max - min <= 10 ? value.toFixed(1) : Math.round(value);
       text.textContent = displayValue;
@@ -1073,7 +1073,10 @@ var FoundryGaugeCard = class extends HTMLElement {
           minorTick.setAttribute("y1", my1);
           minorTick.setAttribute("x2", mx2);
           minorTick.setAttribute("y2", my2);
-          minorTick.setAttribute("stroke", "#5d4e37");
+          minorTick.setAttribute(
+            "stroke",
+            config.secondary_tick_color || "#5d4e37"
+          );
           minorTick.setAttribute("stroke-width", "1");
           ticksGroup.appendChild(minorTick);
         }
@@ -1606,7 +1609,14 @@ var FoundryGaugeCard = class extends HTMLElement {
         { from: 0, to: 33, color: "#4CAF50" },
         { from: 33, to: 66, color: "#FFC107" },
         { from: 66, to: 100, color: "#F44336" }
-      ]
+      ],
+      background_style: "gradient",
+      face_color: "#f8f8f0",
+      title_font_color: "#3e2723",
+      number_color: "#3e2723",
+      primary_tick_color: "#3e2723",
+      secondary_tick_color: "#5d4e37",
+      needle_color: "#C41E3A"
     };
   }
 };
@@ -2000,7 +2010,34 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       wear_level: config.wear_level,
       glass_effect_enabled: config.glass_effect_enabled,
       aged_texture: config.aged_texture,
-      aged_texture_intensity: config.aged_texture_intensity
+      aged_texture_intensity: config.aged_texture_intensity,
+      background_style: config.background_style,
+      face_color: this._hexToRgb(config.face_color ?? "#f8f8f0") ?? [
+        248,
+        248,
+        240
+      ],
+      needle_color: this._hexToRgb(config.needle_color ?? "#C41E3A") ?? [
+        196,
+        30,
+        58
+      ]
+    };
+    data.style_fonts_ticks = {
+      title_font_color: this._hexToRgb(
+        config.title_font_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      number_color: this._hexToRgb(config.number_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
+      ],
+      primary_tick_color: this._hexToRgb(
+        config.primary_tick_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      secondary_tick_color: this._hexToRgb(
+        config.secondary_tick_color ?? "#5d4e37"
+      ) ?? [93, 78, 55]
     };
     data.layout = {
       title_font_size: config.title_font_size,
@@ -2033,16 +2070,30 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     const defaults = {
       rivet_color: this._config?.rivet_color ?? "#6d5d4b",
       plate_color: this._config?.plate_color ?? "#8c7626",
-      high_needle_color: this._config?.high_needle_color ?? "#FF9800"
+      high_needle_color: this._config?.high_needle_color ?? "#FF9800",
+      face_color: this._config?.face_color ?? "#f8f8f0",
+      title_font_color: this._config?.title_font_color ?? "#3e2723",
+      number_color: this._config?.number_color ?? "#3e2723",
+      primary_tick_color: this._config?.primary_tick_color ?? "#3e2723",
+      secondary_tick_color: this._config?.secondary_tick_color ?? "#5d4e37",
+      needle_color: this._config?.needle_color ?? "#C41E3A"
     };
     Object.keys(formData).forEach((key) => {
-      if (["appearance", "layout", "high_needle", "actions"].includes(key))
+      if ([
+        "appearance",
+        "layout",
+        "high_needle",
+        "style_fonts_ticks",
+        "actions"
+      ].includes(key))
         return;
       config[key] = formData[key];
     });
     if (formData.appearance) Object.assign(config, formData.appearance);
     if (formData.layout) Object.assign(config, formData.layout);
     if (formData.high_needle) Object.assign(config, formData.high_needle);
+    if (formData.style_fonts_ticks)
+      Object.assign(config, formData.style_fonts_ticks);
     const rc = this._rgbToHex(config.rivet_color);
     if (rc) config.rivet_color = rc;
     else config.rivet_color = defaults.rivet_color;
@@ -2052,6 +2103,24 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     const hn = this._rgbToHex(config.high_needle_color);
     if (hn) config.high_needle_color = hn;
     else config.high_needle_color = defaults.high_needle_color;
+    const fc = this._rgbToHex(config.face_color);
+    if (fc) config.face_color = fc;
+    else config.face_color = defaults.face_color;
+    const tfc = this._rgbToHex(config.title_font_color);
+    if (tfc) config.title_font_color = tfc;
+    else config.title_font_color = defaults.title_font_color;
+    const nc = this._rgbToHex(config.number_color);
+    if (nc) config.number_color = nc;
+    else config.number_color = defaults.number_color;
+    const ptc = this._rgbToHex(config.primary_tick_color);
+    if (ptc) config.primary_tick_color = ptc;
+    else config.primary_tick_color = defaults.primary_tick_color;
+    const stc = this._rgbToHex(config.secondary_tick_color);
+    if (stc) config.secondary_tick_color = stc;
+    else config.secondary_tick_color = defaults.secondary_tick_color;
+    const ndlz = this._rgbToHex(config.needle_color);
+    if (ndlz) config.needle_color = ndlz;
+    else config.needle_color = defaults.needle_color;
     if (formData.actions) {
       ["tap", "hold", "double_tap"].forEach((type) => {
         const group = formData.actions;
@@ -2209,6 +2278,74 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             name: "aged_texture_intensity",
             label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Default Gradient" },
+                  { value: "solid", label: "Solid Color" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "needle_color",
+            label: "Needle Color",
+            selector: { color_rgb: {} }
+          }
+        ]
+      },
+      {
+        name: "style_fonts_ticks",
+        type: "expandable",
+        title: "Fonts & Ticks",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Primary Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Secondary Tick Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       },
@@ -3535,7 +3672,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Clock face -->
-              <circle cx="100" cy="100" r="85" fill="url(#clockFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ""}/>
+              <circle cx="100" cy="100" r="85" fill="${config.background_style === "solid" ? config.face_color || "#f8f8f0" : `url(#clockFace-${uid})`}" ${agedTextureEnabled || effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})" clip-path="url(#clockFaceClip-${uid})"` : ""}/>
                             
               <!-- Glass effect overlay -->
               ${glassEffectEnabled ? '<ellipse cx="100" cy="80" rx="60" ry="50" fill="white" opacity="0.15"/>' : ""}
@@ -3545,29 +3682,29 @@ var FoundryAnalogClockCard = class extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize) : ""}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ""}
               
               <!-- Hands -->
               
               <!-- Hour Hand -->
               <g id="hourHand" style="transform-origin: 100px 100px;">
-                  <rect x="97" y="50" width="6" height="55" rx="2" fill="#3e2723" stroke="#2c1810" stroke-width="0.5" />
-                   <path d="M 100 100 L 97 55 L 100 45 L 103 55 Z" fill="#3e2723" />
+                  <rect x="97" y="50" width="6" height="55" rx="2" fill="${config.hour_hand_color || "#3e2723"}" stroke="#2c1810" stroke-width="0.5" />
+                   <path d="M 100 100 L 97 55 L 100 45 L 103 55 Z" fill="${config.hour_hand_color || "#3e2723"}" />
               </g>
 
               <!-- Minute Hand -->
               <g id="minuteHand" style="transform-origin: 100px 100px;">
-                  <rect x="98" y="30" width="4" height="75" rx="2" fill="#3e2723" stroke="#2c1810" stroke-width="0.5" />
-                  <path d="M 100 100 L 98 35 L 100 25 L 102 35 Z" fill="#3e2723" />
+                  <rect x="98" y="30" width="4" height="75" rx="2" fill="${config.minute_hand_color || "#3e2723"}" stroke="#2c1810" stroke-width="0.5" />
+                  <path d="M 100 100 L 98 35 L 100 25 L 102 35 Z" fill="${config.minute_hand_color || "#3e2723"}" />
               </g>
 
               <!-- Second Hand -->
               ${secondHandEnabled ? `
               <g id="secondHand" style="transform-origin: 100px 100px; transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);">
                   <!-- Shaft -->
-                  <rect x="99" y="30" width="2" height="85" fill="#C41E3A" />
+                  <rect x="99" y="30" width="2" height="85" fill="${config.second_hand_color || "#C41E3A"}" />
                   <!-- Pointed Tip -->
-                  <path d="M 99 30 L 100 20 L 101 30 Z" fill="#C41E3A" />
+                  <path d="M 99 30 L 100 20 L 101 30 Z" fill="${config.second_hand_color || "#C41E3A"}" />
               </g>
               ` : ""}
 
@@ -3598,7 +3735,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       </ha-card>
     `;
     this._attachActionListeners();
-    this.drawClockTicks();
+    this.drawClockTicks(config);
   }
   _attachActionListeners() {
     const root = this.shadowRoot?.getElementById("actionRoot");
@@ -3634,14 +3771,14 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       fireEvent(this, "hass-more-info", { entityId });
     }
   }
-  renderTitleText(title, fontSize) {
+  renderTitleText(title, fontSize, color = "#3e2723") {
     const lines = title.replace(/\\n/g, "\n").split("\n").slice(0, 3);
     const lineHeight = fontSize * 1.2;
     const totalHeight = (lines.length - 1) * lineHeight;
     const startY = 140 - totalHeight / 2;
     return lines.map((line, index) => {
       const y = startY + index * lineHeight;
-      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+      return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
     }).join("\n");
   }
   getRimStyleData(ringStyle, uid) {
@@ -3769,7 +3906,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
     }).join("\n");
   }
-  drawClockTicks() {
+  drawClockTicks(config = {}) {
     const ticksGroup = this.shadowRoot.getElementById("ticks");
     const numbersGroup = this.shadowRoot.getElementById("numbers");
     if (!ticksGroup || !numbersGroup) return;
@@ -3791,7 +3928,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       tick.setAttribute("y1", y1);
       tick.setAttribute("x2", x2);
       tick.setAttribute("y2", y2);
-      tick.setAttribute("stroke", "#3e2723");
+      tick.setAttribute("stroke", config.primary_tick_color || "#3e2723");
       tick.setAttribute("stroke-width", "2");
       ticksGroup.appendChild(tick);
       const textRadius = 65;
@@ -3807,8 +3944,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       text.setAttribute("dominant-baseline", "middle");
       text.setAttribute("font-size", "14");
       text.setAttribute("font-weight", "bold");
-      text.setAttribute("fill", "#3e2723");
-      text.setAttribute("font-family", "Georgia, serif");
+      text.setAttribute("fill", config.number_color || "#3e2723");
       text.textContent = i.toString();
       numbersGroup.appendChild(text);
       for (let j = 1; j < 5; j++) {
@@ -3826,7 +3962,10 @@ var FoundryAnalogClockCard = class extends HTMLElement {
         minorTick.setAttribute("y1", my1);
         minorTick.setAttribute("x2", mx2);
         minorTick.setAttribute("y2", my2);
-        minorTick.setAttribute("stroke", "#5d4e37");
+        minorTick.setAttribute(
+          "stroke",
+          config.secondary_tick_color || "#5d4e37"
+        );
         minorTick.setAttribute("stroke-width", "1");
         ticksGroup.appendChild(minorTick);
       }
@@ -3848,7 +3987,16 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       glass_effect_enabled: true,
       aged_texture: "everywhere",
       aged_texture_intensity: 50,
-      second_hand_enabled: true
+      second_hand_enabled: true,
+      background_style: "gradient",
+      face_color: "#f8f8f0",
+      title_font_color: "#3e2723",
+      number_color: "#3e2723",
+      primary_tick_color: "#3e2723",
+      secondary_tick_color: "#5d4e37",
+      hour_hand_color: "#3e2723",
+      minute_hand_color: "#3e2723",
+      second_hand_color: "#C41E3A"
     };
   }
 };
@@ -3993,7 +4141,40 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       glass_effect_enabled: config.glass_effect_enabled,
       aged_texture: config.aged_texture,
       aged_texture_intensity: config.aged_texture_intensity,
-      second_hand_enabled: config.second_hand_enabled
+      second_hand_enabled: config.second_hand_enabled,
+      background_style: config.background_style,
+      face_color: this._hexToRgb(config.face_color ?? "#f8f8f0") ?? [
+        248,
+        248,
+        240
+      ],
+      hour_hand_color: this._hexToRgb(config.hour_hand_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
+      ],
+      minute_hand_color: this._hexToRgb(
+        config.minute_hand_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      second_hand_color: this._hexToRgb(
+        config.second_hand_color ?? "#C41E3A"
+      ) ?? [196, 30, 58]
+    };
+    data.style_fonts_ticks = {
+      title_font_color: this._hexToRgb(
+        config.title_font_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      number_color: this._hexToRgb(config.number_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
+      ],
+      primary_tick_color: this._hexToRgb(
+        config.primary_tick_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      secondary_tick_color: this._hexToRgb(
+        config.secondary_tick_color ?? "#5d4e37"
+      ) ?? [93, 78, 55]
     };
     data.layout = {
       title_font_size: config.title_font_size
@@ -4012,20 +4193,55 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     const config = { ...this._config };
     const defaults = {
       rivet_color: this._config?.rivet_color ?? "#6a5816",
-      plate_color: this._config?.plate_color ?? "#8c7626"
+      plate_color: this._config?.plate_color ?? "#8c7626",
+      face_color: this._config?.face_color ?? "#f8f8f0",
+      title_font_color: this._config?.title_font_color ?? "#3e2723",
+      number_color: this._config?.number_color ?? "#3e2723",
+      primary_tick_color: this._config?.primary_tick_color ?? "#3e2723",
+      secondary_tick_color: this._config?.secondary_tick_color ?? "#5d4e37",
+      hour_hand_color: this._config?.hour_hand_color ?? "#3e2723",
+      minute_hand_color: this._config?.minute_hand_color ?? "#3e2723",
+      second_hand_color: this._config?.second_hand_color ?? "#C41E3A"
     };
     Object.keys(formData).forEach((key) => {
-      if (["appearance", "layout", "actions"].includes(key)) return;
+      if (["appearance", "layout", "actions", "style_fonts_ticks"].includes(key))
+        return;
       config[key] = formData[key];
     });
     if (formData.appearance) Object.assign(config, formData.appearance);
     if (formData.layout) Object.assign(config, formData.layout);
+    if (formData.style_fonts_ticks)
+      Object.assign(config, formData.style_fonts_ticks);
     const rc = this._rgbToHex(config.rivet_color);
     if (rc) config.rivet_color = rc;
     else config.rivet_color = defaults.rivet_color;
     const pc = this._rgbToHex(config.plate_color);
     if (pc) config.plate_color = pc;
     else config.plate_color = defaults.plate_color;
+    const fc = this._rgbToHex(config.face_color);
+    if (fc) config.face_color = fc;
+    else config.face_color = defaults.face_color;
+    const tfc = this._rgbToHex(config.title_font_color);
+    if (tfc) config.title_font_color = tfc;
+    else config.title_font_color = defaults.title_font_color;
+    const nc = this._rgbToHex(config.number_color);
+    if (nc) config.number_color = nc;
+    else config.number_color = defaults.number_color;
+    const ptc = this._rgbToHex(config.primary_tick_color);
+    if (ptc) config.primary_tick_color = ptc;
+    else config.primary_tick_color = defaults.primary_tick_color;
+    const stc = this._rgbToHex(config.secondary_tick_color);
+    if (stc) config.secondary_tick_color = stc;
+    else config.secondary_tick_color = defaults.secondary_tick_color;
+    const hhc = this._rgbToHex(config.hour_hand_color);
+    if (hhc) config.hour_hand_color = hhc;
+    else config.hour_hand_color = defaults.hour_hand_color;
+    const mhc = this._rgbToHex(config.minute_hand_color);
+    if (mhc) config.minute_hand_color = mhc;
+    else config.minute_hand_color = defaults.minute_hand_color;
+    const shc = this._rgbToHex(config.second_hand_color);
+    if (shc) config.second_hand_color = shc;
+    else config.second_hand_color = defaults.second_hand_color;
     if (formData.actions) {
       ["tap", "hold", "double_tap"].forEach((type) => {
         const group = formData.actions;
@@ -4204,6 +4420,90 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
             name: "aged_texture_intensity",
             label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Default Gradient" },
+                  { value: "solid", label: "Solid Color" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "hour_hand_color",
+                label: "Hour Hand",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "minute_hand_color",
+                label: "Minute Hand",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "second_hand_color",
+                label: "Second Hand",
+                selector: { color_rgb: {} }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: "style_fonts_ticks",
+        type: "expandable",
+        title: "Fonts & Ticks",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Primary Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Secondary Tick Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       },

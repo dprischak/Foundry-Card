@@ -444,6 +444,28 @@ class FoundryGaugeCardEditor extends HTMLElement {
       glass_effect_enabled: config.glass_effect_enabled,
       aged_texture: config.aged_texture,
       aged_texture_intensity: config.aged_texture_intensity,
+      background_style: config.background_style,
+      face_color: this._hexToRgb(config.face_color ?? '#f8f8f0') ?? [
+        248, 248, 240,
+      ],
+      needle_color: this._hexToRgb(config.needle_color ?? '#C41E3A') ?? [
+        196, 30, 58,
+      ],
+    };
+
+    data.style_fonts_ticks = {
+      title_font_color: this._hexToRgb(
+        config.title_font_color ?? '#3e2723'
+      ) ?? [62, 39, 35],
+      number_color: this._hexToRgb(config.number_color ?? '#3e2723') ?? [
+        62, 39, 35,
+      ],
+      primary_tick_color: this._hexToRgb(
+        config.primary_tick_color ?? '#3e2723'
+      ) ?? [62, 39, 35],
+      secondary_tick_color: this._hexToRgb(
+        config.secondary_tick_color ?? '#5d4e37'
+      ) ?? [93, 78, 55],
     };
 
     data.layout = {
@@ -484,10 +506,24 @@ class FoundryGaugeCardEditor extends HTMLElement {
       rivet_color: this._config?.rivet_color ?? '#6d5d4b',
       plate_color: this._config?.plate_color ?? '#8c7626',
       high_needle_color: this._config?.high_needle_color ?? '#FF9800',
+      face_color: this._config?.face_color ?? '#f8f8f0',
+      title_font_color: this._config?.title_font_color ?? '#3e2723',
+      number_color: this._config?.number_color ?? '#3e2723',
+      primary_tick_color: this._config?.primary_tick_color ?? '#3e2723',
+      secondary_tick_color: this._config?.secondary_tick_color ?? '#5d4e37',
+      needle_color: this._config?.needle_color ?? '#C41E3A',
     };
 
     Object.keys(formData).forEach((key) => {
-      if (['appearance', 'layout', 'high_needle', 'actions'].includes(key))
+      if (
+        [
+          'appearance',
+          'layout',
+          'high_needle',
+          'style_fonts_ticks',
+          'actions',
+        ].includes(key)
+      )
         return;
       config[key] = formData[key];
     });
@@ -495,6 +531,8 @@ class FoundryGaugeCardEditor extends HTMLElement {
     if (formData.appearance) Object.assign(config, formData.appearance);
     if (formData.layout) Object.assign(config, formData.layout);
     if (formData.high_needle) Object.assign(config, formData.high_needle);
+    if (formData.style_fonts_ticks)
+      Object.assign(config, formData.style_fonts_ticks);
 
     // Only overwrite if conversion succeeds; otherwise keep existing hex
     const rc = this._rgbToHex(config.rivet_color);
@@ -508,6 +546,30 @@ class FoundryGaugeCardEditor extends HTMLElement {
     const hn = this._rgbToHex(config.high_needle_color);
     if (hn) config.high_needle_color = hn;
     else config.high_needle_color = defaults.high_needle_color;
+
+    const fc = this._rgbToHex(config.face_color);
+    if (fc) config.face_color = fc;
+    else config.face_color = defaults.face_color;
+
+    const tfc = this._rgbToHex(config.title_font_color);
+    if (tfc) config.title_font_color = tfc;
+    else config.title_font_color = defaults.title_font_color;
+
+    const nc = this._rgbToHex(config.number_color);
+    if (nc) config.number_color = nc;
+    else config.number_color = defaults.number_color;
+
+    const ptc = this._rgbToHex(config.primary_tick_color);
+    if (ptc) config.primary_tick_color = ptc;
+    else config.primary_tick_color = defaults.primary_tick_color;
+
+    const stc = this._rgbToHex(config.secondary_tick_color);
+    if (stc) config.secondary_tick_color = stc;
+    else config.secondary_tick_color = defaults.secondary_tick_color;
+
+    const ndlz = this._rgbToHex(config.needle_color);
+    if (ndlz) config.needle_color = ndlz;
+    else config.needle_color = defaults.needle_color;
 
     if (formData.actions) {
       ['tap', 'hold', 'double_tap'].forEach((type) => {
@@ -683,6 +745,74 @@ class FoundryGaugeCardEditor extends HTMLElement {
             name: 'aged_texture_intensity',
             label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'background_style',
+            label: 'Background Style',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'gradient', label: 'Default Gradient' },
+                  { value: 'solid', label: 'Solid Color' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'face_color',
+            label: 'Face Color (Solid Mode)',
+            selector: { color_rgb: {} },
+          },
+          {
+            name: 'needle_color',
+            label: 'Needle Color',
+            selector: { color_rgb: {} },
+          },
+        ],
+      },
+      {
+        name: 'style_fonts_ticks',
+        type: 'expandable',
+        title: 'Fonts & Ticks',
+        schema: [
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'title_font_color',
+                label: 'Title Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'number_color',
+                label: 'Number Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'primary_tick_color',
+                label: 'Primary Tick Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'secondary_tick_color',
+                label: 'Secondary Tick Color',
+                selector: { color_rgb: {} },
+              },
+            ],
           },
         ],
       },

@@ -222,6 +222,15 @@ unit: '°C'
 | `glass_effect_enabled`       | boolean | No       | true                    | Enable glass effect overlay                                     |
 | `aged_texture`               | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'        |
 | `aged_texture_intensity`     | number  | No       | 50                      | Intensity of aged texture effect (0-100, higher = more visible) |
+| `title_font_color`           | string  | No       | '#3e2723'               | Color of the title text                                         |
+| `title_font_family`          | string  | No       | 'Georgia, serif'        | Font family for the title                                       |
+| `background_style`           | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'               |
+| `face_color`                 | string  | No       | '#f8f8f0'               | Color of the gauge face (if solid) or base for gradient         |
+| `number_color`               | string  | No       | '#3e2723'               | Color of value numbers                                          |
+| `number_font_family`         | string  | No       | 'Georgia, serif'        | Font family for value numbers                                   |
+| `primary_tick_color`         | string  | No       | '#3e2723'               | Color of major hash marks                                       |
+| `secondary_tick_color`       | string  | No       | '#5d4e37'               | Color of minor hash marks                                       |
+| `needle_color`               | string  | No       | '#C41E3A'               | Color of the main needle                                        |
 | `tap_action`                 | object  | No       | `{action: 'more-info'}` | Action to perform on tap (see Actions below)                    |
 | `hold_action`                | object  | No       | `{action: 'more-info'}` | Action to perform on hold (see Actions below)                   |
 | `double_tap_action`          | object  | No       | `{action: 'more-info'}` | Action to perform on double tap (see Actions below)             |
@@ -456,6 +465,15 @@ Add a vintage analog clock to your dashboard:
 | `second_hand_enabled`    | boolean | No       | true                    | Show/hide the second hand                                                                           |
 | `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                                            |
 | `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                           |
+| `background_style`       | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'                                                   |
+| `face_color`             | string  | No       | '#f8f8f0'               | Color of clock face (if solid) or base for gradient                                                 |
+| `title_font_color`       | string  | No       | '#3e2723'               | Color of the title text                                                                             |
+| `number_color`           | string  | No       | '#3e2723'               | Color of numbers                                                                                    |
+| `primary_tick_color`     | string  | No       | '#3e2723'               | Color of major hash marks                                                                           |
+| `secondary_tick_color`   | string  | No       | '#5d4e37'               | Color of minor hash marks                                                                           |
+| `hour_hand_color`        | string  | No       | '#3e2723'               | Color of hour hand                                                                                  |
+| `minute_hand_color`      | string  | No       | '#3e2723'               | Color of minute hand                                                                                |
+| `second_hand_color`      | string  | No       | '#C41E3A'               | Color of second hand                                                                                |
 | `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                                                     |
 
 <details>
