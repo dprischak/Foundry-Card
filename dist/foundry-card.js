@@ -137,13 +137,9 @@ var FoundryGaugeCard = class extends HTMLElement {
       const position = digitEl.dataset.position;
       if (inner && position !== void 0) {
         const targetDigit = parseInt(position);
-        const digitItem = inner.querySelector(".digit-item");
-        if (!digitItem) return;
-        const computedStyle = window.getComputedStyle(digitItem);
-        const digitHeight = parseFloat(computedStyle.height) || 28;
-        const offset = Math.round(-targetDigit * digitHeight);
+        const offset = -targetDigit * 100;
         inner.style.transition = "none";
-        inner.style.transform = `translateY(${offset}px)`;
+        inner.style.transform = `translateY(${offset}%)`;
         requestAnimationFrame(() => {
           inner.style.transition = "";
         });
@@ -442,13 +438,16 @@ var FoundryGaugeCard = class extends HTMLElement {
           will-change: transform;
         }
         .digit-item {
-          width: 100%;
-          height:  ${odoDigitH};
+          height: ${odoDigitH};
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 100%;
+          text-align: center;
+          box-sizing: border-box;
           flex-shrink: 0;
           line-height: 1;
+          padding-top: 0.1em;
         }
         .rivet {
           fill: ${rivetColor};
@@ -838,7 +837,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       case "black":
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
-        return { grad: `copperRim-${uid}`, stroke: "#8b5a2b" };
+        return { grad: `copperRim-${uid}`, stroke: "#c77c43" };
       default:
         return null;
     }
@@ -1417,12 +1416,13 @@ var FoundryGaugeCard = class extends HTMLElement {
       this.renderRotaryDisplay(
         flipDisplay,
         this._formatValueWithPadding(currentValue, decimals),
-        // Duplicate line removed
-        unit
+        unit,
+        stepDuration
+        // Use calculated step duration for smooth animation
       );
     }, stepDuration);
   }
-  renderRotaryDisplay(flipDisplay, displayText, unit) {
+  renderRotaryDisplay(flipDisplay, displayText, unit, transitionDuration = null) {
     const isNegative = displayText.startsWith("-");
     const absDisplayText = isNegative ? displayText.substring(1) : displayText;
     const chars = absDisplayText.split("");
@@ -1470,12 +1470,8 @@ var FoundryGaugeCard = class extends HTMLElement {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               inner.offsetHeight;
-              const digitItem = inner.querySelector(".digit-item");
-              if (!digitItem) return;
-              const computedStyle = window.getComputedStyle(digitItem);
-              const digitHeight = parseFloat(computedStyle.height) || 28;
-              const offset = Math.round(-targetPosition * digitHeight);
-              inner.style.transform = `translateY(${offset}px)`;
+              const offset = -targetPosition * 100;
+              inner.style.transform = `translateY(${offset}%)`;
               requestAnimationFrame(() => {
                 inner.style.transition = "";
               });
@@ -1483,12 +1479,8 @@ var FoundryGaugeCard = class extends HTMLElement {
           });
         } else {
           signEl.dataset.position = targetPosition.toString();
-          const digitItem = inner.querySelector(".digit-item");
-          if (!digitItem) return;
-          const computedStyle = window.getComputedStyle(digitItem);
-          const digitHeight = parseFloat(computedStyle.height) || 28;
-          const offset = Math.round(-targetPosition * digitHeight);
-          inner.style.transform = `translateY(${offset}px)`;
+          const offset = -targetPosition * 100;
+          inner.style.transform = `translateY(${offset}%)`;
         }
       }
       digitIndex++;
@@ -1499,8 +1491,8 @@ var FoundryGaugeCard = class extends HTMLElement {
       } else {
         let digitEl = existingDigits[digitIndex];
         if (!digitEl || digitEl.classList.contains("decimal") || digitEl.classList.contains("minus-sign")) {
-          digitEl = document.createElement("div");
-          digitEl.className = afterDecimal ? "flip-digit fractional" : "flip-digit";
+          const newDigitEl = document.createElement("div");
+          newDigitEl.className = afterDecimal ? "flip-digit fractional" : "flip-digit";
           const inner2 = document.createElement("div");
           inner2.className = "flip-digit-inner";
           const baseDigits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -1510,8 +1502,15 @@ var FoundryGaugeCard = class extends HTMLElement {
             item.textContent = d;
             inner2.appendChild(item);
           });
-          digitEl.appendChild(inner2);
-          digitsRow.appendChild(digitEl);
+          newDigitEl.appendChild(inner2);
+          if (digitEl) {
+            digitsRow.replaceChild(newDigitEl, digitEl);
+          } else {
+            digitsRow.appendChild(newDigitEl);
+          }
+          digitEl = newDigitEl;
+        } else if (afterDecimal && !digitEl.classList.contains("fractional") || !afterDecimal && digitEl.classList.contains("fractional")) {
+          digitEl.className = afterDecimal ? "flip-digit fractional" : "flip-digit";
         }
         const inner = digitEl.querySelector(".flip-digit-inner");
         if (inner) {
@@ -1523,12 +1522,8 @@ var FoundryGaugeCard = class extends HTMLElement {
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 inner.offsetHeight;
-                const digitItem = inner.querySelector(".digit-item");
-                if (!digitItem) return;
-                const computedStyle = window.getComputedStyle(digitItem);
-                const digitHeight = parseFloat(computedStyle.height) || 28;
-                const offset = Math.round(-targetDigit * digitHeight);
-                inner.style.transform = `translateY(${offset}px)`;
+                const offset = -targetDigit * 100;
+                inner.style.transform = `translateY(${offset}%)`;
                 requestAnimationFrame(() => {
                   inner.style.transition = "";
                 });
@@ -1536,21 +1531,21 @@ var FoundryGaugeCard = class extends HTMLElement {
             });
           } else {
             digitEl.dataset.position = targetDigit.toString();
-            const digitItem = inner.querySelector(".digit-item");
-            const computedStyle = window.getComputedStyle(digitItem);
-            const digitHeight = parseFloat(computedStyle.height) || 28;
-            const offset = Math.round(-targetDigit * digitHeight);
-            inner.style.transform = `translateY(${offset}px)`;
-            const handleTransitionEnd = () => {
-              const finalDigitHeight = digitItem ? digitItem.getBoundingClientRect().height : 28;
-              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
-              inner.style.transform = `translateY(${finalOffset}px)`;
-              inner.removeEventListener("transitionend", handleTransitionEnd);
-            };
-            inner.removeEventListener("transitionend", handleTransitionEnd);
-            inner.addEventListener("transitionend", handleTransitionEnd, {
-              once: true
-            });
+            const offset = -targetDigit * 100;
+            if (transitionDuration && transitionDuration > 0) {
+              inner.style.transition = `transform ${transitionDuration}ms linear`;
+              inner.style.transform = `translateY(${offset}%)`;
+            } else {
+              inner.style.transition = "none";
+              inner.style.transform = `translateY(${offset}%)`;
+            }
+            if (inner._transitionHandler) {
+              inner.removeEventListener(
+                "transitionend",
+                inner._transitionHandler
+              );
+              inner._transitionHandler = null;
+            }
           }
         }
         digitIndex++;
