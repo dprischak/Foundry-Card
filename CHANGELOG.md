@@ -1,6 +1,6 @@
 ## v26.2.1
 
-### Version Changes
+### 📅 Version Changes
 
 - **Version Change:** Moving from sequential versioning to year.month.patch versioning.
 
@@ -9,7 +9,11 @@
 - **Linter:** Added Linter to ensure code quality.
 - **Format:** Added format to ensure consistent code style.
 
-### Defect Fixes
+### 🛠️ Improvements
+
+- **Issue #18:** Added title color to entites, uptime and digital clock
+
+### 🐛 Defect Fixes
 
 - **Issue #21:** Unable to change thermostat card color ranges in visual editor
 
