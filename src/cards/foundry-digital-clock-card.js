@@ -1,5 +1,5 @@
-import { fireEvent, getActionConfig } from "./utils.js";
-import { ensureLedFont } from "./fonts.js";
+import { fireEvent, getActionConfig } from './utils.js';
+import { ensureLedFont } from './fonts.js';
 
 class FoundryDigitalClockCard extends HTMLElement {
   constructor() {
@@ -12,24 +12,45 @@ class FoundryDigitalClockCard extends HTMLElement {
     this.config = { ...config };
 
     if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
+      this.config.tap_action = { action: 'more-info' };
     }
 
     // Defaults
     this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.title_font_size = this.config.title_font_size !== undefined ? this.config.title_font_size : 14;
+    this.config.title_font_size =
+      this.config.title_font_size !== undefined
+        ? this.config.title_font_size
+        : 14;
+    this.config.title_color = this.config.title_color || '#3e2723';
     this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent = this.config.plate_transparent !== undefined ? this.config.plate_transparent : false;
+    this.config.plate_transparent =
+      this.config.plate_transparent !== undefined
+        ? this.config.plate_transparent
+        : false;
     this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
     this.config.font_color = this.config.font_color || '#000000';
-    this.config.use_24h_format = this.config.use_24h_format !== undefined ? this.config.use_24h_format : true;
+    this.config.use_24h_format =
+      this.config.use_24h_format !== undefined
+        ? this.config.use_24h_format
+        : true;
 
-    this.config.show_seconds = this.config.show_seconds !== undefined ? this.config.show_seconds : true;
-    this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== undefined ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== undefined ? this.config.aged_texture : 'everywhere';
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== undefined ? this.config.aged_texture_intensity : 50;
+    this.config.show_seconds =
+      this.config.show_seconds !== undefined ? this.config.show_seconds : true;
+    this.config.wear_level =
+      this.config.wear_level !== undefined ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled =
+      this.config.glass_effect_enabled !== undefined
+        ? this.config.glass_effect_enabled
+        : true;
+    this.config.aged_texture =
+      this.config.aged_texture !== undefined
+        ? this.config.aged_texture
+        : 'everywhere';
+    this.config.aged_texture_intensity =
+      this.config.aged_texture_intensity !== undefined
+        ? this.config.aged_texture_intensity
+        : 50;
 
     // Random ID for gradients
     this._uniqueId = Math.random().toString(36).substr(2, 9);
@@ -72,10 +93,12 @@ class FoundryDigitalClockCard extends HTMLElement {
     // Time Zone Handling
     if (this.config.time_zone) {
       try {
-        const tzString = new Date().toLocaleString("en-US", { timeZone: this.config.time_zone });
+        const tzString = new Date().toLocaleString('en-US', {
+          timeZone: this.config.time_zone,
+        });
         time = new Date(tzString);
-      } catch (e) {
-        console.warn("Invalid time zone:", this.config.time_zone);
+      } catch (_e) {
+        console.warn('Invalid time zone:', this.config.time_zone);
       }
     }
 
@@ -92,17 +115,18 @@ class FoundryDigitalClockCard extends HTMLElement {
     let seconds = time.getSeconds().toString().padStart(2, '0');
 
     // If 12h format and PM, we will show dot in pmIndicator element
-    const showPm = (this.config.use_24h_format === false && isPm);
+    const showPm = this.config.use_24h_format === false && isPm;
 
-    const timeFull = (this.config.show_seconds !== false)
-      ? `${hours}:${minutes}:${seconds}`
-      : `${hours}:${minutes}`;
+    const timeFull =
+      this.config.show_seconds !== false
+        ? `${hours}:${minutes}:${seconds}`
+        : `${hours}:${minutes}`;
 
     const timeDisplay = this.shadowRoot.getElementById('timeDisplay');
     const pmIndicator = this.shadowRoot.getElementById('pmIndicator');
 
     if (timeDisplay) timeDisplay.textContent = timeFull;
-    if (pmIndicator) pmIndicator.textContent = showPm ? "." : "";
+    if (pmIndicator) pmIndicator.textContent = showPm ? '.' : '';
   }
 
   render() {
@@ -110,6 +134,7 @@ class FoundryDigitalClockCard extends HTMLElement {
     const title = config.title || '';
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
 
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
@@ -120,15 +145,25 @@ class FoundryDigitalClockCard extends HTMLElement {
 
     // New features
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
-    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
+    // agedTextureEnabled removed as unused
 
     // Hardcoded font for time - Renamed to avoid conflicts
-    // const timeFontFamily = 'FoundryDigitalLED, monospace'; 
+    // const timeFontFamily = 'FoundryDigitalLED, monospace';
     const titleFontFamily = 'Georgia, serif';
 
     this.shadowRoot.innerHTML = `
@@ -218,25 +253,26 @@ class FoundryDigitalClockCard extends HTMLElement {
               ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
               
               <!-- Title text -->
-              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Digital Time -->
-              ${this.config.show_seconds !== false
-        ? `
+              ${
+                this.config.show_seconds !== false
+                  ? `
                   <!-- Layout with Seconds: H:M:S -->
                   <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--:--</text>
                     <text id="pmIndicator" x="205" y="75" text-anchor="start"></text>
                   </g>
                 `
-        : `
+                  : `
                   <!-- Layout without Seconds: H:M -->
                   <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--</text>
                     <text id="pmIndicator" x="185" y="75" text-anchor="start"></text>
                   </g>
                 `
-      }
+              }
               
               <!-- Wear Marks -->
               ${this.renderWearMarks(wearLevel)}
@@ -256,52 +292,141 @@ class FoundryDigitalClockCard extends HTMLElement {
       { cx: 20, cy: 25 },
       { cx: 240, cy: 25 },
       { cx: 20, cy: 125 },
-      { cx: 240, cy: 125 }
+      { cx: 240, cy: 125 },
     ];
 
-    return rivets.map(r => `
+    return rivets
+      .map(
+        (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return '';
-    const baseOpacity = (wearLevel / 100) * 0.25;
+    // baseOpacity removed
     // Approximated coords for 220x150
     const allMarks = [
-      { type: 'circle', cx: 50, cy: 45, r: 2, fill: '#8B7355', baseOpacity: 0.2 },
-      { type: 'circle', cx: 210, cy: 56, r: 1.5, fill: '#8B7355', baseOpacity: 0.15 },
-      { type: 'circle', cx: 77, cy: 90, r: 1, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'ellipse', cx: 163, cy: 37, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'circle', cx: 38, cy: 105, r: 1.2, fill: '#8B7355', baseOpacity: 0.12 },
-      { type: 'circle', cx: 220, cy: 97, r: 1.8, fill: '#6d5d4b', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 55, cy: 67, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.08 },
-      { type: 'circle', cx: 152, cy: 108, r: 0.8, fill: '#6d5d4b', baseOpacity: 0.15 },
-      { type: 'circle', cx: 238, cy: 48, r: 1.3, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'ellipse', cx: 27, cy: 75, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.09 }
+      {
+        type: 'circle',
+        cx: 50,
+        cy: 45,
+        r: 2,
+        fill: '#8B7355',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'circle',
+        cx: 210,
+        cy: 56,
+        r: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 77,
+        cy: 90,
+        r: 1,
+        fill: '#6d5d4b',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'ellipse',
+        cx: 163,
+        cy: 37,
+        rx: 3,
+        ry: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'circle',
+        cx: 38,
+        cy: 105,
+        r: 1.2,
+        fill: '#8B7355',
+        baseOpacity: 0.12,
+      },
+      {
+        type: 'circle',
+        cx: 220,
+        cy: 97,
+        r: 1.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.18,
+      },
+      {
+        type: 'ellipse',
+        cx: 55,
+        cy: 67,
+        rx: 2,
+        ry: 1,
+        fill: '#8B7355',
+        baseOpacity: 0.08,
+      },
+      {
+        type: 'circle',
+        cx: 152,
+        cy: 108,
+        r: 0.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 238,
+        cy: 48,
+        r: 1.3,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'ellipse',
+        cx: 27,
+        cy: 75,
+        rx: 2.5,
+        ry: 1.2,
+        fill: '#6d5d4b',
+        baseOpacity: 0.09,
+      },
     ];
     const markCount = Math.ceil((wearLevel / 100) * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
-    return marksToShow.map(mark => {
-      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-      return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
-    }).join('');
+    return marksToShow
+      .map((mark) => {
+        const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+        return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+      })
+      .join('');
   }
 
   // ... helper methods for color, common gradients etc ...
   adjustColor(color, percent) {
     if (!color) return color;
     if (color.startsWith('#')) {
-      let num = parseInt(color.replace("#", ""), 16),
+      let num = parseInt(color.replace('#', ''), 16),
         amt = Math.round(2.55 * percent),
         R = (num >> 16) + amt,
-        G = (num >> 8 & 0x00FF) + amt,
-        B = (num & 0x0000FF) + amt;
-      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        G = ((num >> 8) & 0x00ff) + amt,
+        B = (num & 0x0000ff) + amt;
+      return (
+        '#' +
+        (
+          0x1000000 +
+          (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+          (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+          (B < 255 ? (B < 1 ? 0 : B) : 255)
+        )
+          .toString(16)
+          .slice(1)
+      );
     }
     return color;
   }
@@ -373,11 +498,9 @@ class FoundryDigitalClockCard extends HTMLElement {
       `;
   }
 
-
-
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
 
     // Box Geometry
     // Plate is 260x150. (Rect 5,10 -> 255,140)
@@ -410,54 +533,68 @@ class FoundryDigitalClockCard extends HTMLElement {
 
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
-      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
-      case "blue": return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
-      case "green": return { grad: `greenRim-${uid}`, stroke: "#006400" };
-      case "red": return { grad: `redRim-${uid}`, stroke: "#8B0000" };
-      default: return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8B4513' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#104E8B' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#006400' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8B0000' };
+      default:
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
     }
   }
 
   _attachActionListeners() {
-    const root = this.shadowRoot?.getElementById("actionRoot");
+    const root = this.shadowRoot?.getElementById('actionRoot');
     if (!root) return;
     root.onclick = () => {
-      const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+      const tap = getActionConfig(this.config, 'tap_action', {
+        action: 'more-info',
+      });
       if (tap.action !== 'none') {
         if (this.config.entity) {
-          this._handleAction("tap");
+          this._handleAction('tap');
         }
       }
     };
   }
 
-  _handleAction(kind) {
+  _handleAction(_kind) {
     if (!this._hass || !this.config) return;
     const entityId = this.config.entity;
     if (!entityId) return;
-    const tap = getActionConfig(this.config, "tap_action", { action: "more-info" });
+    const tap = getActionConfig(this.config, 'tap_action', {
+      action: 'more-info',
+    });
     const actionConfig = tap;
     const action = actionConfig?.action;
-    if (!action || action === "none") return;
-    if (action === "more-info") {
-      fireEvent(this, "hass-more-info", { entityId });
+    if (!action || action === 'none') return;
+    if (action === 'more-info') {
+      fireEvent(this, 'hass-more-info', { entityId });
     }
   }
 
   static getConfigElement() {
-    return document.createElement("foundry-digital-clock-editor");
+    return document.createElement('foundry-digital-clock-editor');
   }
 
   static getStubConfig() {
     return {
-      entity: "sun.sun",
-      title: "Local Time",
+      entity: 'sun.sun',
+      title: 'Local Time',
       title_font_size: 12,
+      title_color: '#3e2723',
       ring_style: 'brass',
       rivet_color: '#6a5816',
       plate_color: '#8c7626',
@@ -470,20 +607,18 @@ class FoundryDigitalClockCard extends HTMLElement {
       glass_effect_enabled: true,
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
-    }
+    };
   }
 }
-
 
 if (!customElements.get('foundry-digital-clock-card')) {
   customElements.define('foundry-digital-clock-card', FoundryDigitalClockCard);
 }
 
-
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-digital-clock-card",
-  name: "Foundry Digital Clock",
+  type: 'foundry-digital-clock-card',
+  name: 'Foundry Digital Clock',
   preview: true,
-  description: "A digital clock with square ring and LED font."
+  description: 'A digital clock with square ring and LED font.',
 });

@@ -1,6 +1,5 @@
-
-import { fireEvent, getActionConfig } from "./utils.js";
-import { ensureLedFont } from "./fonts.js";
+import { fireEvent } from './utils.js';
+import { ensureLedFont } from './fonts.js';
 
 class FoundryEntitiesCard extends HTMLElement {
   constructor() {
@@ -12,27 +11,45 @@ class FoundryEntitiesCard extends HTMLElement {
     this.config = { ...config };
 
     if (!this.config.entities) {
-      throw new Error("Entities list is required");
+      throw new Error('Entities list is required');
     }
 
     if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
+      this.config.tap_action = { action: 'more-info' };
     }
 
     // Defaults
     this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.title = this.config.title !== undefined ? this.config.title : "Entities";
-    this.config.title_font_size = this.config.title_font_size !== undefined ? this.config.title_font_size : 14;
+    this.config.title =
+      this.config.title !== undefined ? this.config.title : 'Entities';
+    this.config.title_font_size =
+      this.config.title_font_size !== undefined
+        ? this.config.title_font_size
+        : 14;
+    this.config.title_color = this.config.title_color || '#3e2723';
     this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent = this.config.plate_transparent !== undefined ? this.config.plate_transparent : false;
+    this.config.plate_transparent =
+      this.config.plate_transparent !== undefined
+        ? this.config.plate_transparent
+        : false;
     this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
     this.config.font_color = this.config.font_color || '#000000';
 
-    this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== undefined ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== undefined ? this.config.aged_texture : 'everywhere';
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== undefined ? this.config.aged_texture_intensity : 50;
+    this.config.wear_level =
+      this.config.wear_level !== undefined ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled =
+      this.config.glass_effect_enabled !== undefined
+        ? this.config.glass_effect_enabled
+        : true;
+    this.config.aged_texture =
+      this.config.aged_texture !== undefined
+        ? this.config.aged_texture
+        : 'everywhere';
+    this.config.aged_texture_intensity =
+      this.config.aged_texture_intensity !== undefined
+        ? this.config.aged_texture_intensity
+        : 50;
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
@@ -51,7 +68,8 @@ class FoundryEntitiesCard extends HTMLElement {
     const now = new Date();
 
     this.config.entities.forEach((entityConf, index) => {
-      let entityId = (typeof entityConf === 'string') ? entityConf : entityConf.entity;
+      let entityId =
+        typeof entityConf === 'string' ? entityConf : entityConf.entity;
       if (!entityId) return;
 
       const stateObj = this._hass.states[entityId];
@@ -59,36 +77,47 @@ class FoundryEntitiesCard extends HTMLElement {
       // Update State
       const stateEl = this.shadowRoot.getElementById(`state-${index}`);
       if (stateEl) {
-        const stateStr = stateObj ? stateObj.state : "N/A";
-        const unit = stateObj && stateObj.attributes.unit_of_measurement ? stateObj.attributes.unit_of_measurement : "";
+        const stateStr = stateObj ? stateObj.state : 'N/A';
+        const unit =
+          stateObj && stateObj.attributes.unit_of_measurement
+            ? stateObj.attributes.unit_of_measurement
+            : '';
         stateEl.textContent = `${stateStr}${unit ? ' ' + unit : ''}`;
       }
 
       // Update Secondary Info
       const secondaryEl = this.shadowRoot.getElementById(`secondary-${index}`);
-      const secondaryType = (typeof entityConf === 'object') ? entityConf.secondary_info : null;
+      const secondaryType =
+        typeof entityConf === 'object' ? entityConf.secondary_info : null;
 
       if (secondaryEl && secondaryType && secondaryType !== 'none') {
         if (stateObj) {
           if (secondaryType === 'entity-id') {
             secondaryEl.textContent = entityId;
           } else if (secondaryType === 'state') {
-            const unit = stateObj.attributes.unit_of_measurement || "";
+            const unit = stateObj.attributes.unit_of_measurement || '';
             secondaryEl.textContent = `${stateObj.state}${unit ? ' ' + unit : ''}`;
-          } else if (secondaryType === 'last-updated' || secondaryType === 'last-changed') {
-            const tsStr = secondaryType === 'last-updated' ? stateObj.last_updated : stateObj.last_changed;
+          } else if (
+            secondaryType === 'last-updated' ||
+            secondaryType === 'last-changed'
+          ) {
+            const tsStr =
+              secondaryType === 'last-updated'
+                ? stateObj.last_updated
+                : stateObj.last_changed;
             const ts = new Date(tsStr);
             const diff = Math.floor((now - ts) / 1000);
-            let secondary = "";
+            let secondary = '';
             if (diff < 60) secondary = `${diff}s ago`;
             else if (diff < 3600) secondary = `${Math.floor(diff / 60)}m ago`;
-            else if (diff < 86400) secondary = `${Math.floor(diff / 3600)}h ago`;
+            else if (diff < 86400)
+              secondary = `${Math.floor(diff / 3600)}h ago`;
             else secondary = `${Math.floor(diff / 86400)}d ago`;
 
             secondaryEl.textContent = secondary;
           }
         } else {
-          secondaryEl.textContent = "";
+          secondaryEl.textContent = '';
         }
       }
     });
@@ -99,6 +128,7 @@ class FoundryEntitiesCard extends HTMLElement {
     const title = config.title || '';
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
@@ -108,11 +138,21 @@ class FoundryEntitiesCard extends HTMLElement {
 
     // Appearance
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== undefined ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
-    const agedTextureIntensity = config.aged_texture_intensity !== undefined ? config.aged_texture_intensity : 50;
+    const glassEffectEnabled =
+      config.glass_effect_enabled !== undefined
+        ? config.glass_effect_enabled
+        : true;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+    const agedTextureIntensity =
+      config.aged_texture_intensity !== undefined
+        ? config.aged_texture_intensity
+        : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (plateTransparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
 
     const titleFontFamily = 'Georgia, serif';
 
@@ -121,9 +161,10 @@ class FoundryEntitiesCard extends HTMLElement {
     const rowHeightDouble = 26;
 
     let currentY = 12;
-    const rowLayouts = config.entities.map(ent => {
+    const rowLayouts = config.entities.map((ent) => {
       const isString = typeof ent === 'string';
-      const hasSecondary = !isString && ent.secondary_info && ent.secondary_info !== 'none';
+      const hasSecondary =
+        !isString && ent.secondary_info && ent.secondary_info !== 'none';
       const height = hasSecondary ? rowHeightDouble : rowHeightSingle;
       const y = currentY;
       currentY += height;
@@ -134,8 +175,8 @@ class FoundryEntitiesCard extends HTMLElement {
         hasSecondary,
         // Extract core data for easier usage
         entityId: isString ? ent : ent.entity,
-        name: isString ? ent : (ent.name || ent.entity),
-        secondaryInfo: hasSecondary ? ent.secondary_info : null
+        name: isString ? ent : ent.name || ent.entity,
+        secondaryInfo: hasSecondary ? ent.secondary_info : null,
       };
     });
 
@@ -229,7 +270,7 @@ class FoundryEntitiesCard extends HTMLElement {
               ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
               
               <!-- Title -->
-              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Entities List -->
               <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" stroke="${fontColor}" stroke-width="0.2" style="letter-spacing: 1px; pointer-events: none;">
@@ -245,12 +286,12 @@ class FoundryEntitiesCard extends HTMLElement {
       </ha-card>
     `;
 
-    this.shadowRoot.querySelectorAll(".entity-row").forEach(row => {
-      row.addEventListener("click", (e) => {
+    this.shadowRoot.querySelectorAll('.entity-row').forEach((row) => {
+      row.addEventListener('click', (e) => {
         e.stopPropagation();
-        const entityId = row.getAttribute("data-entity-id");
+        const entityId = row.getAttribute('data-entity-id');
         if (entityId) {
-          fireEvent(this, "hass-more-info", { entityId });
+          fireEvent(this, 'hass-more-info', { entityId });
         }
       });
     });
@@ -259,18 +300,19 @@ class FoundryEntitiesCard extends HTMLElement {
   }
 
   renderEntitiesLoop(rowLayouts) {
-    return rowLayouts.map((layout, i) => {
-      const { entityId, name, hasSecondary, y, height } = layout;
+    return rowLayouts
+      .map((layout, i) => {
+        const { entityId, name, hasSecondary, y, height } = layout;
 
-      // Positioning logic
-      const yTop = y;
-      const yText = hasSecondary ? yTop : (yTop + 2); // Center single lines (approx)
-      const ySecondary = yTop + 10;
-      const yState = hasSecondary ? (yTop + 6) : (yTop + 2); // Align state
+        // Positioning logic
+        const yTop = y;
+        const yText = hasSecondary ? yTop : yTop + 2; // Center single lines (approx)
+        const ySecondary = yTop + 10;
+        const yState = hasSecondary ? yTop + 6 : yTop + 2; // Align state
 
-      const hitWidth = 220;
+        const hitWidth = 220;
 
-      return `
+        return `
              <g class="entity-row" data-entity-id="${entityId}" style="cursor: pointer;">
                  <!-- Hit target for clicking -->
                  <rect x="0" y="${yTop - 6}" width="${hitWidth}" height="${height}" fill="transparent" stroke="none" pointer-events="all"/>
@@ -279,7 +321,8 @@ class FoundryEntitiesCard extends HTMLElement {
                  <text id="state-${i}" x="190" y="${yState}" text-anchor="end" style="pointer-events: none;">--</text>
              </g>
           `;
-    }).join('');
+      })
+      .join('');
   }
 
   renderRivets(w, h, x, y) {
@@ -288,21 +331,25 @@ class FoundryEntitiesCard extends HTMLElement {
       { cx: x + offset, cy: y + offset },
       { cx: x + w - offset, cy: y + offset },
       { cx: x + offset, cy: y + h - offset },
-      { cx: x + w - offset, cy: y + h - offset }
+      { cx: x + w - offset, cy: y + h - offset },
     ];
 
-    return rivets.map(r => `
+    return rivets
+      .map(
+        (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
         <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
 
     // Inner bevel inset
     const bevelX = x + 8;
@@ -341,7 +388,6 @@ class FoundryEntitiesCard extends HTMLElement {
   // Reuse from Digital Clock
   renderWearMarks(wearLevel, viewBoxHeight) {
     if (wearLevel === 0) return '';
-    const baseOpacity = (wearLevel / 100) * 0.25;
     return `
         <circle cx="50" cy="45" r="2" fill="#8B7355" opacity="${Math.min(0.2 * (wearLevel / 50), 0.25)}"/>
         <circle cx="210" cy="${viewBoxHeight - 40}" r="1.5" fill="#8B7355" opacity="${Math.min(0.15 * (wearLevel / 50), 0.25)}"/>
@@ -351,28 +397,47 @@ class FoundryEntitiesCard extends HTMLElement {
   adjustColor(color, percent) {
     if (!color) return color;
     if (color.startsWith('#')) {
-      let num = parseInt(color.replace("#", ""), 16),
+      let num = parseInt(color.replace('#', ''), 16),
         amt = Math.round(2.55 * percent),
         R = (num >> 16) + amt,
-        G = (num >> 8 & 0x00FF) + amt,
-        B = (num & 0x0000FF) + amt;
-      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        G = ((num >> 8) & 0x00ff) + amt,
+        B = (num & 0x0000ff) + amt;
+      return (
+        '#' +
+        (
+          0x1000000 +
+          (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+          (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+          (B < 255 ? (B < 1 ? 0 : B) : 255)
+        )
+          .toString(16)
+          .slice(1)
+      );
     }
     return color;
   }
 
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
-      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
-      case "blue": return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
-      case "green": return { grad: `greenRim-${uid}`, stroke: "#006400" };
-      case "red": return { grad: `redRim-${uid}`, stroke: "#8B0000" };
-      default: return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8B4513' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#104E8B' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#006400' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8B0000' };
+      default:
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
     }
   }
 
@@ -436,17 +501,18 @@ class FoundryEntitiesCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("foundry-entities-editor");
+    return document.createElement('foundry-entities-editor');
   }
 
   static getStubConfig() {
     return {
       entities: [
-        { entity: "sensor.sun_next_dawn", name: "Dawn" },
-        { entity: "sensor.sun_next_dusk", name: "Dusk" }
+        { entity: 'sensor.sun_next_dawn', name: 'Dawn' },
+        { entity: 'sensor.sun_next_dusk', name: 'Dusk' },
       ],
-      title: "Foundry Data",
+      title: 'Foundry Data',
       title_font_size: 14,
+      title_color: '#3e2723',
       ring_style: 'brass',
       rivet_color: '#6a5816',
       plate_color: '#8c7626',
@@ -457,7 +523,7 @@ class FoundryEntitiesCard extends HTMLElement {
       glass_effect_enabled: true,
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
-    }
+    };
   }
 }
 
@@ -467,8 +533,8 @@ if (!customElements.get('foundry-entities-card')) {
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-entities-card",
-  name: "Foundry Entities",
+  type: 'foundry-entities-card',
+  name: 'Foundry Entities',
   preview: true,
-  description: "A digital display for a list of entities."
+  description: 'A digital display for a list of entities.',
 });
