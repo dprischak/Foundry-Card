@@ -17,6 +17,8 @@
 ### 🐛 Defect Fixes
 
 - **Issue #21:** Unable to change thermostat card color ranges in visual editor
+- **Issue:** Gague card odometer glitches
+- **Issue:** Gague card odometer 3,8,9 where always slightly higher then the other numbers
 
 ## v5.0
 

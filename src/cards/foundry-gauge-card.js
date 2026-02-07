@@ -81,17 +81,12 @@ class FoundryGaugeCard extends HTMLElement {
       if (inner && position !== undefined) {
         const targetDigit = parseInt(position);
 
-        // Recalculate with current actual height using getComputedStyle
-        const digitItem = inner.querySelector('.digit-item');
-        if (!digitItem) return;
-
-        const computedStyle = window.getComputedStyle(digitItem);
-        const digitHeight = parseFloat(computedStyle.height) || 28;
-        const offset = Math.round(-targetDigit * digitHeight);
+        // Use percentage-based positioning (100% = 1 digit height)
+        const offset = -targetDigit * 100;
 
         // Apply without transition
         inner.style.transition = 'none';
-        inner.style.transform = `translateY(${offset}px)`;
+        inner.style.transform = `translateY(${offset}%)`;
 
         // Re-enable transition on next frame
         requestAnimationFrame(() => {
@@ -460,13 +455,16 @@ class FoundryGaugeCard extends HTMLElement {
           will-change: transform;
         }
         .digit-item {
-          width: 100%;
-          height:  ${odoDigitH};
+          height: ${odoDigitH};
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 100%;
+          text-align: center;
+          box-sizing: border-box;
           flex-shrink: 0;
           line-height: 1;
+          padding-top: 0.1em;
         }
         .rivet {
           fill: ${rivetColor};
@@ -936,7 +934,7 @@ class FoundryGaugeCard extends HTMLElement {
       case 'black':
         return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
       case 'copper':
-        return { grad: `copperRim-${uid}`, stroke: '#8b5a2b' };
+        return { grad: `copperRim-${uid}`, stroke: '#c77c43' };
 
       default:
         return null; // "none" or unknown
@@ -1713,13 +1711,18 @@ class FoundryGaugeCard extends HTMLElement {
       this.renderRotaryDisplay(
         flipDisplay,
         this._formatValueWithPadding(currentValue, decimals),
-        // Duplicate line removed
-        unit
+        unit,
+        stepDuration // Use calculated step duration for smooth animation
       );
     }, stepDuration);
   }
 
-  renderRotaryDisplay(flipDisplay, displayText, unit) {
+  renderRotaryDisplay(
+    flipDisplay,
+    displayText,
+    unit,
+    transitionDuration = null
+  ) {
     // Determine if negative and get absolute value
     const isNegative = displayText.startsWith('-');
     const absDisplayText = isNegative ? displayText.substring(1) : displayText;
@@ -1731,16 +1734,21 @@ class FoundryGaugeCard extends HTMLElement {
     // Get or create digits row wrapper
     let digitsRow = flipDisplay.querySelector('.digits-row');
     if (!digitsRow) {
+      // console.log('Creating new digitsRow');
       flipDisplay.innerHTML = '';
       digitsRow = document.createElement('div');
       digitsRow.className = 'digits-row';
       flipDisplay.appendChild(digitsRow);
     }
 
+    // console.log(`renderRotaryDisplay: value="${displayText}", expectedLen=${expectedLength}, existingLen=${digitsRow.children.length}`);
+
     // Calculate expected structure: minus sign (if min < 0) + digits (excluding decimal point)
     const digitCount = chars.filter((c) => c !== '.').length;
     const expectedLength = (allowNegative ? 1 : 0) + digitCount;
     let existingDigits = Array.from(digitsRow.children);
+
+    // console.log(`Foundry Gauge Debug: Rendering "${displayText}". Expected: ${expectedLength}, Existing: ${existingDigits.length}`);
 
     // Clear if structure changed
     if (existingDigits.length !== expectedLength) {
@@ -1790,13 +1798,9 @@ class FoundryGaugeCard extends HTMLElement {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               inner.offsetHeight;
-              const digitItem = inner.querySelector('.digit-item');
-              if (!digitItem) return;
-
-              const computedStyle = window.getComputedStyle(digitItem);
-              const digitHeight = parseFloat(computedStyle.height) || 28;
-              const offset = Math.round(-targetPosition * digitHeight);
-              inner.style.transform = `translateY(${offset}px)`;
+              // Use percentage-based positioning (100% = 1 digit height)
+              const offset = -targetPosition * 100;
+              inner.style.transform = `translateY(${offset}%)`;
 
               requestAnimationFrame(() => {
                 inner.style.transition = '';
@@ -1807,13 +1811,9 @@ class FoundryGaugeCard extends HTMLElement {
           // Animated update
           signEl.dataset.position = targetPosition.toString();
 
-          const digitItem = inner.querySelector('.digit-item');
-          if (!digitItem) return;
-
-          const computedStyle = window.getComputedStyle(digitItem);
-          const digitHeight = parseFloat(computedStyle.height) || 28;
-          const offset = Math.round(-targetPosition * digitHeight);
-          inner.style.transform = `translateY(${offset}px)`;
+          // Use percentage-based positioning (100% = 1 digit height)
+          const offset = -targetPosition * 100;
+          inner.style.transform = `translateY(${offset}%)`;
         }
       }
 
@@ -1833,8 +1833,8 @@ class FoundryGaugeCard extends HTMLElement {
           digitEl.classList.contains('minus-sign')
         ) {
           // Create new rotary digit with single set of digits 0-9
-          digitEl = document.createElement('div');
-          digitEl.className = afterDecimal
+          const newDigitEl = document.createElement('div');
+          newDigitEl.className = afterDecimal
             ? 'flip-digit fractional'
             : 'flip-digit';
           const inner = document.createElement('div');
@@ -1849,8 +1849,22 @@ class FoundryGaugeCard extends HTMLElement {
             inner.appendChild(item);
           });
 
-          digitEl.appendChild(inner);
-          digitsRow.appendChild(digitEl);
+          newDigitEl.appendChild(inner);
+
+          if (digitEl) {
+            digitsRow.replaceChild(newDigitEl, digitEl);
+          } else {
+            digitsRow.appendChild(newDigitEl);
+          }
+          digitEl = newDigitEl;
+        } else if (
+          (afterDecimal && !digitEl.classList.contains('fractional')) ||
+          (!afterDecimal && digitEl.classList.contains('fractional'))
+        ) {
+          // Update class if fractional state changes
+          digitEl.className = afterDecimal
+            ? 'flip-digit fractional'
+            : 'flip-digit';
         }
 
         // Update rotation position with forward-only animation
@@ -1874,16 +1888,9 @@ class FoundryGaugeCard extends HTMLElement {
                 // Force a reflow to ensure elements are rendered
                 inner.offsetHeight;
 
-                // Now measure the actual height
-                const digitItem = inner.querySelector('.digit-item');
-                if (!digitItem) return;
-
-                // Force a style recalculation to get the ACTUAL height after CSS settles
-                const computedStyle = window.getComputedStyle(digitItem);
-                const digitHeight = parseFloat(computedStyle.height) || 28;
-
-                const offset = Math.round(-targetDigit * digitHeight);
-                inner.style.transform = `translateY(${offset}px)`;
+                // Use percentage-based positioning (100% = 1 digit height)
+                const offset = -targetDigit * 100;
+                inner.style.transform = `translateY(${offset}%)`;
 
                 // Re-enable transition after another frame
                 requestAnimationFrame(() => {
@@ -1895,27 +1902,37 @@ class FoundryGaugeCard extends HTMLElement {
             // Animated update
             digitEl.dataset.position = targetDigit.toString();
 
-            // Calculate digit height dynamically based on container size
-            const digitItem = inner.querySelector('.digit-item');
-            const computedStyle = window.getComputedStyle(digitItem);
-            const digitHeight = parseFloat(computedStyle.height) || 28;
-            const offset = Math.round(-targetDigit * digitHeight);
-            inner.style.transform = `translateY(${offset}px)`;
+            // Use percentage-based positioning (100% = 1 digit height)
+            const offset = -targetDigit * 100;
 
-            // Add transitionend listener to ensure perfect alignment
-            const handleTransitionEnd = () => {
-              // Recalculate and snap to exact position after animation completes
-              const finalDigitHeight = digitItem
-                ? digitItem.getBoundingClientRect().height
-                : 28;
-              const finalOffset = Math.round(-targetDigit * finalDigitHeight);
-              inner.style.transform = `translateY(${finalOffset}px)`;
-              inner.removeEventListener('transitionend', handleTransitionEnd);
-            };
-            inner.removeEventListener('transitionend', handleTransitionEnd); // Remove any old listeners
-            inner.addEventListener('transitionend', handleTransitionEnd, {
-              once: true,
-            });
+            // Use passed duration or default to immediate if null/0/false
+            // If transitionDuration is provided, use linear for smooth continuous movement
+            if (transitionDuration && transitionDuration > 0) {
+              inner.style.transition = `transform ${transitionDuration}ms linear`;
+              inner.style.transform = `translateY(${offset}%)`;
+            } else {
+              inner.style.transition = 'none';
+              inner.style.transform = `translateY(${offset}%)`;
+            }
+
+            // Cleanup any old transition handlers if we are not using them or if we set a new one
+            if (inner._transitionHandler) {
+              inner.removeEventListener(
+                'transitionend',
+                inner._transitionHandler
+              );
+              inner._transitionHandler = null;
+            }
+
+            // If we are animating, we might want to ensure we snap at the end,
+            // but for the odometer effect, the next step will handle the position.
+            // When the loop finishes, animateOdometer calls renderRotaryDisplay one last time with final value.
+            // The logic below for transitionEnd was causing issues with rapid updates.
+            // We will rely on the "final" call from animateOdometer to set the final position.
+
+            // Only add snap listener if this is a "long" transition (not part of the rapid loop)
+            // But animateOdometer steps are rapid.
+            // Let's simplified this: we trust the transform.
           }
         }
 
