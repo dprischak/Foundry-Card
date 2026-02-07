@@ -599,7 +599,7 @@ class FoundryGaugeCard extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
-              <circle cx="100" cy="100" r="85" fill="url(#gaugeFace-${uid})" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="${config.background_style === 'solid' ? config.face_color || '#f8f8f0' : `url(#gaugeFace-${uid})`}" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
                             
 
               <!-- Glass effect overlay -->
@@ -615,7 +615,7 @@ class FoundryGaugeCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ''}
               
               <!-- Center hub background -->
 			  <circle cx="100" cy="100" r="12"
@@ -644,8 +644,8 @@ class FoundryGaugeCard extends HTMLElement {
                       transform="translate(2,2)"/>
                 <!-- Needle body -->
                 <path d="M 100 100 L 95 95 L 97 30 L 100 25 L 103 30 L 105 95 Z" 
-                      fill="#C41E3A" 
-                      stroke="#8B0000" 
+                      fill="${config.needle_color || '#C41E3A'}" 
+                      stroke="${this.darkenColor(config.needle_color || '#C41E3A', 0.2)}" 
                       stroke-width="0.5"/>
                 <!-- Needle highlight -->
                 <path d="M 100 100 L 98 95 L 99 30 L 100 25 L 99.5 30 Z" 
@@ -690,7 +690,7 @@ class FoundryGaugeCard extends HTMLElement {
     `;
     this._attachActionListeners();
     this.drawSegments(segments, min, max);
-    this.drawTicks(min, max);
+    this.drawTicks(min, max, config);
     this.drawStoppers();
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
@@ -898,7 +898,12 @@ class FoundryGaugeCard extends HTMLElement {
     // Unknown action type -> do nothing (safe)
   }
 
-  renderTitleText(title, fontSize) {
+  renderTitleText(
+    title,
+    fontSize,
+    color = '#3e2723',
+    fontFamily = 'Georgia, serif'
+  ) {
     // Split title by newlines - handle both literal \n typed in input and actual newlines
     const lines = title.replace(/\\n/g, '\n').split('\n').slice(0, 3); // Max 3 lines
     const lineHeight = fontSize * 1.2; // 20% spacing between lines
@@ -908,7 +913,7 @@ class FoundryGaugeCard extends HTMLElement {
     return lines
       .map((line, index) => {
         const y = startY + index * lineHeight;
-        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+        return `<text x="100" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="${fontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
       })
       .join('\n');
   }
@@ -1124,7 +1129,7 @@ class FoundryGaugeCard extends HTMLElement {
     });
   }
 
-  drawTicks(min, max) {
+  drawTicks(min, max, config) {
     const ticksGroup = this.shadowRoot.getElementById('ticks');
     const numbersGroup = this.shadowRoot.getElementById('numbers');
     const centerX = 100;
@@ -1166,7 +1171,7 @@ class FoundryGaugeCard extends HTMLElement {
       tick.setAttribute('y1', y1);
       tick.setAttribute('x2', x2);
       tick.setAttribute('y2', y2);
-      tick.setAttribute('stroke', '#3e2723');
+      tick.setAttribute('stroke', config.primary_tick_color || '#3e2723');
       tick.setAttribute('stroke-width', '2');
       ticksGroup.appendChild(tick);
 
@@ -1186,7 +1191,7 @@ class FoundryGaugeCard extends HTMLElement {
       text.setAttribute('dominant-baseline', 'middle');
       text.setAttribute('font-size', '9');
       text.setAttribute('font-weight', 'bold');
-      text.setAttribute('fill', '#3e2723');
+      text.setAttribute('fill', config.number_color || '#3e2723');
       text.setAttribute('font-family', 'Georgia, serif');
       const displayValue =
         max - min <= 10 ? value.toFixed(1) : Math.round(value);
@@ -1212,7 +1217,10 @@ class FoundryGaugeCard extends HTMLElement {
           minorTick.setAttribute('y1', my1);
           minorTick.setAttribute('x2', mx2);
           minorTick.setAttribute('y2', my2);
-          minorTick.setAttribute('stroke', '#5d4e37');
+          minorTick.setAttribute(
+            'stroke',
+            config.secondary_tick_color || '#5d4e37'
+          );
           minorTick.setAttribute('stroke-width', '1');
           ticksGroup.appendChild(minorTick);
         }
@@ -1974,6 +1982,13 @@ class FoundryGaugeCard extends HTMLElement {
         { from: 33, to: 66, color: '#FFC107' },
         { from: 66, to: 100, color: '#F44336' },
       ],
+      background_style: 'gradient',
+      face_color: '#f8f8f0',
+      title_font_color: '#3e2723',
+      number_color: '#3e2723',
+      primary_tick_color: '#3e2723',
+      secondary_tick_color: '#5d4e37',
+      needle_color: '#C41E3A',
     };
   }
 }

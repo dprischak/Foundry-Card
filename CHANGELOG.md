@@ -12,6 +12,7 @@
 ### 🛠️ Improvements
 
 - **Issue #18:** Added title color to entites, uptime and digital clock
+- **Issue #19:** Added additional color options to the guage and analog clock cards
 
 ### 🐛 Defect Fixes
 
