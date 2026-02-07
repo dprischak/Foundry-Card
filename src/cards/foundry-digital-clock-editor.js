@@ -93,6 +93,9 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
         255, 255, 255,
       ],
       font_color: this._hexToRgb(config.font_color ?? '#000000') ?? [0, 0, 0],
+      title_color: this._hexToRgb(config.title_color ?? '#3e2723') ?? [
+        62, 39, 35,
+      ],
       rivet_color: this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
         109, 93, 75,
       ],
@@ -129,6 +132,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
       // Convert colors back to hex
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
       config.font_color = this._rgbToHex(config.font_color);
+      config.title_color = this._rgbToHex(config.title_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.plate_color = this._rgbToHex(config.plate_color);
     }
@@ -239,6 +243,11 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
               {
                 name: 'font_color',
                 label: 'Digital Font Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'title_color',
+                label: 'Title Color',
                 selector: { color_rgb: {} },
               },
               {

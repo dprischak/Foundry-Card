@@ -63,6 +63,7 @@ class FoundryUptimeCard extends HTMLElement {
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.title = this.config.title || 'Uptime Monitor';
     this.config.title_font_size = this.config.title_font_size || 14;
+    this.config.title_color = this.config.title_color || '#3e2723';
     this.config.plate_color = this.config.plate_color || '#f5f5f5';
     this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
@@ -103,6 +104,7 @@ class FoundryUptimeCard extends HTMLElement {
     return {
       entity: 'binary_sensor.updater',
       title: 'Uptime Monitor',
+      title_color: '#3e2723',
       hours_to_show: 24,
       ok: 'on',
       ko: 'off',
@@ -527,7 +529,7 @@ class FoundryUptimeCard extends HTMLElement {
               ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
 
               <!-- Title -->
-              <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="#3e2723" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
+              <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
               <!-- Main Content: The Tube -->
               <!-- Center Vertically in Rim: rimY + (rimHeight - 24)/2 -->
