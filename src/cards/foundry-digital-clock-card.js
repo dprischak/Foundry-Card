@@ -21,6 +21,7 @@ class FoundryDigitalClockCard extends HTMLElement {
       this.config.title_font_size !== undefined
         ? this.config.title_font_size
         : 14;
+    this.config.title_color = this.config.title_color || '#3e2723';
     this.config.plate_color = this.config.plate_color || '#f5f5f5';
     this.config.plate_transparent =
       this.config.plate_transparent !== undefined
@@ -133,6 +134,7 @@ class FoundryDigitalClockCard extends HTMLElement {
     const title = config.title || '';
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
 
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
@@ -251,7 +253,7 @@ class FoundryDigitalClockCard extends HTMLElement {
               ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
               
               <!-- Title text -->
-              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Digital Time -->
               ${
@@ -592,6 +594,7 @@ class FoundryDigitalClockCard extends HTMLElement {
       entity: 'sun.sun',
       title: 'Local Time',
       title_font_size: 12,
+      title_color: '#3e2723',
       ring_style: 'brass',
       rivet_color: '#6a5816',
       plate_color: '#8c7626',

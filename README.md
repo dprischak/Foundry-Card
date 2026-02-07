@@ -499,6 +499,7 @@ A retro digital timepiece:
 | `entity`                 | string  | No       | -                       | Entity ID (optional, for tap action context)                                                |
 | `title`                  | string  | No       | "Local Time"            | Card title                                                                                  |
 | `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                                |
+| `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                                     |
 | `use_24h_format`         | boolean | No       | true                    | Use 24-hour format (false for 12h)                                                          |
 | `show_seconds`           | boolean | No       | true                    | Show seconds display                                                                        |
 | `time_zone`              | string  | No       | Local                   | Time zone (e.g., "America/New_York")                                                        |
@@ -687,6 +688,7 @@ A digital display for a list of entities.
 | `entities`               | array   | **Yes**  | -                       | List of entities to display. Can be strings or objects.                             |
 | `title`                  | string  | No       | "Entities"              | Card title                                                                          |
 | `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                        |
+| `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                             |
 | `ring_style`             | string  | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red' |
 | `plate_color`            | string  | No       | '#f5f5f5'               | Background plate color                                                              |
 | `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                          |
@@ -740,6 +742,7 @@ A detailed uptime monitoring card simulating an industrial vacuum tube display.
 | `entity`                 | string       | **Yes**  | -                | Binary Sensor or entity to monitor                                                  |
 | `title`                  | string       | No       | "Uptime Monitor" | Card title                                                                          |
 | `title_font_size`        | number       | No       | 14               | Font size for the title text                                                        |
+| `title_color`            | string       | No       | '#3e2723'        | Color of the title text                                                             |
 | `hours_to_show`          | number       | No       | 24               | Number of history hours to display                                                  |
 | `update_interval`        | number       | No       | 60               | Refresh interval in seconds                                                         |
 | `show_footer`            | boolean      | No       | true             | Show start/end time labels                                                          |

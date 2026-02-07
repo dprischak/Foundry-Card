@@ -203,6 +203,9 @@ class FoundryEntitiesEditor extends HTMLElement {
     // Defaults
     data.title = config.title ?? 'Entities';
     data.title_font_size = config.title_font_size ?? 14;
+    data.title_color = this._hexToRgb(config.title_color ?? '#3e2723') ?? [
+      62, 39, 35,
+    ];
     data.ring_style = config.ring_style ?? 'brass';
     data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [
       255, 255, 255,
@@ -263,6 +266,8 @@ class FoundryEntitiesEditor extends HTMLElement {
       config.entities = mergedEntities;
     }
 
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
     if (config.font_bg_color)
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
     if (config.font_color)
@@ -368,6 +373,11 @@ class FoundryEntitiesEditor extends HTMLElement {
               {
                 name: 'plate_color',
                 label: 'Plate Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'title_color',
+                label: 'Title Color',
                 selector: { color_rgb: {} },
               },
               {

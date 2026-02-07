@@ -4295,6 +4295,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     }
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+    this.config.title_color = this.config.title_color || "#3e2723";
     this.config.plate_color = this.config.plate_color || "#f5f5f5";
     this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
     this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
@@ -4366,6 +4367,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const title = config.title || "";
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
@@ -4466,7 +4468,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
               ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
               
               <!-- Title text -->
-              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
               
               <!-- Digital Time -->
               ${this.config.show_seconds !== false ? `
@@ -4762,6 +4764,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       entity: "sun.sun",
       title: "Local Time",
       title_font_size: 12,
+      title_color: "#3e2723",
       ring_style: "brass",
       rivet_color: "#6a5816",
       plate_color: "#8c7626",
@@ -4874,6 +4877,11 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
         255
       ],
       font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
+      title_color: this._hexToRgb(config.title_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
+      ],
       rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
         109,
         93,
@@ -4907,6 +4915,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
       Object.assign(config, formData.appearance);
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
       config.font_color = this._rgbToHex(config.font_color);
+      config.title_color = this._rgbToHex(config.title_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.plate_color = this._rgbToHex(config.plate_color);
     }
@@ -5015,6 +5024,11 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              },
+              {
                 name: "plate_color",
                 label: "Plate Color",
                 selector: { color_rgb: {} }
@@ -5117,6 +5131,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title !== void 0 ? this.config.title : "Entities";
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+    this.config.title_color = this.config.title_color || "#3e2723";
     this.config.plate_color = this.config.plate_color || "#f5f5f5";
     this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
     this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
@@ -5180,6 +5195,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
     const title = config.title || "";
     const uid = this._uniqueId;
     const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
     const ringStyle = config.ring_style;
     const rivetColor = config.rivet_color;
     const plateColor = config.plate_color;
@@ -5298,7 +5314,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
               ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
               
               <!-- Title -->
-              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="#3e2723" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
+              ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
               
               <!-- Entities List -->
               <g transform="translate(${rimX + 12}, ${rimY + 12})" font-family="ds-digitaldot" font-size="8" fill="${fontColor}" stroke="${fontColor}" stroke-width="0.2" style="letter-spacing: 1px; pointer-events: none;">
@@ -5501,6 +5517,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
       ],
       title: "Foundry Data",
       title_font_size: 14,
+      title_color: "#3e2723",
       ring_style: "brass",
       rivet_color: "#6a5816",
       plate_color: "#8c7626",
@@ -5696,6 +5713,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     }
     data.title = config.title ?? "Entities";
     data.title_font_size = config.title_font_size ?? 14;
+    data.title_color = this._hexToRgb(config.title_color ?? "#3e2723") ?? [
+      62,
+      39,
+      35
+    ];
     data.ring_style = config.ring_style ?? "brass";
     data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
       255,
@@ -5751,6 +5773,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     if (formData.entities !== void 0) {
       config.entities = mergedEntities;
     }
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
     if (config.font_bg_color)
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
     if (config.font_color)
@@ -5846,6 +5870,11 @@ var FoundryEntitiesEditor = class extends HTMLElement {
               {
                 name: "plate_color",
                 label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -6708,6 +6737,7 @@ var FoundryUptimeCard = class extends HTMLElement {
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title || "Uptime Monitor";
     this.config.title_font_size = this.config.title_font_size || 14;
+    this.config.title_color = this.config.title_color || "#3e2723";
     this.config.plate_color = this.config.plate_color || "#f5f5f5";
     this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
@@ -6733,6 +6763,7 @@ var FoundryUptimeCard = class extends HTMLElement {
     return {
       entity: "binary_sensor.updater",
       title: "Uptime Monitor",
+      title_color: "#3e2723",
       hours_to_show: 24,
       ok: "on",
       ko: "off",
@@ -7064,7 +7095,7 @@ var FoundryUptimeCard = class extends HTMLElement {
               ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
 
               <!-- Title -->
-              <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="#3e2723" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
+              <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
               <!-- Main Content: The Tube -->
               <!-- Center Vertically in Rim: rimY + (rimHeight - 24)/2 -->
@@ -7480,6 +7511,9 @@ var FoundryUptimeEditor = class extends HTMLElement {
     if (config.font_bg_color)
       data.font_bg_color = this._hexToRgb(config.font_bg_color);
     if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
+    if (config.title_color)
+      data.title_color = this._hexToRgb(config.title_color);
+    else data.title_color = [62, 39, 35];
     if (config.plate_color)
       data.plate_color = this._hexToRgb(config.plate_color);
     if (config.rivet_color)
@@ -7496,6 +7530,8 @@ var FoundryUptimeEditor = class extends HTMLElement {
     if (formData.font_bg_color)
       config.font_bg_color = ensureHex(formData.font_bg_color);
     if (formData.font_color) config.font_color = ensureHex(formData.font_color);
+    if (formData.title_color)
+      config.title_color = ensureHex(formData.title_color);
     if (formData.plate_color)
       config.plate_color = ensureHex(formData.plate_color);
     if (formData.rivet_color)
@@ -7597,6 +7633,11 @@ var FoundryUptimeEditor = class extends HTMLElement {
               {
                 name: "font_color",
                 label: "Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {

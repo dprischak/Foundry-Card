@@ -302,6 +302,9 @@ class FoundryUptimeEditor extends HTMLElement {
     if (config.font_bg_color)
       data.font_bg_color = this._hexToRgb(config.font_bg_color);
     if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
+    if (config.title_color)
+      data.title_color = this._hexToRgb(config.title_color);
+    else data.title_color = [62, 39, 35]; // default #3e2723
     if (config.plate_color)
       data.plate_color = this._hexToRgb(config.plate_color);
     if (config.rivet_color)
@@ -320,6 +323,8 @@ class FoundryUptimeEditor extends HTMLElement {
     if (formData.font_bg_color)
       config.font_bg_color = ensureHex(formData.font_bg_color);
     if (formData.font_color) config.font_color = ensureHex(formData.font_color);
+    if (formData.title_color)
+      config.title_color = ensureHex(formData.title_color);
     if (formData.plate_color)
       config.plate_color = ensureHex(formData.plate_color);
     if (formData.rivet_color)
@@ -430,6 +435,11 @@ class FoundryUptimeEditor extends HTMLElement {
               {
                 name: 'font_color',
                 label: 'Font Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'title_color',
+                label: 'Title Color',
                 selector: { color_rgb: {} },
               },
               {
