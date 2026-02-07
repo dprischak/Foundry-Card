@@ -1,50 +1,72 @@
-import { fireEvent, getActionConfig } from "./utils.js";
-import { ensureLedFont } from "./fonts.js";
+import { fireEvent, getActionConfig } from './utils.js';
+import { ensureLedFont } from './fonts.js';
 
 class FoundrySliderCard extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
+    this.attachShadow({ mode: 'open' });
     this._uniqueId = Math.random().toString(36).substr(2, 9);
   }
 
   setConfig(config) {
     this.config = { ...config };
-    
+
     // Basic Slider Settings
     this.config.min = this.config.min !== undefined ? this.config.min : 0;
     this.config.max = this.config.max !== undefined ? this.config.max : 100;
     this.config.step = this.config.step !== undefined ? this.config.step : 1;
-    this.config.value = this.config.value !== undefined ? this.config.value : this.config.min;
-    
+    this.config.value =
+      this.config.value !== undefined ? this.config.value : this.config.min;
+
     // Brass Theme Defaults (from digital clock)
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.plate_color = this.config.plate_color || "#8c7626";
-    this.config.plate_transparent = this.config.plate_transparent !== undefined ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6a5816";
-    this.config.knob_color = this.config.knob_color || "#c9a961";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    
+    this.config.ring_style = this.config.ring_style || 'brass';
+    this.config.plate_color = this.config.plate_color || '#8c7626';
+    this.config.plate_transparent =
+      this.config.plate_transparent !== undefined
+        ? this.config.plate_transparent
+        : false;
+    this.config.rivet_color = this.config.rivet_color || '#6a5816';
+    this.config.knob_color = this.config.knob_color || '#c9a961';
+    this.config.font_color = this.config.font_color || '#000000';
+    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+
     // Slider-specific colors
-    this.config.slider_color = this.config.slider_color || "#444444";
-    this.config.tick_color = this.config.tick_color || "rgba(0,0,0,0.22)";
-    
+    this.config.slider_color = this.config.slider_color || '#444444';
+    this.config.tick_color = this.config.tick_color || 'rgba(0,0,0,0.22)';
+
     // Display Settings
-    this.config.show_value = this.config.show_value !== undefined ? this.config.show_value : true;
-    this.config.led_position = this.config.led_position || "right"; // 'left' or 'right'
-    this.config.title_font_size = this.config.title_font_size !== undefined ? this.config.title_font_size : 14;
-    this.config.value_font_size = this.config.value_font_size !== undefined ? this.config.value_font_size : 36;
-    
+    this.config.show_value =
+      this.config.show_value !== undefined ? this.config.show_value : true;
+    this.config.led_position = this.config.led_position || 'right'; // 'left' or 'right'
+    this.config.title_font_size =
+      this.config.title_font_size !== undefined
+        ? this.config.title_font_size
+        : 14;
+    this.config.value_font_size =
+      this.config.value_font_size !== undefined
+        ? this.config.value_font_size
+        : 36;
+
     // Knob Settings
-    this.config.knob_shape = this.config.knob_shape || "square"; // 'circular', 'square', 'rectangular'
-    this.config.knob_size = this.config.knob_size !== undefined ? this.config.knob_size : 48;
-    
+    this.config.knob_shape = this.config.knob_shape || 'square'; // 'circular', 'square', 'rectangular'
+    this.config.knob_size =
+      this.config.knob_size !== undefined ? this.config.knob_size : 48;
+
     // Visual Effects (from digital clock)
-    this.config.wear_level = this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== undefined ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== undefined ? this.config.aged_texture : 'everywhere';
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== undefined ? this.config.aged_texture_intensity : 50;
+    this.config.wear_level =
+      this.config.wear_level !== undefined ? this.config.wear_level : 50;
+    this.config.glass_effect_enabled =
+      this.config.glass_effect_enabled !== undefined
+        ? this.config.glass_effect_enabled
+        : true;
+    this.config.aged_texture =
+      this.config.aged_texture !== undefined
+        ? this.config.aged_texture
+        : 'everywhere';
+    this.config.aged_texture_intensity =
+      this.config.aged_texture_intensity !== undefined
+        ? this.config.aged_texture_intensity
+        : 50;
 
     ensureLedFont();
     this.render();
@@ -58,24 +80,23 @@ class FoundrySliderCard extends HTMLElement {
     const cfg = this.config;
     const uid = this._uniqueId;
     const title = cfg.title || '';
-    
+
     // SVG SIZING CONSTANTS - Easy to customize
     const SVG_WIDTH = 150;
     const SVG_HEIGHT = 260;
     const KNOB_BORDER_WIDTH = 3; // Fixed at 3px, but as a constant
     const TRACK_WIDTH_MULTIPLIER = 0.375; // Track width = knob_size * this multiplier
-    
+
     // Layout Constants
-    const PLATE_PADDING = 0;
     const PLATE_X = 0;
     const PLATE_Y = 0;
     const PLATE_WIDTH = SVG_WIDTH;
     const PLATE_HEIGHT = SVG_HEIGHT;
-    
+
     // Calculate knob dimensions based on shape
     const knobSize = cfg.knob_size;
     let knobWidth, knobHeight, knobBorderRadius;
-    
+
     switch (cfg.knob_shape) {
       case 'circular':
         knobWidth = knobSize;
@@ -94,38 +115,43 @@ class FoundrySliderCard extends HTMLElement {
         knobBorderRadius = '10px';
         break;
     }
-    
+
     // Track dimensions - centered horizontally
     const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
-    const trackX = (SVG_WIDTH / 2) - (trackWidth / 2);
+    const trackX = SVG_WIDTH / 2 - trackWidth / 2;
     const trackTopY = 50;
-    const trackBottomY = 180;  // Made shorter to accommodate LED below
+    const trackBottomY = 180; // Made shorter to accommodate LED below
     const trackHeight = trackBottomY - trackTopY;
-    const trackCenterY = (trackTopY + trackBottomY) / 2;
     const sliderInputHeight = trackHeight + knobHeight;
-    const sliderInputTop = trackTopY - (knobHeight / 2);
-    
+    const sliderInputTop = trackTopY - knobHeight / 2;
+
     // LED Display positioning - below track, centered
     const displayChars = this._getLedCharCount(cfg);
     const ledCharWidth = cfg.value_font_size * 0.45;
     const ledPaddingX = Math.max(6, Math.round(cfg.value_font_size * 0.2));
-    const ledWidth = Math.max(50, Math.round((displayChars * ledCharWidth) + (ledPaddingX * 2)));
+    const ledWidth = Math.max(
+      50,
+      Math.round(displayChars * ledCharWidth + ledPaddingX * 2)
+    );
     const ledHeight = 50;
-    const ledX = (SVG_WIDTH / 2) - (ledWidth / 2);
+    const ledX = SVG_WIDTH / 2 - ledWidth / 2;
     const ledY = trackBottomY + 15; // Positioned below the track
-    
+
     // Tick mark positioning
     const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
     const tickMinorLength = 6;
-    
+
     // Visual effects
     const wearLevel = cfg.wear_level;
     const glassEffectEnabled = cfg.glass_effect_enabled;
     const agedTexture = cfg.aged_texture;
     const agedTextureIntensity = cfg.aged_texture_intensity;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture = (cfg.plate_transparent && agedTexture === 'everywhere') ? 'glass_only' : agedTexture;
+    const effectiveAgedTexture =
+      cfg.plate_transparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -174,7 +200,7 @@ class FoundrySliderCard extends HTMLElement {
         .slider-input-container {
           position: absolute;
           top: ${((sliderInputTop / SVG_HEIGHT) * 100).toFixed(2)}%;
-          left: ${((trackX + trackWidth / 2) / SVG_WIDTH * 100).toFixed(2)}%;
+          left: ${(((trackX + trackWidth / 2) / SVG_WIDTH) * 100).toFixed(2)}%;
           width: 100%;
           height: ${((sliderInputHeight / SVG_HEIGHT) * 100).toFixed(2)}%;
           transform: translateX(-50%);
@@ -189,7 +215,7 @@ class FoundrySliderCard extends HTMLElement {
           appearance: none;
           background: transparent;
           width: 100%;
-          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
           transform-origin: center center;
@@ -201,27 +227,27 @@ class FoundrySliderCard extends HTMLElement {
         /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
           background: transparent;
-          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
           border: none;
         }
         input[type="range"]::-moz-range-track {
           background: transparent;
-          height: ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
           border: none;
         }
         
         /* Thumb/Knob styling */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: ${(knobWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
-          height: ${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi;
-          margin-top: calc(-${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi / 2 + ${(trackWidth / SVG_WIDTH * 100).toFixed(2)}cqi / 2);
+          width: ${((knobWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          height: ${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          margin-top: calc(-${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi / 2 + ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi / 2);
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${(KNOB_BORDER_WIDTH / SVG_WIDTH * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          border: ${((KNOB_BORDER_WIDTH / SVG_WIDTH) * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
           box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
                       inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
                       inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
@@ -229,14 +255,14 @@ class FoundrySliderCard extends HTMLElement {
         }
         
         input[type="range"]::-moz-range-thumb {
-          width: ${(knobWidth / SVG_WIDTH * 100).toFixed(2)}cqi;
-          height: ${(knobHeight / SVG_WIDTH * 100).toFixed(2)}cqi;
+          width: ${((knobWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          height: ${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi;
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${(KNOB_BORDER_WIDTH / SVG_WIDTH * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          border: ${((KNOB_BORDER_WIDTH / SVG_WIDTH) * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
           box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
                       inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
                       inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
@@ -412,9 +438,9 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
+  renderSquareRim(ringStyle, uid, _bgColor, _glassEffectEnabled) {
     const data = this.getRimStyleData(ringStyle, uid);
-    if (!data) return "";
+    if (!data) return '';
 
     // Rim positioned to frame the entire card
     // Outer rim: 10px from edge, 130px wide x 240px tall
@@ -445,16 +471,25 @@ class FoundrySliderCard extends HTMLElement {
 
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
-      case "brass": return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
-      case "silver":
-      case "chrome": return { grad: `silverRim-${uid}`, stroke: "#999999" };
-      case "white": return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
-      case "black": return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
-      case "copper": return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
-      case "blue": return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
-      case "green": return { grad: `greenRim-${uid}`, stroke: "#006400" };
-      case "red": return { grad: `redRim-${uid}`, stroke: "#8B0000" };
-      default: return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case 'brass':
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
+      case 'silver':
+      case 'chrome':
+        return { grad: `silverRim-${uid}`, stroke: '#999999' };
+      case 'white':
+        return { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' };
+      case 'black':
+        return { grad: `blackRim-${uid}`, stroke: '#2b2b2b' };
+      case 'copper':
+        return { grad: `copperRim-${uid}`, stroke: '#8B4513' };
+      case 'blue':
+        return { grad: `blueRim-${uid}`, stroke: '#104E8B' };
+      case 'green':
+        return { grad: `greenRim-${uid}`, stroke: '#006400' };
+      case 'red':
+        return { grad: `redRim-${uid}`, stroke: '#8B0000' };
+      default:
+        return { grad: `brassRim-${uid}`, stroke: '#8B7355' };
     }
   }
 
@@ -463,10 +498,12 @@ class FoundrySliderCard extends HTMLElement {
       { cx: 10, cy: 10 },
       { cx: 140, cy: 10 },
       { cx: 10, cy: 250 },
-      { cx: 140, cy: 250 }
+      { cx: 140, cy: 250 },
     ];
 
-    return rivets.map(r => `
+    return rivets
+      .map(
+        (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
@@ -474,53 +511,61 @@ class FoundrySliderCard extends HTMLElement {
               class="screw-detail" 
               transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
-  renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, majorLength, minorLength) {
+  renderTickMarks(
+    cfg,
+    trackTopY,
+    trackBottomY,
+    tickStartX,
+    majorLength,
+    minorLength
+  ) {
     const min = cfg.min;
     const max = cfg.max;
     const step = cfg.step;
     const tickColor = cfg.tick_color;
-    
+
     const range = max - min;
     const trackHeight = trackBottomY - trackTopY;
-    
+
     let ticks = '';
-    
+
     // Major ticks at 10% intervals
     for (let i = 0; i <= 10; i++) {
       const percent = i / 10;
-      const value = min + (range * percent);
-      const y = trackBottomY - (trackHeight * percent); // Inverted: bottom is min
-      
+      const y = trackBottomY - trackHeight * percent; // Inverted: bottom is min
+
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
                       stroke="${tickColor}" stroke-width="2" />`;
     }
-    
+
     // Minor ticks at each step (if step is reasonable)
     const numSteps = range / step;
     if (numSteps > 0 && numSteps <= 100) {
       for (let i = 0; i <= numSteps; i++) {
-        const value = min + (i * step);
+        const value = min + i * step;
         const percent = (value - min) / range;
-        const y = trackBottomY - (trackHeight * percent);
-        
+        const y = trackBottomY - trackHeight * percent;
+
         // Skip if this coincides with a major tick
-        const isMajor = (i % Math.ceil(numSteps / 10)) === 0;
+        const isMajor = i % Math.ceil(numSteps / 10) === 0;
         if (!isMajor) {
           ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
                           stroke="${tickColor}" stroke-width="1" />`;
         }
       }
     }
-    
+
     return ticks;
   }
 
   renderLEDDisplay(uid, cfg, x, y, width, height, glassEffectEnabled) {
     const borderRadius = 8;
-    
+
     return `
       <!-- LED Display Background -->
       <rect x="${x}" y="${y}" width="${width}" height="${height}" 
@@ -537,14 +582,18 @@ class FoundrySliderCard extends HTMLElement {
             stroke-width="1" />
       
       <!-- Glass glare effect -->
-      ${glassEffectEnabled ? `
+      ${
+        glassEffectEnabled
+          ? `
         <path d="M ${x + 4} ${y + 4} 
                  L ${x + width - 4} ${y + 4} 
                  L ${x + width - 4} ${y + height * 0.4} 
                  Q ${x + width / 2} ${y + height * 0.5} ${x + 4} ${y + height * 0.4} Z" 
               fill="white" 
               opacity="0.08" />
-      ` : ''}
+      `
+          : ''
+      }
       
       <!-- Value Text -->
       <text id="valueDisplay" 
@@ -563,38 +612,126 @@ class FoundrySliderCard extends HTMLElement {
 
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return '';
-    
-    const baseOpacity = (wearLevel / 100) * 0.25;
-    
+
     // 12 wear marks positioned for vertical slider (avoiding track area x=60-90)
     const allMarks = [
-      { type: 'circle', cx: 30, cy: 55, r: 1.8, fill: '#8B7355', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 120, cy: 45, rx: 2.5, ry: 1.2, fill: '#6d5d4b', baseOpacity: 0.12 },
-      { type: 'circle', cx: 45, cy: 95, r: 1.2, fill: '#8B7355', baseOpacity: 0.15 },
-      { type: 'circle', cx: 128, cy: 88, r: 1.5, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'ellipse', cx: 22, cy: 140, rx: 2, ry: 1, fill: '#8B7355', baseOpacity: 0.1 },
-      { type: 'circle', cx: 135, cy: 155, r: 1, fill: '#6d5d4b', baseOpacity: 0.15 },
-      { type: 'circle', cx: 38, cy: 185, r: 1.3, fill: '#8B7355', baseOpacity: 0.12 },
-      { type: 'ellipse', cx: 118, cy: 195, rx: 3, ry: 1.5, fill: '#8B7355', baseOpacity: 0.08 },
-      { type: 'circle', cx: 25, cy: 225, r: 2, fill: '#6d5d4b', baseOpacity: 0.2 },
-      { type: 'circle', cx: 125, cy: 238, r: 1.8, fill: '#8B7355', baseOpacity: 0.18 },
-      { type: 'ellipse', cx: 60, cy: 70, rx: 1.5, ry: 0.8, fill: '#6d5d4b', baseOpacity: 0.09 },
-      { type: 'circle', cx: 100, cy: 215, r: 0.8, fill: '#8B7355', baseOpacity: 0.1 }
+      {
+        type: 'circle',
+        cx: 30,
+        cy: 55,
+        r: 1.8,
+        fill: '#8B7355',
+        baseOpacity: 0.18,
+      },
+      {
+        type: 'ellipse',
+        cx: 120,
+        cy: 45,
+        rx: 2.5,
+        ry: 1.2,
+        fill: '#6d5d4b',
+        baseOpacity: 0.12,
+      },
+      {
+        type: 'circle',
+        cx: 45,
+        cy: 95,
+        r: 1.2,
+        fill: '#8B7355',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 128,
+        cy: 88,
+        r: 1.5,
+        fill: '#6d5d4b',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'ellipse',
+        cx: 22,
+        cy: 140,
+        rx: 2,
+        ry: 1,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
+      {
+        type: 'circle',
+        cx: 135,
+        cy: 155,
+        r: 1,
+        fill: '#6d5d4b',
+        baseOpacity: 0.15,
+      },
+      {
+        type: 'circle',
+        cx: 38,
+        cy: 185,
+        r: 1.3,
+        fill: '#8B7355',
+        baseOpacity: 0.12,
+      },
+      {
+        type: 'ellipse',
+        cx: 118,
+        cy: 195,
+        rx: 3,
+        ry: 1.5,
+        fill: '#8B7355',
+        baseOpacity: 0.08,
+      },
+      {
+        type: 'circle',
+        cx: 25,
+        cy: 225,
+        r: 2,
+        fill: '#6d5d4b',
+        baseOpacity: 0.2,
+      },
+      {
+        type: 'circle',
+        cx: 125,
+        cy: 238,
+        r: 1.8,
+        fill: '#8B7355',
+        baseOpacity: 0.18,
+      },
+      {
+        type: 'ellipse',
+        cx: 60,
+        cy: 70,
+        rx: 1.5,
+        ry: 0.8,
+        fill: '#6d5d4b',
+        baseOpacity: 0.09,
+      },
+      {
+        type: 'circle',
+        cx: 100,
+        cy: 215,
+        r: 0.8,
+        fill: '#8B7355',
+        baseOpacity: 0.1,
+      },
     ];
-    
+
     const markCount = Math.ceil((wearLevel / 100) * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
-    
-    return marksToShow.map(mark => {
-      const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-      return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
-    }).join('');
+
+    return marksToShow
+      .map((mark) => {
+        const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
+        return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+      })
+      .join('');
   }
 
   _attachListeners() {
     const slider = this.shadowRoot.getElementById('slider');
     if (!slider) return;
-    
+
     slider.oninput = (e) => this._onSliderInput(e);
     slider.onchange = (e) => this._onSliderChange(e);
 
@@ -648,21 +785,22 @@ class FoundrySliderCard extends HTMLElement {
     })();
 
     const num = Number(v);
-    const allowSign = (Number(cfg.min) < 0) || (Number(cfg.max) < 0);
+    const allowSign = Number(cfg.min) < 0 || Number(cfg.max) < 0;
     const sign = allowSign ? (num < 0 ? '-' : '+') : '';
     const abs = Math.abs(num);
 
     const maxAbs = Math.max(Math.abs(min), Math.abs(max), 0);
     const intDigits = Math.max(String(Math.floor(maxAbs)).length, 1);
 
-    const fixed = decimalPlaces > 0 ? abs.toFixed(decimalPlaces) : String(Math.floor(abs));
+    const fixed =
+      decimalPlaces > 0 ? abs.toFixed(decimalPlaces) : String(Math.floor(abs));
     const parts = String(fixed).split('.');
     const intPart = parts[0].padStart(intDigits, '0');
     const fracPart = parts[1] ? '.' + parts[1] : '';
     return `${sign}${intPart}${fracPart}`;
   }
 
-  _handleAction(kind) {
+  _handleAction(_kind) {
     if (!this.config) return;
     const act = getActionConfig(this.config, 'tap_action', { action: 'none' });
     if (!act || act.action === 'none') return;
@@ -677,11 +815,19 @@ class FoundrySliderCard extends HTMLElement {
       let num = parseInt(color.replace('#', ''), 16),
         amt = Math.round(2.55 * percent),
         R = (num >> 16) + amt,
-        G = (num >> 8 & 0x00FF) + amt,
-        B = (num & 0x0000FF) + amt;
-      return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
-                                 (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
-                                 (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        G = ((num >> 8) & 0x00ff) + amt,
+        B = (num & 0x0000ff) + amt;
+      return (
+        '#' +
+        (
+          0x1000000 +
+          (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+          (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+          (B < 255 ? (B < 1 ? 0 : B) : 255)
+        )
+          .toString(16)
+          .slice(1)
+      );
     }
     return color;
   }
@@ -714,7 +860,7 @@ class FoundrySliderCard extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: 'everywhere',
-      aged_texture_intensity: 50
+      aged_texture_intensity: 50,
     };
   }
 }
@@ -728,5 +874,6 @@ window.customCards.push({
   type: 'foundry-slider-card',
   name: 'Foundry Slider',
   preview: true,
-  description: 'A vertical retro-style slider with LED display and 70s aesthetic.'
+  description:
+    'A vertical retro-style slider with LED display and 70s aesthetic.',
 });
