@@ -5957,6 +5957,11 @@ var FoundrySliderEditor = class extends HTMLElement {
       background_color: this._hexToRgb(
         config.background_color ?? config.plate_color ?? config.slider_background_color ?? "#8c7626"
       ) ?? [140, 118, 38],
+      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
+        140,
+        118,
+        38
+      ],
       plate_transparent: config.plate_transparent ?? false,
       rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
         106,
@@ -6008,6 +6013,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
       config.background_color = this._rgbToHex(config.background_color);
+      config.plate_color = this._rgbToHex(config.plate_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
@@ -6075,6 +6081,17 @@ var FoundrySliderEditor = class extends HTMLElement {
                 label: "Background Color",
                 selector: { color_rgb: {} }
               },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
               {
                 name: "rivet_color",
                 label: "Rivet Color",
