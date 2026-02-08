@@ -36,6 +36,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Thermostat](#foundry-thermostat)
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
+   - [Foundry Home Thermostat](#foundry-home-thermostat)
 4. [Development](#development)
 5. [Roadmap](#roadmap)
 6. [Support](#support)
@@ -122,6 +123,17 @@ A vintage uptime monitor:
 - Metallic dividers and bezels
 - Color-coded status thresholds
 - Detailed history tracking
+
+<a name="foundry-home-thermostat"></a>
+
+### 🌡️ Foundry Home Thermostat
+
+A vintage-style thermostat controller featuring:
+
+- Odometer-style displays for modes and values
+- Interactive controls for temperature, fan, and presets
+- Dual setpoint support for Heat/Cool mode
+- Rich industrial design with wear and glass effects
 
 <a name="installation"></a>
 
@@ -324,8 +336,6 @@ segments:
     to: 3
     color: '#F44336'
 ```
-
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -810,6 +820,52 @@ color_thresholds:
 ```
 
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/uptime.png" width="300" alt="Preview"/>
+
+</details>
+
+### Foundry Home Thermostat
+
+A vintage-style thermostat controller with odometer-style displays and interactive controls.
+
+#### Configuration Options
+
+| Option                   | Type         | Required | Default                 | Description                                                                                 |
+| ------------------------ | ------------ | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string       | **Yes**  | -                       | Thermostat entity (climate domain)                                                          |
+| `title`                  | string       | No       | "Thermostat"            | Card title                                                                                  |
+| `ring_style`             | string       | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `plate_color`            | string       | No       | '#8c7626'               | Background plate color                                                                      |
+| `title_color`            | string       | No       | '#3e2723'               | Color of the title text and labels                                                          |
+| `font_bg_color`          | string       | No       | '#ffffff'               | Background color of the odometer displays                                                   |
+| `font_color`             | string       | No       | '#000000'               | Color of the odometer text                                                                  |
+| `rivet_color`            | string       | No       | '#6d5d4b'               | Color of rivets                                                                             |
+| `plate_transparent`      | boolean      | No       | false                   | Make the plate transparent                                                                  |
+| `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                             |
+| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                 |
+| `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                    |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-homethermostat-card
+entity: climate.t6_pro_z_wave_programmable_thermostat_with_smartstart
+title: Thermostat
+ring_style: brass
+plate_color: "#8c7626"
+title_color: "#3e2723"
+font_bg_color: "#ffffff"
+font_color: "#000000"
+rivet_color: "#6d5d4b"
+plate_transparent: false
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
+
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/homethermo.png" width="300" alt="Preview"/>
 
 </details>
 
