@@ -73,7 +73,7 @@ class FoundrySliderEditor extends HTMLElement {
       slider_color: this._hexToRgb(config.slider_color ?? '#444444') ?? [
         68, 68, 68,
       ],
-      tick_color: config.tick_color ?? 'rgba(0,0,0,0.22)',
+      tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0],
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? 'square',
@@ -118,6 +118,7 @@ class FoundrySliderEditor extends HTMLElement {
       config.background_color = this._rgbToHex(config.background_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
+      config.tick_color = this._rgbToHex(config.tick_color);
     }
 
     // Merge knob settings
@@ -209,7 +210,7 @@ class FoundrySliderEditor extends HTMLElement {
               {
                 name: 'tick_color',
                 label: 'Tick Mark Color',
-                selector: { text: {} },
+                selector: { color_rgb: {} },
               },
             ],
           },
@@ -374,6 +375,20 @@ class FoundrySliderEditor extends HTMLElement {
     const b = parseInt(h.slice(4, 6), 16);
     if ([r, g, b].some(Number.isNaN)) return null;
     return [r, g, b];
+  }
+
+  _colorToRgb(color) {
+    if (!color) return null;
+    if (Array.isArray(color) && color.length === 3) return color;
+    if (typeof color === 'string') {
+      const hex = this._hexToRgb(color);
+      if (hex) return hex;
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (match) {
+        return [Number(match[1]), Number(match[2]), Number(match[3])];
+      }
+    }
+    return null;
   }
 
   _rgbToHex(input) {
