@@ -85,74 +85,88 @@ class FoundrySliderCard extends HTMLElement {
     const uid = this._uniqueId;
     const title = cfg.title || '';
 
-    // SVG SIZING CONSTANTS - Easy to customize
-    const SVG_WIDTH = 150;
-    const SVG_HEIGHT = 260;
-    const KNOB_BORDER_WIDTH = 3; // Fixed at 3px, but as a constant
-    const TRACK_WIDTH_MULTIPLIER = 0.375; // Track width = knob_size * this multiplier
+    const width = 155;
+    const height = 350;
 
-    // Layout Constants
-    const PLATE_X = 0;
-    const PLATE_Y = 0;
-    const PLATE_WIDTH = SVG_WIDTH;
-    const PLATE_HEIGHT = SVG_HEIGHT;
+    const plateWidth = 145;
+    const plateHeight = 340;
+    const plateX = 5;
+    const plateY = 5;
+
+    const rimWidth = 115;
+    const rimHeight = 310;
+    const rimX = 20;
+    const rimY = 20;
+
+    const bevelX = rimX + 8;
+    const bevelY = rimY + 8;
+    const bevelW = rimWidth - 16;
+    const bevelH = rimHeight - 16;
+
+    const screenX = bevelX + 4;
+    const screenY = bevelY + 4;
+    const screenW = bevelW - 8;
+    const screenH = bevelH - 8;
+    const screenCenterX = screenX + screenW / 2;
+
+    const KNOB_BORDER_WIDTH = 3;
+    const KNOB_SCALE = 0.2;
+    const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
 
     // Calculate knob dimensions based on shape
     const knobSize = cfg.knob_size;
+    const knobSizeScaled = knobSize * KNOB_SCALE;
     let knobWidth, knobHeight, knobBorderRadius;
 
     switch (cfg.knob_shape) {
       case 'circular':
-        knobWidth = knobSize;
-        knobHeight = knobSize;
+        knobWidth = knobSizeScaled;
+        knobHeight = knobSizeScaled;
         knobBorderRadius = '50%';
         break;
       case 'rectangular':
-        knobWidth = knobSize;
-        knobHeight = Math.round(knobSize * 1.33); // 3:4 ratio
+        knobWidth = knobSizeScaled;
+        knobHeight = Math.round(knobSizeScaled * 1.33); // 3:4 ratio
         knobBorderRadius = '10px';
         break;
       case 'square':
       default:
-        knobWidth = knobSize;
-        knobHeight = knobSize;
+        knobWidth = knobSizeScaled;
+        knobHeight = knobSizeScaled;
         knobBorderRadius = '10px';
         break;
     }
 
-    // Track dimensions - centered horizontally
-    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
-    const trackX = SVG_WIDTH / 2 - trackWidth / 2;
-    const trackTopY = 50;
-    const trackBottomY = 180; // Made shorter to accommodate LED below
+    // LED Display positioning - within the screen area
+    const displayChars = this._getLedCharCount(cfg);
+    const ledCharWidth = cfg.value_font_size * 0.45;
+    const ledPaddingX = Math.max(6, Math.round(cfg.value_font_size * 0.2));
+    const ledWidthBase = Math.round(
+      displayChars * ledCharWidth + ledPaddingX * 2
+    );
+    const ledWidth = Math.min(screenW - 12, Math.max(50, ledWidthBase));
+    const ledHeight = 46;
+    const ledX = screenCenterX - ledWidth / 2;
+    const ledY = screenY + screenH - ledHeight - 10;
+
+    // Track dimensions - centered horizontally inside screen
+    const trackWidth = knobSizeScaled * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
+    const trackX = screenCenterX - trackWidth / 2;
+    const trackTopY = screenY + 40;
+    const trackBottomY = cfg.show_value
+      ? ledY - 10
+      : screenY + screenH - 16;
     const trackHeight = trackBottomY - trackTopY;
     const sliderInputHeight = trackHeight + knobHeight;
     const sliderInputTop = trackTopY - knobHeight / 2;
 
-    // LED Display positioning - below track, centered
-    const displayChars = this._getLedCharCount(cfg);
-    const ledCharWidth = cfg.value_font_size * 0.45;
-    const ledPaddingX = Math.max(6, Math.round(cfg.value_font_size * 0.2));
-    const ledWidth = Math.max(
-      50,
-      Math.round(displayChars * ledCharWidth + ledPaddingX * 2)
-    );
-    const ledHeight = 50;
-    const ledX = SVG_WIDTH / 2 - ledWidth / 2;
-    const ledY = trackBottomY + 15; // Positioned below the track
-
-    // Rim geometry (used for ring and inner background)
-    const rimX = 10;
-    const rimY = 10;
-    const rimWidth = 130;
-    const rimHeight = 240;
-    const rimRadius = 20;
-    const rimInset = 4;
-
     // Tick mark positioning
-    const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
     const tickMinorLength = 6;
+    const tickStartX = Math.min(
+      trackX + trackWidth + 6,
+      screenX + screenW - tickMajorLength - 2
+    );
 
     // Visual effects
     const wearLevel = cfg.wear_level;
@@ -170,29 +184,19 @@ class FoundrySliderCard extends HTMLElement {
       <style>
         :host {
           display: block;
-          padding: 0;
         }
         ha-card {
-          container-type: inline-size;
-          overflow: visible;
-          height: 100%;
+          background: transparent;
+          box-shadow: none;
+          width: 100%;
+          display: flex;
+          justify-content: center;
         }
         .card {
-          background: transparent;
-          padding: 0;
           position: relative;
+          width: ${width}px;
+          height: ${height}px;
           cursor: pointer;
-          height: 100%;
-        }
-        .slider-container {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          margin: 0 auto;
-          container-type: inline-size;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
         .slider-svg {
           width: 100%;
@@ -208,27 +212,36 @@ class FoundrySliderCard extends HTMLElement {
           stroke-width: 0.5;
           fill: none;
         }
-        
+        .title {
+          font-family: 'Georgia', serif;
+          font-size: ${cfg.title_font_size}px;
+          font-weight: bold;
+          opacity: 0.9;
+          text-anchor: middle;
+          pointer-events: none;
+          letter-spacing: 1px;
+        }
+
         /* HTML input range overlay */
         .slider-input-container {
           position: absolute;
-          top: ${((sliderInputTop / SVG_HEIGHT) * 100).toFixed(2)}%;
-          left: ${(((trackX + trackWidth / 2) / SVG_WIDTH) * 100).toFixed(2)}%;
+          top: ${((sliderInputTop / height) * 100).toFixed(2)}%;
+          left: ${(((trackX + trackWidth / 2) / width) * 100).toFixed(2)}%;
           width: 100%;
-          height: ${((sliderInputHeight / SVG_HEIGHT) * 100).toFixed(2)}%;
+          height: ${((sliderInputHeight / height) * 100).toFixed(2)}%;
           transform: translateX(-50%);
           display: flex;
           align-items: center;
           justify-content: center;
           pointer-events: all;
         }
-        
+
         input[type="range"] {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
           width: 100%;
-          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
           transform-origin: center center;
@@ -236,168 +249,159 @@ class FoundrySliderCard extends HTMLElement {
           cursor: pointer;
           margin: 0;
         }
-        
+
         /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
           background: transparent;
-          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
           border: none;
         }
         input[type="range"]::-moz-range-track {
           background: transparent;
-          height: ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
           border: none;
         }
-        
+
         /* Thumb/Knob styling */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: ${((knobWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
-          height: ${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi;
-          margin-top: calc(-${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi / 2 + ${((trackWidth / SVG_WIDTH) * 100).toFixed(2)}cqi / 2);
+          width: ${((knobWidth / width) * 100).toFixed(2)}cqi;
+          height: ${((knobHeight / width) * 100).toFixed(2)}cqi;
+          margin-top: calc(-${((knobHeight / width) * 100).toFixed(2)}cqi / 2 + ${((trackWidth / width) * 100).toFixed(2)}cqi / 2);
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${((KNOB_BORDER_WIDTH / SVG_WIDTH) * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          border: none;
           box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
                       inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
                       inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
           cursor: grab;
         }
-        
+
         input[type="range"]::-moz-range-thumb {
-          width: ${((knobWidth / SVG_WIDTH) * 100).toFixed(2)}cqi;
-          height: ${((knobHeight / SVG_WIDTH) * 100).toFixed(2)}cqi;
+          width: ${((knobWidth / width) * 100).toFixed(2)}cqi;
+          height: ${((knobHeight / width) * 100).toFixed(2)}cqi;
           border-radius: ${knobBorderRadius};
           background: linear-gradient(180deg, 
             ${this.adjustColor(cfg.knob_color, 40)} 0%, 
             ${cfg.knob_color} 50%, 
             ${this.adjustColor(cfg.knob_color, -15)} 100%);
-          border: ${((KNOB_BORDER_WIDTH / SVG_WIDTH) * 100).toFixed(2)}cqi solid ${this.adjustColor(cfg.knob_color, -30)};
+          border: none;
           box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
                       inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
                       inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
           cursor: grab;
         }
-        
+
         input[type="range"]:active::-webkit-slider-thumb {
           cursor: grabbing;
         }
-        
+
         input[type="range"]:active::-moz-range-thumb {
           cursor: grabbing;
         }
       </style>
-      
+
       <ha-card role="img" aria-label="${title ? title : 'Foundry Slider'}" tabindex="0">
         <div class="card" id="actionRoot">
-          <div class="slider-container">
-            <svg class="slider-svg" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <!-- Radial gradient for LED display background -->
-                <radialGradient id="ledBg-${uid}" cx="50%" cy="50%">
-                  <stop offset="0%" style="stop-color:${cfg.font_bg_color};stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:${this.adjustColor(cfg.font_bg_color, -20)};stop-opacity:1" />
-                </radialGradient>
-                
-                <!-- Rim Gradients -->
-                ${this.renderGradients(uid)}
-                
-                <!-- Track Gradient -->
-                <linearGradient id="trackGradient-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:${this.adjustColor(cfg.slider_color, 25)};stop-opacity:1" />
-                  <stop offset="50%" style="stop-color:${cfg.slider_color};stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:${this.adjustColor(cfg.slider_color, -8)};stop-opacity:1" />
-                </linearGradient>
-                
-                <!-- Aged texture filter -->
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
-                  <feComponentTransfer result="grainTexture">
-                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
-                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
-                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
-                  </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
-                </filter>
-              </defs>
-              
-                <!-- Base Plate -->
-                <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
-                  rx="20" ry="20"
+          <svg class="slider-svg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Radial gradient for LED display background -->
+              <radialGradient id="ledBg-${uid}" cx="50%" cy="50%">
+                <stop offset="0%" style="stop-color:${cfg.font_bg_color};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${this.adjustColor(cfg.font_bg_color, -20)};stop-opacity:1" />
+              </radialGradient>
+
+              ${this.renderGradients(uid)}
+
+              <!-- Track Gradient -->
+              <linearGradient id="trackGradient-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:${this.adjustColor(cfg.slider_color, 25)};stop-opacity:1" />
+                <stop offset="50%" style="stop-color:${cfg.slider_color};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${this.adjustColor(cfg.slider_color, -8)};stop-opacity:1" />
+              </linearGradient>
+
+              <!-- Aged texture filter -->
+              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                <feComponentTransfer result="grainTexture">
+                  <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                </feComponentTransfer>
+                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
+                <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+              </filter>
+            </defs>
+
+            <!-- Base Plate -->
+            <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
                   fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
                   stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
                   stroke-width="0.5"
                   filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
 
-                <!-- Decorative Rim -->
-                ${this.renderSquareRim(
-                  cfg.ring_style,
-                  uid,
-                  rimX,
-                  rimY,
-                  rimWidth,
-                  rimHeight,
-                  rimRadius,
-                  rimInset
-                )}
+            ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
-                <!-- Inner Background (inside ring) -->
-                <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
-                      width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
-                      rx="${Math.max(0, rimRadius - 5)}" ry="${Math.max(0, rimRadius - 5)}"
-                      fill="${cfg.plate_transparent ? 'none' : backgroundColor}"
-                      filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid})` : 'none'}" />
+            ${this.renderSquareRim(
+              cfg.ring_style,
+              uid,
+              backgroundColor,
+              glassEffectEnabled,
+              rimX,
+              rimY,
+              rimWidth,
+              rimHeight
+            )}
 
-                <!-- Inner Bevel (Inset) -->
-                ${this.renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset)}
-              
-              <!-- Corner Rivets -->
-              ${this.renderRivets()}
-              
-              <!-- Slider Track -->
-              <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
-                    rx="${trackWidth / 2}" ry="${trackWidth / 2}"
-                    fill="${cfg.slider_color}"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                    style="box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);" />
-              
-              <!-- Inner track shadow effect -->
-              <rect x="${trackX + 1}" y="${trackTopY + 2}" width="${trackWidth - 2}" height="${trackHeight - 4}"
-                    rx="${(trackWidth - 2) / 2}" ry="${(trackWidth - 2) / 2}"
-                    fill="url(#trackGradient-${uid})"
-                    opacity="0.4" />
-              
-              <!-- Tick Marks -->
-              ${this.renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, tickMajorLength, tickMinorLength)}
-              
-              <!-- Title -->
-              ${title ? `<text x="${SVG_WIDTH / 2}" y="30" text-anchor="middle" font-size="${cfg.title_font_size}" font-weight="bold" fill="#3e2723" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
-              
-              <!-- LED Display Box -->
-              ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ''}
-              
-              <!-- Wear Marks -->
-              ${this.renderWearMarks(wearLevel)}
-            </svg>
-            
-            <!-- HTML Input Range Overlay -->
-            <div class="slider-input-container">
-              <input id="slider" type="range" 
-                     min="${cfg.min}" 
-                     max="${cfg.max}" 
-                     step="${cfg.step}" 
-                     value="${cfg.value}" 
-                     aria-label="Slider control"
-                     aria-valuemin="${cfg.min}"
-                     aria-valuemax="${cfg.max}"
-                     aria-valuenow="${cfg.value}" />
-            </div>
+            <!-- Title -->
+            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: #3e2723">${title}</text>` : ''}
+
+            <!-- Slider Track -->
+            <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
+                  rx="${trackWidth / 2}" ry="${trackWidth / 2}"
+                  fill="${cfg.slider_color}"
+                  stroke="rgba(0,0,0,0.3)"
+                  stroke-width="1"
+                  style="box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);" />
+
+            <!-- Inner track shadow effect -->
+            <rect x="${trackX + 1}" y="${trackTopY + 2}" width="${trackWidth - 2}" height="${trackHeight - 4}"
+                  rx="${(trackWidth - 2) / 2}" ry="${(trackWidth - 2) / 2}"
+                  fill="url(#trackGradient-${uid})"
+                  opacity="0.4" />
+
+            <!-- Tick Marks -->
+            ${this.renderTickMarks(
+              cfg,
+              trackTopY,
+              trackBottomY,
+              tickStartX,
+              tickMajorLength,
+              tickMinorLength
+            )}
+
+            <!-- LED Display Box -->
+            ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ''}
+
+            <!-- Wear Marks -->
+            ${this.renderWearMarks(wearLevel, width, height)}
+          </svg>
+
+          <!-- HTML Input Range Overlay -->
+          <div class="slider-input-container">
+            <input id="slider" type="range" 
+                   min="${cfg.min}" 
+                   max="${cfg.max}" 
+                   step="${cfg.step}" 
+                   value="${cfg.value}" 
+                   aria-label="Slider control"
+                   aria-valuemin="${cfg.min}"
+                   aria-valuemax="${cfg.max}"
+                   aria-valuenow="${cfg.value}" />
           </div>
         </div>
       </ha-card>
@@ -467,41 +471,41 @@ class FoundrySliderCard extends HTMLElement {
         <stop offset="75%" style="stop-color:#e85a57;stop-opacity:1" />
         <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
       </linearGradient>
+      <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" />
+        <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
+      </linearGradient>
     `;
   }
 
-  renderSquareRim(
-    ringStyle,
-    uid,
-    rimX,
-    rimY,
-    rimWidth,
-    rimHeight,
-    rimRadius,
-    rimInset
-  ) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
-    return `
-      <!-- Outer Frame (The Ring) -->
-      <rect x="${rimX}" y="${rimY}" width="${rimWidth}" height="${rimHeight}" 
-            rx="${rimRadius}" ry="${rimRadius}" 
-            fill="url(#${data.grad})" 
-            stroke="${data.stroke}" 
-            stroke-width="1"
-            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-    `;
-  }
+    const bevelX = x + 8;
+    const bevelY = y + 8;
+    const bevelW = w - 16;
+    const bevelH = h - 16;
 
-  renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset) {
+    const screenX = bevelX + 4;
+    const screenY = bevelY + 4;
+    const screenW = bevelW - 8;
+    const screenH = bevelH - 8;
+
     return `
-      <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
-            width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
-            rx="${rimRadius - 5}" ry="${rimRadius - 5}" 
-            fill="none" 
-            stroke="rgba(0,0,0,0.2)" 
-            stroke-width="2"/>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
+            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+      
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
+            fill="${bgColor}" stroke="none" />
+
+      ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
+
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
+            fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
+             style="box-shadow: inset 0 0 10px #000;"/>
+
+      <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
     `;
   }
 
@@ -529,12 +533,13 @@ class FoundrySliderCard extends HTMLElement {
     }
   }
 
-  renderRivets() {
+  renderRivets(w, h, x, y) {
+    const offset = 15;
     const rivets = [
-      { cx: 10, cy: 10 },
-      { cx: 140, cy: 10 },
-      { cx: 10, cy: 250 },
-      { cx: 140, cy: 250 },
+      { cx: x + offset, cy: y + offset },
+      { cx: x + w - offset, cy: y + offset },
+      { cx: x + offset, cy: y + h - offset },
+      { cx: x + w - offset, cy: y + h - offset },
     ];
 
     return rivets
@@ -646,8 +651,13 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
-  renderWearMarks(wearLevel) {
+  renderWearMarks(wearLevel, viewBoxWidth, viewBoxHeight) {
     if (wearLevel === 0) return '';
+
+    const baseWidth = 150;
+    const baseHeight = 260;
+    const scaleX = viewBoxWidth / baseWidth;
+    const scaleY = viewBoxHeight / baseHeight;
 
     // 12 wear marks positioned for vertical slider (avoiding track area x=60-90)
     const allMarks = [
@@ -759,7 +769,14 @@ class FoundrySliderCard extends HTMLElement {
     return marksToShow
       .map((mark) => {
         const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
-        return `<${mark.type} cx="${mark.cx}" cy="${mark.cy}" ${mark.r ? `r="${mark.r}"` : `rx="${mark.rx}" ry="${mark.ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
+        const cx = (mark.cx * scaleX).toFixed(2);
+        const cy = (mark.cy * scaleY).toFixed(2);
+        const r = mark.r
+          ? (mark.r * ((scaleX + scaleY) / 2)).toFixed(2)
+          : null;
+        const rx = mark.rx ? (mark.rx * scaleX).toFixed(2) : null;
+        const ry = mark.ry ? (mark.ry * scaleY).toFixed(2) : null;
+        return `<${mark.type} cx="${cx}" cy="${cy}" ${r ? `r="${r}"` : `rx="${rx}" ry="${ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
       })
       .join('');
   }
