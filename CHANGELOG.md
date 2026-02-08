@@ -20,6 +20,16 @@
 - **Issue:** Gague card odometer glitches
 - **Issue:** Gague card odometer 3,8,9 where always slightly higher then the other numbers
 
+### 🚀 New Cards
+
+#### 🌡️ Foundry Home Thermostat
+
+**A vintage-style thermostat controller.**
+
+- **Odometer Controls:** Unique rolling odometer displays for setting values.
+- **Interactive:** Clickable overlays for easy adjustment of temperature and modes.
+- **Dual Setpoint:** Full support for Heat/Cool mode with high and low targets.
+
 ## v5.0
 
 ### 🚀 New Cards

@@ -2,6 +2,8 @@ import './cards/foundry-gauge-card.js';
 import './cards/foundry-gauge-editor.js';
 import './cards/foundry-thermostat-card.js';
 import './cards/foundry-thermostat-editor.js';
+import './cards/foundry-homethermostat-card.js';
+import './cards/foundry-homethermostat-editor.js';
 import './cards/foundry-analog-clock-card.js';
 import './cards/foundry-analog-clock-editor.js';
 import './cards/foundry-digital-clock-card.js';
