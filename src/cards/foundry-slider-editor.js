@@ -59,9 +59,13 @@ class FoundrySliderEditor extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? 'brass',
-      plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [
-        140, 118, 38,
-      ],
+      background_color:
+        this._hexToRgb(
+          config.background_color ??
+            config.plate_color ??
+            config.slider_background_color ??
+            '#8c7626'
+        ) ?? [140, 118, 38],
       plate_transparent: config.plate_transparent ?? false,
       rivet_color: this._hexToRgb(config.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
@@ -80,7 +84,6 @@ class FoundrySliderEditor extends HTMLElement {
     };
     data.led_settings = {
       show_value: config.show_value ?? true,
-      led_position: config.led_position ?? 'right',
       font_bg_color: this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [
         255, 255, 255,
       ],
@@ -112,7 +115,7 @@ class FoundrySliderEditor extends HTMLElement {
     // Merge appearance settings
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
-      config.plate_color = this._rgbToHex(config.plate_color);
+      config.background_color = this._rgbToHex(config.background_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
     }
@@ -183,8 +186,8 @@ class FoundrySliderEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'plate_color',
-                label: 'Plate Color',
+                name: 'background_color',
+                label: 'Background Color',
                 selector: { color_rgb: {} },
               },
               {
@@ -263,18 +266,6 @@ class FoundrySliderEditor extends HTMLElement {
             name: 'show_value',
             label: 'Show Value',
             selector: { boolean: {} },
-          },
-          {
-            name: 'led_position',
-            label: 'LED Position',
-            selector: {
-              select: {
-                options: [
-                  { value: 'left', label: 'Left' },
-                  { value: 'right', label: 'Right' },
-                ],
-              },
-            },
           },
           {
             type: 'grid',

@@ -5129,6 +5129,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.plate_color = this.config.plate_color || "#8c7626";
+    this.config.background_color = this.config.background_color ?? this.config.plate_color ?? this.config.slider_background_color ?? "#8c7626";
     this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
     this.config.rivet_color = this.config.rivet_color || "#6a5816";
     this.config.knob_color = this.config.knob_color || "#c9a961";
@@ -5137,7 +5138,6 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.slider_color = this.config.slider_color || "#444444";
     this.config.tick_color = this.config.tick_color || "rgba(0,0,0,0.22)";
     this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
-    this.config.led_position = this.config.led_position || "right";
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
     this.config.value_font_size = this.config.value_font_size !== void 0 ? this.config.value_font_size : 36;
     this.config.knob_shape = this.config.knob_shape || "square";
@@ -5160,7 +5160,6 @@ var FoundrySliderCard = class extends HTMLElement {
     const SVG_HEIGHT = 260;
     const KNOB_BORDER_WIDTH = 3;
     const TRACK_WIDTH_MULTIPLIER = 0.375;
-    const PLATE_PADDING = 0;
     const PLATE_X = 0;
     const PLATE_Y = 0;
     const PLATE_WIDTH = SVG_WIDTH;
@@ -5190,16 +5189,24 @@ var FoundrySliderCard = class extends HTMLElement {
     const trackTopY = 50;
     const trackBottomY = 180;
     const trackHeight = trackBottomY - trackTopY;
-    const trackCenterY = (trackTopY + trackBottomY) / 2;
     const sliderInputHeight = trackHeight + knobHeight;
     const sliderInputTop = trackTopY - knobHeight / 2;
     const displayChars = this._getLedCharCount(cfg);
     const ledCharWidth = cfg.value_font_size * 0.45;
     const ledPaddingX = Math.max(6, Math.round(cfg.value_font_size * 0.2));
-    const ledWidth = Math.max(50, Math.round(displayChars * ledCharWidth + ledPaddingX * 2));
+    const ledWidth = Math.max(
+      50,
+      Math.round(displayChars * ledCharWidth + ledPaddingX * 2)
+    );
     const ledHeight = 50;
     const ledX = SVG_WIDTH / 2 - ledWidth / 2;
     const ledY = trackBottomY + 15;
+    const rimX = 10;
+    const rimY = 10;
+    const rimWidth = 130;
+    const rimHeight = 240;
+    const rimRadius = 20;
+    const rimInset = 4;
     const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
     const tickMinorLength = 6;
@@ -5209,6 +5216,7 @@ var FoundrySliderCard = class extends HTMLElement {
     const agedTextureIntensity = cfg.aged_texture_intensity;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = cfg.plate_transparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const backgroundColor = cfg.background_color ?? cfg.plate_color;
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -5369,16 +5377,35 @@ var FoundrySliderCard = class extends HTMLElement {
                 </filter>
               </defs>
               
-              <!-- Base Plate -->
-              <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
-                    rx="20" ry="20"
-                    fill="${cfg.plate_transparent ? "none" : cfg.plate_color}"
-                    stroke="${cfg.plate_transparent ? "none" : "#888"}" 
-                    stroke-width="0.5"
-                    filter="${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
-              
-              <!-- Decorative Rim -->
-              ${this.renderSquareRim(cfg.ring_style, uid, cfg.font_bg_color, glassEffectEnabled)}
+                <!-- Base Plate -->
+                <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
+                  rx="20" ry="20"
+                  fill="${cfg.plate_transparent ? "none" : cfg.plate_color}"
+                  stroke="${cfg.plate_transparent ? "none" : "#888"}" 
+                  stroke-width="0.5"
+                  filter="${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
+
+                <!-- Decorative Rim -->
+                ${this.renderSquareRim(
+      cfg.ring_style,
+      uid,
+      rimX,
+      rimY,
+      rimWidth,
+      rimHeight,
+      rimRadius,
+      rimInset
+    )}
+
+                <!-- Inner Background (inside ring) -->
+                <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
+                      width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
+                      rx="${Math.max(0, rimRadius - 5)}" ry="${Math.max(0, rimRadius - 5)}"
+                      fill="${cfg.plate_transparent ? "none" : backgroundColor}"
+                      filter="${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `url(#aged-${uid})` : "none"}" />
+
+                <!-- Inner Bevel (Inset) -->
+                ${this.renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset)}
               
               <!-- Corner Rivets -->
               ${this.renderRivets()}
@@ -5491,14 +5518,9 @@ var FoundrySliderCard = class extends HTMLElement {
       </linearGradient>
     `;
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
+  renderSquareRim(ringStyle, uid, rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
-    const rimX = 10;
-    const rimY = 10;
-    const rimWidth = 130;
-    const rimHeight = 240;
-    const rimRadius = 20;
     return `
       <!-- Outer Frame (The Ring) -->
       <rect x="${rimX}" y="${rimY}" width="${rimWidth}" height="${rimHeight}" 
@@ -5507,10 +5529,12 @@ var FoundrySliderCard = class extends HTMLElement {
             stroke="${data.stroke}" 
             stroke-width="1"
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-      
-      <!-- Inner Bevel (Inset) -->
-      <rect x="${rimX + 4}" y="${rimY + 4}" 
-            width="${rimWidth - 8}" height="${rimHeight - 8}" 
+    `;
+  }
+  renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset) {
+    return `
+      <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
+            width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
             rx="${rimRadius - 5}" ry="${rimRadius - 5}" 
             fill="none" 
             stroke="rgba(0,0,0,0.2)" 
@@ -5547,7 +5571,8 @@ var FoundrySliderCard = class extends HTMLElement {
       { cx: 10, cy: 250 },
       { cx: 140, cy: 250 }
     ];
-    return rivets.map((r) => `
+    return rivets.map(
+      (r) => `
       <g>
         <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
         <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
@@ -5555,7 +5580,8 @@ var FoundrySliderCard = class extends HTMLElement {
               class="screw-detail" 
               transform="rotate(45, ${r.cx}, ${r.cy})"/>
       </g>
-    `).join("");
+    `
+    ).join("");
   }
   renderTickMarks(cfg, trackTopY, trackBottomY, tickStartX, majorLength, minorLength) {
     const min = cfg.min;
@@ -5567,7 +5593,6 @@ var FoundrySliderCard = class extends HTMLElement {
     let ticks = "";
     for (let i = 0; i <= 10; i++) {
       const percent = i / 10;
-      const value = min + range * percent;
       const y = trackBottomY - trackHeight * percent;
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
                       stroke="${tickColor}" stroke-width="2" />`;
@@ -5630,20 +5655,107 @@ var FoundrySliderCard = class extends HTMLElement {
   }
   renderWearMarks(wearLevel) {
     if (wearLevel === 0) return "";
-    const baseOpacity = wearLevel / 100 * 0.25;
     const allMarks = [
-      { type: "circle", cx: 30, cy: 55, r: 1.8, fill: "#8B7355", baseOpacity: 0.18 },
-      { type: "ellipse", cx: 120, cy: 45, rx: 2.5, ry: 1.2, fill: "#6d5d4b", baseOpacity: 0.12 },
-      { type: "circle", cx: 45, cy: 95, r: 1.2, fill: "#8B7355", baseOpacity: 0.15 },
-      { type: "circle", cx: 128, cy: 88, r: 1.5, fill: "#6d5d4b", baseOpacity: 0.2 },
-      { type: "ellipse", cx: 22, cy: 140, rx: 2, ry: 1, fill: "#8B7355", baseOpacity: 0.1 },
-      { type: "circle", cx: 135, cy: 155, r: 1, fill: "#6d5d4b", baseOpacity: 0.15 },
-      { type: "circle", cx: 38, cy: 185, r: 1.3, fill: "#8B7355", baseOpacity: 0.12 },
-      { type: "ellipse", cx: 118, cy: 195, rx: 3, ry: 1.5, fill: "#8B7355", baseOpacity: 0.08 },
-      { type: "circle", cx: 25, cy: 225, r: 2, fill: "#6d5d4b", baseOpacity: 0.2 },
-      { type: "circle", cx: 125, cy: 238, r: 1.8, fill: "#8B7355", baseOpacity: 0.18 },
-      { type: "ellipse", cx: 60, cy: 70, rx: 1.5, ry: 0.8, fill: "#6d5d4b", baseOpacity: 0.09 },
-      { type: "circle", cx: 100, cy: 215, r: 0.8, fill: "#8B7355", baseOpacity: 0.1 }
+      {
+        type: "circle",
+        cx: 30,
+        cy: 55,
+        r: 1.8,
+        fill: "#8B7355",
+        baseOpacity: 0.18
+      },
+      {
+        type: "ellipse",
+        cx: 120,
+        cy: 45,
+        rx: 2.5,
+        ry: 1.2,
+        fill: "#6d5d4b",
+        baseOpacity: 0.12
+      },
+      {
+        type: "circle",
+        cx: 45,
+        cy: 95,
+        r: 1.2,
+        fill: "#8B7355",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 128,
+        cy: 88,
+        r: 1.5,
+        fill: "#6d5d4b",
+        baseOpacity: 0.2
+      },
+      {
+        type: "ellipse",
+        cx: 22,
+        cy: 140,
+        rx: 2,
+        ry: 1,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      },
+      {
+        type: "circle",
+        cx: 135,
+        cy: 155,
+        r: 1,
+        fill: "#6d5d4b",
+        baseOpacity: 0.15
+      },
+      {
+        type: "circle",
+        cx: 38,
+        cy: 185,
+        r: 1.3,
+        fill: "#8B7355",
+        baseOpacity: 0.12
+      },
+      {
+        type: "ellipse",
+        cx: 118,
+        cy: 195,
+        rx: 3,
+        ry: 1.5,
+        fill: "#8B7355",
+        baseOpacity: 0.08
+      },
+      {
+        type: "circle",
+        cx: 25,
+        cy: 225,
+        r: 2,
+        fill: "#6d5d4b",
+        baseOpacity: 0.2
+      },
+      {
+        type: "circle",
+        cx: 125,
+        cy: 238,
+        r: 1.8,
+        fill: "#8B7355",
+        baseOpacity: 0.18
+      },
+      {
+        type: "ellipse",
+        cx: 60,
+        cy: 70,
+        rx: 1.5,
+        ry: 0.8,
+        fill: "#6d5d4b",
+        baseOpacity: 0.09
+      },
+      {
+        type: "circle",
+        cx: 100,
+        cy: 215,
+        r: 0.8,
+        fill: "#8B7355",
+        baseOpacity: 0.1
+      }
     ];
     const markCount = Math.ceil(wearLevel / 100 * allMarks.length);
     const marksToShow = allMarks.slice(0, markCount);
@@ -5710,7 +5822,7 @@ var FoundrySliderCard = class extends HTMLElement {
     const fracPart = parts[1] ? "." + parts[1] : "";
     return `${sign}${intPart}${fracPart}`;
   }
-  _handleAction(kind) {
+  _handleAction(_kind) {
     if (!this.config) return;
     const act = getActionConfig(this.config, "tap_action", { action: "none" });
     if (!act || act.action === "none") return;
@@ -5736,8 +5848,8 @@ var FoundrySliderCard = class extends HTMLElement {
       max: 100,
       step: 1,
       value: 50,
-      led_position: "right",
       ring_style: "brass",
+      background_color: "#8c7626",
       plate_color: "#8c7626",
       rivet_color: "#6a5816",
       slider_color: "#444444",
@@ -5793,7 +5905,10 @@ var FoundrySliderEditor = class extends HTMLElement {
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
       this._form = document.createElement("ha-form");
-      this._form.addEventListener("value-changed", this._handleFormChanged.bind(this));
+      this._form.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
       this._root.appendChild(this._form);
     }
     if (this._form) this._form.hass = this._hass;
@@ -5806,28 +5921,51 @@ var FoundrySliderEditor = class extends HTMLElement {
     const newConfig = this._formToConfig(ev.detail.value);
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
-      this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true }));
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true
+        })
+      );
     }
   }
   _configToForm(config) {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? "brass",
-      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [140, 118, 38],
+      background_color: this._hexToRgb(
+        config.background_color ?? config.plate_color ?? config.slider_background_color ?? "#8c7626"
+      ) ?? [140, 118, 38],
       plate_transparent: config.plate_transparent ?? false,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [106, 88, 22],
-      slider_color: this._hexToRgb(config.slider_color ?? "#444444") ?? [68, 68, 68],
+      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
+        106,
+        88,
+        22
+      ],
+      slider_color: this._hexToRgb(config.slider_color ?? "#444444") ?? [
+        68,
+        68,
+        68
+      ],
       tick_color: config.tick_color ?? "rgba(0,0,0,0.22)"
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? "square",
       knob_size: config.knob_size ?? 48,
-      knob_color: this._hexToRgb(config.knob_color ?? "#c9a961") ?? [201, 169, 97]
+      knob_color: this._hexToRgb(config.knob_color ?? "#c9a961") ?? [
+        201,
+        169,
+        97
+      ]
     };
     data.led_settings = {
       show_value: config.show_value ?? true,
-      led_position: config.led_position ?? "right",
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [255, 255, 255],
+      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+        255,
+        255,
+        255
+      ],
       font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
       title_font_size: config.title_font_size ?? 14,
       value_font_size: config.value_font_size ?? 36
@@ -5843,12 +5981,13 @@ var FoundrySliderEditor = class extends HTMLElement {
   _formToConfig(formData) {
     const config = { ...this._config };
     Object.keys(formData).forEach((k) => {
-      if (["appearance", "knob_settings", "led_settings", "effects"].includes(k)) return;
+      if (["appearance", "knob_settings", "led_settings", "effects"].includes(k))
+        return;
       config[k] = formData[k];
     });
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
-      config.plate_color = this._rgbToHex(config.plate_color);
+      config.background_color = this._rgbToHex(config.background_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
     }
@@ -5872,37 +6011,77 @@ var FoundrySliderEditor = class extends HTMLElement {
       { name: "title", selector: { text: {} } },
       { name: "min", label: "Minimum", selector: { number: { mode: "box" } } },
       { name: "max", label: "Maximum", selector: { number: { mode: "box" } } },
-      { name: "step", label: "Step", selector: { number: { mode: "box", step: 0.1 } } },
-      { name: "value", label: "Initial Value", selector: { number: { mode: "box" } } },
+      {
+        name: "step",
+        label: "Step",
+        selector: { number: { mode: "box", step: 0.1 } }
+      },
+      {
+        name: "value",
+        label: "Initial Value",
+        selector: { number: { mode: "box" } }
+      },
       {
         name: "appearance",
         type: "expandable",
         title: "Appearance",
         schema: [
-          { name: "ring_style", label: "Ring Style", selector: {
-            select: {
-              options: [
-                { value: "brass", label: "Brass" },
-                { value: "silver", label: "Silver" },
-                { value: "chrome", label: "Chrome" },
-                { value: "copper", label: "Copper" },
-                { value: "black", label: "Black" },
-                { value: "white", label: "White" },
-                { value: "blue", label: "Blue" },
-                { value: "green", label: "Green" },
-                { value: "red", label: "Red" }
-              ]
+          {
+            name: "ring_style",
+            label: "Ring Style",
+            selector: {
+              select: {
+                options: [
+                  { value: "brass", label: "Brass" },
+                  { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
+                  { value: "copper", label: "Copper" },
+                  { value: "black", label: "Black" },
+                  { value: "white", label: "White" },
+                  { value: "blue", label: "Blue" },
+                  { value: "green", label: "Green" },
+                  { value: "red", label: "Red" }
+                ]
+              }
             }
-          } },
-          { type: "grid", name: "", schema: [
-            { name: "plate_color", label: "Plate Color", selector: { color_rgb: {} } },
-            { name: "rivet_color", label: "Rivet Color", selector: { color_rgb: {} } }
-          ] },
-          { type: "grid", name: "", schema: [
-            { name: "slider_color", label: "Track Color", selector: { color_rgb: {} } },
-            { name: "tick_color", label: "Tick Mark Color", selector: { text: {} } }
-          ] },
-          { name: "plate_transparent", label: "Transparent Plate", selector: { boolean: {} } }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "background_color",
+                label: "Background Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "slider_color",
+                label: "Track Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "tick_color",
+                label: "Tick Mark Color",
+                selector: { text: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          }
         ]
       },
       {
@@ -5910,24 +6089,36 @@ var FoundrySliderEditor = class extends HTMLElement {
         type: "expandable",
         title: "Knob Settings",
         schema: [
-          { name: "knob_shape", label: "Knob Shape", selector: {
-            select: {
-              options: [
-                { value: "circular", label: "Circular" },
-                { value: "square", label: "Square" },
-                { value: "rectangular", label: "Rectangular" }
-              ]
+          {
+            name: "knob_shape",
+            label: "Knob Shape",
+            selector: {
+              select: {
+                options: [
+                  { value: "circular", label: "Circular" },
+                  { value: "square", label: "Square" },
+                  { value: "rectangular", label: "Rectangular" }
+                ]
+              }
             }
-          } },
-          { name: "knob_size", label: "Knob Size", selector: {
-            number: {
-              min: 32,
-              max: 80,
-              step: 4,
-              mode: "slider"
+          },
+          {
+            name: "knob_size",
+            label: "Knob Size",
+            selector: {
+              number: {
+                min: 32,
+                max: 80,
+                step: 4,
+                mode: "slider"
+              }
             }
-          } },
-          { name: "knob_color", label: "Knob Color", selector: { color_rgb: {} } }
+          },
+          {
+            name: "knob_color",
+            label: "Knob Color",
+            selector: { color_rgb: {} }
+          }
         ]
       },
       {
@@ -5935,35 +6126,55 @@ var FoundrySliderEditor = class extends HTMLElement {
         type: "expandable",
         title: "LED Display",
         schema: [
-          { name: "show_value", label: "Show Value", selector: { boolean: {} } },
-          { name: "led_position", label: "LED Position", selector: {
-            select: {
-              options: [
-                { value: "left", label: "Left" },
-                { value: "right", label: "Right" }
-              ]
-            }
-          } },
-          { type: "grid", name: "", schema: [
-            { name: "font_bg_color", label: "LED Background", selector: { color_rgb: {} } },
-            { name: "font_color", label: "LED Text Color", selector: { color_rgb: {} } }
-          ] },
-          { type: "grid", name: "", schema: [
-            { name: "title_font_size", label: "Title Font Size", selector: {
-              number: {
-                min: 8,
-                max: 24,
-                mode: "slider"
+          {
+            name: "show_value",
+            label: "Show Value",
+            selector: { boolean: {} }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_bg_color",
+                label: "LED Background",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "LED Text Color",
+                selector: { color_rgb: {} }
               }
-            } },
-            { name: "value_font_size", label: "Value Font Size", selector: {
-              number: {
-                min: 20,
-                max: 60,
-                mode: "slider"
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_size",
+                label: "Title Font Size",
+                selector: {
+                  number: {
+                    min: 8,
+                    max: 24,
+                    mode: "slider"
+                  }
+                }
+              },
+              {
+                name: "value_font_size",
+                label: "Value Font Size",
+                selector: {
+                  number: {
+                    min: 20,
+                    max: 60,
+                    mode: "slider"
+                  }
+                }
               }
-            } }
-          ] }
+            ]
+          }
         ]
       },
       {
@@ -5971,32 +6182,48 @@ var FoundrySliderEditor = class extends HTMLElement {
         type: "expandable",
         title: "Visual Effects",
         schema: [
-          { name: "wear_level", label: "Wear Level", selector: {
-            number: {
-              min: 0,
-              max: 100,
-              mode: "slider",
-              unit_of_measurement: "%"
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: {
+              number: {
+                min: 0,
+                max: 100,
+                mode: "slider",
+                unit_of_measurement: "%"
+              }
             }
-          } },
-          { name: "glass_effect_enabled", label: "Glass Effect", selector: { boolean: {} } },
-          { name: "aged_texture", label: "Aged Texture", selector: {
-            select: {
-              options: [
-                { value: "none", label: "None" },
-                { value: "glass_only", label: "Glass Only" },
-                { value: "everywhere", label: "Everywhere" }
-              ]
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
             }
-          } },
-          { name: "aged_texture_intensity", label: "Texture Intensity", selector: {
-            number: {
-              min: 0,
-              max: 100,
-              mode: "slider",
-              unit_of_measurement: "%"
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: {
+              number: {
+                min: 0,
+                max: 100,
+                mode: "slider",
+                unit_of_measurement: "%"
+              }
             }
-          } }
+          }
         ]
       }
     ];
@@ -6015,10 +6242,13 @@ var FoundrySliderEditor = class extends HTMLElement {
     let rgb = input;
     if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
       if (Array.isArray(rgb.color)) rgb = rgb.color;
-      else if ("r" in rgb && "g" in rgb && "b" in rgb) rgb = [rgb.r, rgb.g, rgb.b];
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
     }
     if (!Array.isArray(rgb) || rgb.length !== 3) return null;
-    const [r, g, b] = rgb.map((n) => Math.max(0, Math.min(255, Math.round(Number(n)))));
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   }

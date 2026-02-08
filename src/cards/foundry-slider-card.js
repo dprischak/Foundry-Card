@@ -21,6 +21,11 @@ class FoundrySliderCard extends HTMLElement {
     // Brass Theme Defaults (from digital clock)
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.plate_color = this.config.plate_color || '#8c7626';
+    this.config.background_color =
+      this.config.background_color ??
+      this.config.plate_color ??
+      this.config.slider_background_color ??
+      '#8c7626';
     this.config.plate_transparent =
       this.config.plate_transparent !== undefined
         ? this.config.plate_transparent
@@ -37,7 +42,6 @@ class FoundrySliderCard extends HTMLElement {
     // Display Settings
     this.config.show_value =
       this.config.show_value !== undefined ? this.config.show_value : true;
-    this.config.led_position = this.config.led_position || 'right'; // 'left' or 'right'
     this.config.title_font_size =
       this.config.title_font_size !== undefined
         ? this.config.title_font_size
@@ -137,6 +141,14 @@ class FoundrySliderCard extends HTMLElement {
     const ledX = SVG_WIDTH / 2 - ledWidth / 2;
     const ledY = trackBottomY + 15; // Positioned below the track
 
+    // Rim geometry (used for ring and inner background)
+    const rimX = 10;
+    const rimY = 10;
+    const rimWidth = 130;
+    const rimHeight = 240;
+    const rimRadius = 20;
+    const rimInset = 4;
+
     // Tick mark positioning
     const tickStartX = trackX + trackWidth + 5;
     const tickMajorLength = 12;
@@ -152,6 +164,7 @@ class FoundrySliderCard extends HTMLElement {
       cfg.plate_transparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
+    const backgroundColor = cfg.background_color ?? cfg.plate_color;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -313,16 +326,35 @@ class FoundrySliderCard extends HTMLElement {
                 </filter>
               </defs>
               
-              <!-- Base Plate -->
-              <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
-                    rx="20" ry="20"
-                    fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
-                    stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
-                    stroke-width="0.5"
-                    filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
-              
-              <!-- Decorative Rim -->
-              ${this.renderSquareRim(cfg.ring_style, uid, cfg.font_bg_color, glassEffectEnabled)}
+                <!-- Base Plate -->
+                <rect x="${PLATE_X}" y="${PLATE_Y}" width="${PLATE_WIDTH}" height="${PLATE_HEIGHT}" 
+                  rx="20" ry="20"
+                  fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
+                  stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
+                  stroke-width="0.5"
+                  filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
+
+                <!-- Decorative Rim -->
+                ${this.renderSquareRim(
+                  cfg.ring_style,
+                  uid,
+                  rimX,
+                  rimY,
+                  rimWidth,
+                  rimHeight,
+                  rimRadius,
+                  rimInset
+                )}
+
+                <!-- Inner Background (inside ring) -->
+                <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
+                      width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
+                      rx="${Math.max(0, rimRadius - 5)}" ry="${Math.max(0, rimRadius - 5)}"
+                      fill="${cfg.plate_transparent ? 'none' : backgroundColor}"
+                      filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid})` : 'none'}" />
+
+                <!-- Inner Bevel (Inset) -->
+                ${this.renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset)}
               
               <!-- Corner Rivets -->
               ${this.renderRivets()}
@@ -438,17 +470,18 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
-  renderSquareRim(ringStyle, uid, _bgColor, _glassEffectEnabled) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    rimX,
+    rimY,
+    rimWidth,
+    rimHeight,
+    rimRadius,
+    rimInset
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
-
-    // Rim positioned to frame the entire card
-    // Outer rim: 10px from edge, 130px wide x 240px tall
-    const rimX = 10;
-    const rimY = 10;
-    const rimWidth = 130;
-    const rimHeight = 240;
-    const rimRadius = 20;
 
     return `
       <!-- Outer Frame (The Ring) -->
@@ -458,10 +491,13 @@ class FoundrySliderCard extends HTMLElement {
             stroke="${data.stroke}" 
             stroke-width="1"
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-      
-      <!-- Inner Bevel (Inset) -->
-      <rect x="${rimX + 4}" y="${rimY + 4}" 
-            width="${rimWidth - 8}" height="${rimHeight - 8}" 
+    `;
+  }
+
+  renderRimBevel(rimX, rimY, rimWidth, rimHeight, rimRadius, rimInset) {
+    return `
+      <rect x="${rimX + rimInset}" y="${rimY + rimInset}" 
+            width="${rimWidth - rimInset * 2}" height="${rimHeight - rimInset * 2}" 
             rx="${rimRadius - 5}" ry="${rimRadius - 5}" 
             fill="none" 
             stroke="rgba(0,0,0,0.2)" 
@@ -843,8 +879,8 @@ class FoundrySliderCard extends HTMLElement {
       max: 100,
       step: 1,
       value: 50,
-      led_position: 'right',
       ring_style: 'brass',
+      background_color: '#8c7626',
       plate_color: '#8c7626',
       rivet_color: '#6a5816',
       slider_color: '#444444',
