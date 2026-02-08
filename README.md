@@ -829,21 +829,21 @@ A vintage-style thermostat controller with odometer-style displays and interacti
 
 #### Configuration Options
 
-| Option                   | Type         | Required | Default                 | Description                                                                                 |
-| ------------------------ | ------------ | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
-| `entity`                 | string       | **Yes**  | -                       | Thermostat entity (climate domain)                                                          |
-| `title`                  | string       | No       | "Thermostat"            | Card title                                                                                  |
-| `ring_style`             | string       | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
-| `plate_color`            | string       | No       | '#8c7626'               | Background plate color                                                                      |
-| `title_color`            | string       | No       | '#3e2723'               | Color of the title text and labels                                                          |
-| `font_bg_color`          | string       | No       | '#ffffff'               | Background color of the odometer displays                                                   |
-| `font_color`             | string       | No       | '#000000'               | Color of the odometer text                                                                  |
-| `rivet_color`            | string       | No       | '#6d5d4b'               | Color of rivets                                                                             |
-| `plate_transparent`      | boolean      | No       | false                   | Make the plate transparent                                                                  |
-| `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                             |
-| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                 |
-| `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
-| `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                    |
+| Option                   | Type    | Required | Default      | Description                                                                                 |
+| ------------------------ | ------- | -------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -            | Thermostat entity (climate domain)                                                          |
+| `title`                  | string  | No       | "Thermostat" | Card title                                                                                  |
+| `ring_style`             | string  | No       | 'brass'      | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `plate_color`            | string  | No       | '#8c7626'    | Background plate color                                                                      |
+| `title_color`            | string  | No       | '#3e2723'    | Color of the title text and labels                                                          |
+| `font_bg_color`          | string  | No       | '#ffffff'    | Background color of the odometer displays                                                   |
+| `font_color`             | string  | No       | '#000000'    | Color of the odometer text                                                                  |
+| `rivet_color`            | string  | No       | '#6d5d4b'    | Color of rivets                                                                             |
+| `plate_transparent`      | boolean | No       | false        | Make the plate transparent                                                                  |
+| `wear_level`             | number  | No       | 50           | Intensity of wear marks (0-100)                                                             |
+| `glass_effect_enabled`   | boolean | No       | true         | Enable glass effect overlay                                                                 |
+| `aged_texture`           | string  | No       | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number  | No       | 50           | Intensity of aged texture effect (0-100)                                                    |
 
 <details>
   <summary>Click to see examples</summary>
@@ -853,11 +853,11 @@ type: custom:foundry-homethermostat-card
 entity: climate.t6_pro_z_wave_programmable_thermostat_with_smartstart
 title: Thermostat
 ring_style: brass
-plate_color: "#8c7626"
-title_color: "#3e2723"
-font_bg_color: "#ffffff"
-font_color: "#000000"
-rivet_color: "#6d5d4b"
+plate_color: '#8c7626'
+title_color: '#3e2723'
+font_bg_color: '#ffffff'
+font_color: '#000000'
+rivet_color: '#6d5d4b'
 plate_transparent: false
 wear_level: 50
 glass_effect_enabled: true

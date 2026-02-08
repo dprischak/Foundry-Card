@@ -175,11 +175,21 @@ class FoundryHomeThermostatEditor extends HTMLElement {
 
     data.ring_style = config.ring_style ?? 'brass';
 
-    data.title_color = this._hexToRgb(config.title_color ?? '#3e2723') ?? [62, 39, 35];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#1a1a1a') ?? [26, 26, 26];
-    data.font_color = this._hexToRgb(config.font_color ?? '#ff0055') ?? [255, 0, 85];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [109, 93, 75];
-    data.plate_color = this._hexToRgb(config.plate_color ?? '#2b2b2b') ?? [43, 43, 43];
+    data.title_color = this._hexToRgb(config.title_color ?? '#3e2723') ?? [
+      62, 39, 35,
+    ];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#1a1a1a') ?? [
+      26, 26, 26,
+    ];
+    data.font_color = this._hexToRgb(config.font_color ?? '#ff0055') ?? [
+      255, 0, 85,
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
+      109, 93, 75,
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? '#2b2b2b') ?? [
+      43, 43, 43,
+    ];
 
     data.plate_transparent = config.plate_transparent ?? false;
     data.wear_level = config.wear_level ?? 50;
@@ -193,11 +203,16 @@ class FoundryHomeThermostatEditor extends HTMLElement {
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
 
-    if (config.title_color) config.title_color = this._rgbToHex(config.title_color);
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
-    if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.font_color)
+      config.font_color = this._rgbToHex(config.font_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
 
     return config;
   }
@@ -234,4 +249,7 @@ class FoundryHomeThermostatEditor extends HTMLElement {
   }
 }
 
-customElements.define('foundry-homethermostat-editor', FoundryHomeThermostatEditor);
+customElements.define(
+  'foundry-homethermostat-editor',
+  FoundryHomeThermostatEditor
+);

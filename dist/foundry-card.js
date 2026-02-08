@@ -3464,7 +3464,7 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     const attributes = stateObj.attributes;
     const mode = stateObj.state;
     this._updateScreenValues(stateObj, attributes);
-    const isDualMode = (mode === "heat_cool" || mode === "auto") && (attributes.target_temp_high != null && attributes.target_temp_low != null);
+    const isDualMode = (mode === "heat_cool" || mode === "auto") && attributes.target_temp_high != null && attributes.target_temp_low != null;
     let targetDisplayVal = "--";
     let selectorDisplayVal = this._selectedTarget.toUpperCase();
     if (isDualMode) {
@@ -3474,11 +3474,26 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       let val = attributes.temperature;
       targetDisplayVal = val !== void 0 && val !== null ? val : "--";
     }
-    this.updateWordOdometer(`odo-selector-${this._uniqueId}`, selectorDisplayVal);
-    this.updateWordOdometer(`odo-mode-${this._uniqueId}`, (stateObj.state || "").toUpperCase());
-    this.updateWordOdometer(`odo-fan-${this._uniqueId}`, (attributes.fan_mode || "AUTO").toUpperCase());
-    this.updateWordOdometer(`odo-preset-${this._uniqueId}`, (attributes.preset_mode || "NONE").toUpperCase());
-    this.updateNumericOdometer(`odo-setpoint-${this._uniqueId}`, targetDisplayVal);
+    this.updateWordOdometer(
+      `odo-selector-${this._uniqueId}`,
+      selectorDisplayVal
+    );
+    this.updateWordOdometer(
+      `odo-mode-${this._uniqueId}`,
+      (stateObj.state || "").toUpperCase()
+    );
+    this.updateWordOdometer(
+      `odo-fan-${this._uniqueId}`,
+      (attributes.fan_mode || "AUTO").toUpperCase()
+    );
+    this.updateWordOdometer(
+      `odo-preset-${this._uniqueId}`,
+      (attributes.preset_mode || "NONE").toUpperCase()
+    );
+    this.updateNumericOdometer(
+      `odo-setpoint-${this._uniqueId}`,
+      targetDisplayVal
+    );
   }
   _updateScreenValues(stateObj, attributes) {
     const currentTemp = attributes.current_temperature !== void 0 && attributes.current_temperature !== null ? attributes.current_temperature : "--";
@@ -3494,7 +3509,8 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     const elTemp = root.getElementById(`screen-temp-${this._uniqueId}`);
     const elHum = root.getElementById(`screen-hum-${this._uniqueId}`);
     const elAction = root.getElementById(`screen-action-${this._uniqueId}`);
-    if (elTemp) elTemp.innerHTML = `${currentTemp}<tspan font-size="28" dy="-20">\xB0</tspan>`;
+    if (elTemp)
+      elTemp.innerHTML = `${currentTemp}<tspan font-size="28" dy="-20">\xB0</tspan>`;
     if (elHum) elHum.textContent = humidity !== "--" ? humidity + "%" : "--";
     if (elAction) elAction.textContent = actionText;
   }
@@ -3548,7 +3564,20 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       slot.className = "digit-strip-window";
       const strip = document.createElement("div");
       strip.className = "digit-strip";
-      const charset2 = ["-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+      const charset2 = [
+        "-",
+        ".",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ];
       charset2.forEach((char) => {
         const item = document.createElement("div");
         item.className = "strip-char";
@@ -3563,7 +3592,20 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       numericRow.removeChild(numericRow.lastChild);
       currentSlots.pop();
     }
-    const charset = ["-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    const charset = [
+      "-",
+      ".",
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ];
     const charHeight = 24;
     chars.forEach((char, i) => {
       const slot = currentSlots[i];
@@ -3908,12 +3950,14 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     if (!stateObj) return;
     const attr = stateObj.attributes;
     const overlay = this.shadowRoot.getElementById(`overlay-${this._uniqueId}`);
-    const content = this.shadowRoot.getElementById(`overlay-content-${this._uniqueId}`);
+    const content = this.shadowRoot.getElementById(
+      `overlay-content-${this._uniqueId}`
+    );
     if (!overlay || !content) return;
     let title = type.toUpperCase();
     let html = "";
     if (type === "setpoint") {
-      const isDualMode = (stateObj.state === "heat_cool" || stateObj.state === "auto") && (attr.target_temp_high != null && attr.target_temp_low != null);
+      const isDualMode = (stateObj.state === "heat_cool" || stateObj.state === "auto") && attr.target_temp_high != null && attr.target_temp_low != null;
       let currentVal;
       if (isDualMode) {
         currentVal = this._selectedTarget === "high" ? attr.target_temp_high : attr.target_temp_low;
@@ -3943,7 +3987,8 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
         current = attr.fan_mode;
       } else if (type === "preset") {
         options = [...attr.preset_modes || []];
-        if (!options.includes("none") && !options.includes("None")) options.unshift("none");
+        if (!options.includes("none") && !options.includes("None"))
+          options.unshift("none");
         current = attr.preset_mode || "none";
       }
       if (options.length === 0) return;
@@ -3957,8 +4002,12 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     content.innerHTML = html;
     overlay.style.display = "flex";
     if (type === "setpoint") {
-      const btn = this.shadowRoot.getElementById(`overlay-set-btn-${this._uniqueId}`);
-      const input = this.shadowRoot.getElementById(`overlay-input-${this._uniqueId}`);
+      const btn = this.shadowRoot.getElementById(
+        `overlay-set-btn-${this._uniqueId}`
+      );
+      const input = this.shadowRoot.getElementById(
+        `overlay-input-${this._uniqueId}`
+      );
       btn.onclick = () => {
         const val = parseFloat(input.value);
         this._handleAction("setpoint", null, val);
@@ -3981,11 +4030,20 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
   }
   _applyDirectValue(type, value) {
     if (type === "mode") {
-      this._hass.callService("climate", "set_hvac_mode", { entity_id: this.config.entity, hvac_mode: value });
+      this._hass.callService("climate", "set_hvac_mode", {
+        entity_id: this.config.entity,
+        hvac_mode: value
+      });
     } else if (type === "fan") {
-      this._hass.callService("climate", "set_fan_mode", { entity_id: this.config.entity, fan_mode: value });
+      this._hass.callService("climate", "set_fan_mode", {
+        entity_id: this.config.entity,
+        fan_mode: value
+      });
     } else if (type === "preset") {
-      this._hass.callService("climate", "set_preset_mode", { entity_id: this.config.entity, preset_mode: value });
+      this._hass.callService("climate", "set_preset_mode", {
+        entity_id: this.config.entity,
+        preset_mode: value
+      });
     }
   }
   // Update handleAction to accept absolute value for setpoint
@@ -3999,26 +4057,26 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       this._selectedTarget = this._selectedTarget === "low" ? "high" : "low";
       this._updateValues();
     } else if (type === "setpoint") {
-      const isDualMode = (mode === "heat_cool" || mode === "auto") && (attr.target_temp_high != null && attr.target_temp_low != null);
+      const isDualMode = (mode === "heat_cool" || mode === "auto") && attr.target_temp_high != null && attr.target_temp_low != null;
       let currentVal;
       let min = attr.min_temp || 7;
       let max = attr.max_temp || 35;
-      let step = attr.target_temp_step || 1;
       if (isDualMode) {
         currentVal = this._selectedTarget === "high" ? attr.target_temp_high : attr.target_temp_low;
       } else {
         currentVal = attr.temperature;
       }
       if (currentVal === void 0 || currentVal === null) {
-        if (attr.current_temperature != null) currentVal = attr.current_temperature;
+        if (attr.current_temperature != null)
+          currentVal = attr.current_temperature;
         else return;
       }
       let newVal;
       if (absoluteValue !== null) {
         newVal = absoluteValue;
       } else {
-        let step2 = attr.target_temp_step || 1;
-        newVal = direction === "up" ? currentVal + step2 : currentVal - step2;
+        let step = attr.target_temp_step || 1;
+        newVal = direction === "up" ? currentVal + step : currentVal - step;
       }
       newVal = Math.max(min, Math.min(max, newVal));
       const serviceData = { entity_id: entityId };
@@ -4040,25 +4098,35 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       let idx = modes.indexOf(stateObj.state);
       if (idx === -1) idx = 0;
       idx = direction === "up" ? (idx + 1) % modes.length : (idx - 1 + modes.length) % modes.length;
-      this._hass.callService("climate", "set_hvac_mode", { entity_id: entityId, hvac_mode: modes[idx] });
+      this._hass.callService("climate", "set_hvac_mode", {
+        entity_id: entityId,
+        hvac_mode: modes[idx]
+      });
     } else if (type === "fan") {
       const modes = attr.fan_modes || [];
       if (modes.length === 0) return;
       let idx = modes.indexOf(attr.fan_mode);
       if (idx === -1) idx = 0;
       idx = direction === "up" ? (idx + 1) % modes.length : (idx - 1 + modes.length) % modes.length;
-      this._hass.callService("climate", "set_fan_mode", { entity_id: entityId, fan_mode: modes[idx] });
+      this._hass.callService("climate", "set_fan_mode", {
+        entity_id: entityId,
+        fan_mode: modes[idx]
+      });
     } else if (type === "preset") {
       const modes = attr.preset_modes || [];
       if (modes.length === 0) return;
       let current = attr.preset_mode || "none";
       let activeModes = [...modes];
-      if (!activeModes.includes("none") && !activeModes.includes("None")) activeModes.unshift("none");
+      if (!activeModes.includes("none") && !activeModes.includes("None"))
+        activeModes.unshift("none");
       let idx = activeModes.indexOf(current);
       if (idx === -1) idx = 0;
       idx = direction === "up" ? (idx + 1) % activeModes.length : (idx - 1 + activeModes.length) % activeModes.length;
       const newPreset = activeModes[idx];
-      this._hass.callService("climate", "set_preset_mode", { entity_id: entityId, preset_mode: newPreset === "none" ? "none" : newPreset });
+      this._hass.callService("climate", "set_preset_mode", {
+        entity_id: entityId,
+        preset_mode: newPreset === "none" ? "none" : newPreset
+      });
     }
   }
   renderGradients(uid) {
@@ -4137,14 +4205,21 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
   }
   renderRivets(w, h, p) {
     const inset = p + 10;
-    const coords = [[inset, inset], [w - inset, inset], [inset, h - inset], [w - inset, h - inset]];
-    return coords.map(([cx, cy]) => `
+    const coords = [
+      [inset, inset],
+      [w - inset, inset],
+      [inset, h - inset],
+      [w - inset, h - inset]
+    ];
+    return coords.map(
+      ([cx, cy]) => `
         <g>
             <circle cx="${cx}" cy="${cy}" r="4" class="rivet" />
             <circle cx="${cx}" cy="${cy}" r="2.5" class="screw-detail" />
             <line x1="${cx - 3}" y1="${cy}" x2="${cx + 3}" y2="${cy}" class="screw-detail" transform="rotate(45, ${cx}, ${cy})" />
         </g>
-      `).join("");
+      `
+    ).join("");
   }
   renderWearMarks(w, h, level) {
     if (!level || level <= 0) return "";
@@ -4431,11 +4506,31 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     const data = { ...config };
     data.title = config.title ?? "Thermostat";
     data.ring_style = config.ring_style ?? "brass";
-    data.title_color = this._hexToRgb(config.title_color ?? "#3e2723") ?? [62, 39, 35];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#1a1a1a") ?? [26, 26, 26];
-    data.font_color = this._hexToRgb(config.font_color ?? "#ff0055") ?? [255, 0, 85];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [109, 93, 75];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#2b2b2b") ?? [43, 43, 43];
+    data.title_color = this._hexToRgb(config.title_color ?? "#3e2723") ?? [
+      62,
+      39,
+      35
+    ];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#1a1a1a") ?? [
+      26,
+      26,
+      26
+    ];
+    data.font_color = this._hexToRgb(config.font_color ?? "#ff0055") ?? [
+      255,
+      0,
+      85
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+      109,
+      93,
+      75
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? "#2b2b2b") ?? [
+      43,
+      43,
+      43
+    ];
     data.plate_transparent = config.plate_transparent ?? false;
     data.wear_level = config.wear_level ?? 50;
     data.glass_effect_enabled = config.glass_effect_enabled ?? true;
@@ -4445,11 +4540,16 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
   }
   _formToConfig(formData) {
     const config = { ...this._config, ...formData };
-    if (config.title_color) config.title_color = this._rgbToHex(config.title_color);
-    if (config.font_bg_color) config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color) config.font_color = this._rgbToHex(config.font_color);
-    if (config.rivet_color) config.rivet_color = this._rgbToHex(config.rivet_color);
-    if (config.plate_color) config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.font_color)
+      config.font_color = this._rgbToHex(config.font_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
     return config;
   }
   _hexToRgb(hex) {
@@ -4481,7 +4581,10 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     return schema.name;
   }
 };
-customElements.define("foundry-homethermostat-editor", FoundryHomeThermostatEditor);
+customElements.define(
+  "foundry-homethermostat-editor",
+  FoundryHomeThermostatEditor
+);
 
 // src/cards/foundry-analog-clock-card.js
 var FoundryAnalogClockCard = class extends HTMLElement {
