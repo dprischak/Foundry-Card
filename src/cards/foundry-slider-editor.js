@@ -80,7 +80,7 @@ class FoundrySliderEditor extends HTMLElement {
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? 'square',
-      knob_size: config.knob_size ?? 48,
+      knob_size: config.knob_size ?? 100,
       knob_color: this._hexToRgb(config.knob_color ?? '#c9a961') ?? [
         201, 169, 97,
       ],
@@ -259,9 +259,9 @@ class FoundrySliderEditor extends HTMLElement {
             label: 'Knob Size',
             selector: {
               number: {
-                min: 32,
-                max: 80,
-                step: 4,
+                min: 0,
+                max: 100,
+                step: 1,
                 mode: 'slider',
               },
             },

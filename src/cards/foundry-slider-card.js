@@ -54,7 +54,7 @@ class FoundrySliderCard extends HTMLElement {
     // Knob Settings
     this.config.knob_shape = this.config.knob_shape || 'square'; // 'circular', 'square', 'rectangular'
     this.config.knob_size =
-      this.config.knob_size !== undefined ? this.config.knob_size : 48;
+      this.config.knob_size !== undefined ? this.config.knob_size : 100;
 
     // Visual Effects (from digital clock)
     this.config.wear_level =
@@ -113,8 +113,12 @@ class FoundrySliderCard extends HTMLElement {
     const KNOB_SCALE = 0.2;
     const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
 
-    // Calculate knob dimensions based on shape
-    const knobSize = cfg.knob_size;
+    // Calculate knob dimensions based on shape (0-100 maps to 4-32px)
+    const KNOB_SIZE_MAX = 32;
+    const KNOB_SIZE_MIN = KNOB_SIZE_MAX / 8;
+    const knobSizePercent = Math.max(0, Math.min(100, Number(cfg.knob_size)));
+    const knobSize =
+      KNOB_SIZE_MIN + (KNOB_SIZE_MAX - KNOB_SIZE_MIN) * (knobSizePercent / 100);
     const knobSizeScaled = knobSize * KNOB_SCALE;
     let knobWidth, knobHeight, knobBorderRadius;
 
@@ -903,7 +907,7 @@ class FoundrySliderCard extends HTMLElement {
       slider_color: '#444444',
       knob_color: '#c9a961',
       knob_shape: 'square',
-      knob_size: 48,
+      knob_size: 100,
       tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',

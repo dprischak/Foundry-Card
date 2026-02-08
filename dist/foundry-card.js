@@ -5141,7 +5141,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
     this.config.value_font_size = this.config.value_font_size !== void 0 ? this.config.value_font_size : 36;
     this.config.knob_shape = this.config.knob_shape || "square";
-    this.config.knob_size = this.config.knob_size !== void 0 ? this.config.knob_size : 48;
+    this.config.knob_size = this.config.knob_size !== void 0 ? this.config.knob_size : 100;
     this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
     this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
     this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
@@ -5178,7 +5178,10 @@ var FoundrySliderCard = class extends HTMLElement {
     const KNOB_BORDER_WIDTH = 3;
     const KNOB_SCALE = 0.2;
     const TRACK_WIDTH_MULTIPLIER = 0.32;
-    const knobSize = cfg.knob_size;
+    const KNOB_SIZE_MAX = 32;
+    const KNOB_SIZE_MIN = KNOB_SIZE_MAX / 8;
+    const knobSizePercent = Math.max(0, Math.min(100, Number(cfg.knob_size)));
+    const knobSize = KNOB_SIZE_MIN + (KNOB_SIZE_MAX - KNOB_SIZE_MIN) * (knobSizePercent / 100);
     const knobSizeScaled = knobSize * KNOB_SCALE;
     let knobWidth, knobHeight, knobBorderRadius;
     switch (cfg.knob_shape) {
@@ -5875,7 +5878,7 @@ var FoundrySliderCard = class extends HTMLElement {
       slider_color: "#444444",
       knob_color: "#c9a961",
       knob_shape: "square",
-      knob_size: 48,
+      knob_size: 100,
       tick_color: "rgba(0,0,0,0.22)",
       font_bg_color: "#ffffff",
       font_color: "#000000",
@@ -5977,7 +5980,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? "square",
-      knob_size: config.knob_size ?? 48,
+      knob_size: config.knob_size ?? 100,
       knob_color: this._hexToRgb(config.knob_color ?? "#c9a961") ?? [
         201,
         169,
@@ -6145,9 +6148,9 @@ var FoundrySliderEditor = class extends HTMLElement {
             label: "Knob Size",
             selector: {
               number: {
-                min: 32,
-                max: 80,
-                step: 4,
+                min: 0,
+                max: 100,
+                step: 1,
                 mode: "slider"
               }
             }
