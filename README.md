@@ -154,7 +154,7 @@ or
 3. Search for `Foundry Card`
 4. Click the download button. ⬇️
 5. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
-6. Add vehicle-status-card to your dashboard
+6. Add any foundry card to your dashboard
 
 ### Manual Installation
 
