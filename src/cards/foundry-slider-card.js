@@ -109,9 +109,7 @@ class FoundrySliderCard extends HTMLElement {
     const screenH = bevelH - 8;
     const screenCenterX = screenX + screenW / 2;
 
-    const KNOB_BORDER_WIDTH = 3;
-    const KNOB_SCALE = 0.2;
-    const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
+      const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
 
     // Calculate knob dimensions based on shape (0-100 maps to 4-32px)
     const KNOB_SIZE_MAX = 32;
@@ -119,27 +117,37 @@ class FoundrySliderCard extends HTMLElement {
     const knobSizePercent = Math.max(0, Math.min(100, Number(cfg.knob_size)));
     const knobSize =
       KNOB_SIZE_MIN + (KNOB_SIZE_MAX - KNOB_SIZE_MIN) * (knobSizePercent / 100);
-    const knobSizeScaled = knobSize * KNOB_SCALE;
+      const knobSizeScaled = knobSize; // Adjusted to remove scaling
     let knobWidth, knobHeight, knobBorderRadius;
 
     switch (cfg.knob_shape) {
       case 'circular':
-        knobWidth = knobSizeScaled;
-        knobHeight = knobSizeScaled;
+          knobWidth = knobSize;
+          knobHeight = knobSize;
         knobBorderRadius = '50%';
         break;
       case 'rectangular':
-        knobWidth = knobSizeScaled;
-        knobHeight = Math.round(knobSizeScaled * 1.33); // 3:4 ratio
+          knobWidth = knobSize;
+          knobHeight = Math.round(knobSize * 1.33); // 3:4 ratio
         knobBorderRadius = '10px';
         break;
       case 'square':
       default:
-        knobWidth = knobSizeScaled;
-        knobHeight = knobSizeScaled;
+          knobWidth = knobSize;
+          knobHeight = knobSize;
         knobBorderRadius = '10px';
         break;
     }
+
+    const knobRx =
+      knobBorderRadius === '50%' ? knobWidth / 2 : Number.parseFloat(knobBorderRadius);
+    const knobRy =
+      knobBorderRadius === '50%' ? knobHeight / 2 : Number.parseFloat(knobBorderRadius);
+
+    this._knobWidth = knobWidth;
+    this._knobHeight = knobHeight;
+    this._knobRx = knobRx;
+    this._knobRy = knobRy;
 
     // LED Display positioning - within the screen area
     const displayChars = this._getLedCharCount(cfg);
@@ -154,15 +162,24 @@ class FoundrySliderCard extends HTMLElement {
     const ledY = screenY + screenH - ledHeight - 10;
 
     // Track dimensions - centered horizontally inside screen
-    const trackWidth = knobSizeScaled * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
+      const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
     const trackX = screenCenterX - trackWidth / 2;
     const trackTopY = screenY + 40;
     const trackBottomY = cfg.show_value
       ? ledY - 10
       : screenY + screenH - 16;
     const trackHeight = trackBottomY - trackTopY;
-    const sliderInputHeight = trackHeight + knobHeight;
-    const sliderInputTop = trackTopY - knobHeight / 2;
+    const sliderInputTop = trackTopY;
+    const sliderInputBottom = trackBottomY;
+    const sliderInputHeight = sliderInputBottom - sliderInputTop;
+    const sliderInputLength = sliderInputHeight;
+
+    // Store geometry for knob position updates
+    this._trackTopY = trackTopY;
+    this._trackBottomY = trackBottomY;
+    this._trackHeight = trackHeight;
+    this._trackCenterX = trackX + trackWidth / 2;
+    
 
     // Tick mark positioning
     const tickMajorLength = 12;
@@ -237,6 +254,7 @@ class FoundrySliderCard extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: center;
+          overflow: visible;
           pointer-events: all;
         }
 
@@ -244,8 +262,8 @@ class FoundrySliderCard extends HTMLElement {
           -webkit-appearance: none;
           appearance: none;
           background: transparent;
-          width: 100%;
-          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
+          width: ${sliderInputLength}px;
+          height: ${trackWidth}px;
           writing-mode: bt-lr;
           -webkit-writing-mode: bt-lr;
           transform-origin: center center;
@@ -257,45 +275,35 @@ class FoundrySliderCard extends HTMLElement {
         /* Hide default track */
         input[type="range"]::-webkit-slider-runnable-track {
           background: transparent;
-          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
+          height: ${trackWidth}px;
           border: none;
         }
         input[type="range"]::-moz-range-track {
           background: transparent;
-          height: ${((trackWidth / width) * 100).toFixed(2)}cqi;
+          height: ${trackWidth}px;
           border: none;
         }
 
         /* Thumb/Knob styling */
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: ${((knobWidth / width) * 100).toFixed(2)}cqi;
-          height: ${((knobHeight / width) * 100).toFixed(2)}cqi;
-          margin-top: calc(-${((knobHeight / width) * 100).toFixed(2)}cqi / 2 + ${((trackWidth / width) * 100).toFixed(2)}cqi / 2);
-          border-radius: ${knobBorderRadius};
-          background: linear-gradient(180deg, 
-            ${this.adjustColor(cfg.knob_color, 40)} 0%, 
-            ${cfg.knob_color} 50%, 
-            ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          width: 1px;
+          height: 1px;
+          margin-top: 0;
+          border-radius: 0;
+          background: transparent;
           border: none;
-          box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
-                      inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
-                      inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
+          box-shadow: none;
           cursor: grab;
         }
 
         input[type="range"]::-moz-range-thumb {
-          width: ${((knobWidth / width) * 100).toFixed(2)}cqi;
-          height: ${((knobHeight / width) * 100).toFixed(2)}cqi;
-          border-radius: ${knobBorderRadius};
-          background: linear-gradient(180deg, 
-            ${this.adjustColor(cfg.knob_color, 40)} 0%, 
-            ${cfg.knob_color} 50%, 
-            ${this.adjustColor(cfg.knob_color, -15)} 100%);
+          width: 1px;
+          height: 1px;
+          border-radius: 0;
+          background: transparent;
           border: none;
-          box-shadow: 0 0.4cqi 1.1cqi rgba(0,0,0,0.45), 
-                      inset 0 0.4cqi 0.7cqi rgba(255,255,255,0.12), 
-                      inset 0 -0.4cqi 0.5cqi rgba(0,0,0,0.25);
+          box-shadow: none;
           cursor: grab;
         }
 
@@ -325,6 +333,13 @@ class FoundrySliderCard extends HTMLElement {
                 <stop offset="0%" style="stop-color:${this.adjustColor(cfg.slider_color, 25)};stop-opacity:1" />
                 <stop offset="50%" style="stop-color:${cfg.slider_color};stop-opacity:1" />
                 <stop offset="100%" style="stop-color:${this.adjustColor(cfg.slider_color, -8)};stop-opacity:1" />
+              </linearGradient>
+
+              <!-- Knob Gradient -->
+              <linearGradient id="knobGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:${this.adjustColor(cfg.knob_color, 40)};stop-opacity:1" />
+                <stop offset="50%" style="stop-color:${cfg.knob_color};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${this.adjustColor(cfg.knob_color, -15)};stop-opacity:1" />
               </linearGradient>
 
               <!-- Aged texture filter -->
@@ -387,6 +402,17 @@ class FoundrySliderCard extends HTMLElement {
               tickMajorLength,
               tickMinorLength
             )}
+
+            <!-- Slider Knob -->
+            <rect id="sliderKnob"
+                  x="${(trackX + trackWidth / 2 - knobWidth / 2).toFixed(2)}"
+                  y="${(trackBottomY - knobHeight / 2).toFixed(2)}"
+                  width="${knobWidth}"
+                  height="${knobHeight}"
+                  rx="${knobRx}"
+                  ry="${knobRy}"
+                  fill="url(#knobGrad-${uid})"
+                  style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45));" />
 
             <!-- LED Display Box -->
             ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ''}
@@ -820,6 +846,26 @@ class FoundrySliderCard extends HTMLElement {
     const formatted = this._formatValue(v);
     const el = this.shadowRoot.getElementById('valueDisplay');
     if (el) el.textContent = formatted;
+
+    const knob = this.shadowRoot.getElementById('sliderKnob');
+    if (knob && this._trackHeight !== undefined) {
+      const cfg = this.config || {};
+      const min = Number(cfg.min) || 0;
+      const max = Number(cfg.max) || 0;
+      const range = max - min || 1;
+      const value = Number(v);
+      const clamped = Math.min(max, Math.max(min, value));
+      const t = (clamped - min) / range;
+      const centerY = this._trackBottomY - t * this._trackHeight;
+      knob.setAttribute(
+        'y',
+        (centerY - this._knobHeight / 2).toFixed(2)
+      );
+      knob.setAttribute(
+        'x',
+        (this._trackCenterX - this._knobWidth / 2).toFixed(2)
+      );
+    }
   }
 
   _getLedCharCount(cfg) {
