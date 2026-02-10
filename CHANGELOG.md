@@ -1,3 +1,10 @@
+## v26.2.2
+
+### 🛠️ Improvements
+
+- **Issue #31:** Fixed Readme link to the latest release
+
+
 ## v26.2.1
 
 ### 📅 Version Changes
