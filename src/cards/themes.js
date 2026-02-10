@@ -68,6 +68,9 @@ export function applyTheme(config, theme) {
     'wear_level',
     'aged_texture',
     'aged_texture_intensity',
+    'slider_color',
+    'knob_color',
+    'tick_color',
   ];
 
   for (const key of themeProperties) {

@@ -39,6 +39,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
+   - [Foundry Slider Card](#foundry-slider-card)
 4. [Custom Themes](#custom-themes)
 5. [Development](#development)
 6. [Roadmap](#roadmap)
@@ -137,6 +138,18 @@ A vintage-style thermostat controller featuring:
 - Interactive controls for temperature, fan, and presets
 - Dual setpoint support for Heat/Cool mode
 - Rich industrial design with wear and glass effects
+
+<a name="foundry-slider-card"></a>
+
+### 🎚️ Foundry Slider Card
+
+A vertical retro-style slider control:
+
+- Industrial knob with metallic finish
+- Adjustable track with tick marks
+- LED-style digital display
+- Customizable knob shapes and sizes
+- Multiple ring styles and themes
 
 <a name="installation"></a>
 
@@ -868,6 +881,72 @@ aged_texture_intensity: 50
 ```
 
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/homethermo.png" width="300" alt="Preview"/>
+
+</details>
+
+### Foundry Slider Card
+
+A vertical slider control with vintage industrial aesthetics.
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default            | Description                                                                                 |
+| ------------------------ | ------- | -------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | No       | -                  | Entity ID (optional, for control integration)                                               |
+| `title`                  | string  | No       | "Slider"           | Card title                                                                                  |
+| `min`                    | number  | No       | 0                  | Minimum slider value                                                                        |
+| `max`                    | number  | No       | 100                | Maximum slider value                                                                        |
+| `step`                   | number  | No       | 1                  | Slider step increment                                                                       |
+| `value`                  | number  | No       | 50                 | Initial/current slider value                                                                |
+| `ring_style`             | string  | No       | 'brass'            | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `face_color`             | string  | No       | '#8c7626'          | Background face color                                                                       |
+| `plate_color`            | string  | No       | '#8c7626'          | Background plate color                                                                      |
+| `plate_transparent`      | boolean | No       | false              | Make the plate transparent                                                                  |
+| `rivet_color`            | string  | No       | '#6a5816'          | Color of decorative rivets                                                                  |
+| `slider_color`           | string  | No       | '#444444'          | Color of the slider track                                                                   |
+| `knob_color`             | string  | No       | '#c9a961'          | Color of the slider knob (derived from ring_style)                                          |
+| `knob_shape`             | string  | No       | 'square'           | Knob shape: 'circular', 'square', 'rectangular'                                             |
+| `knob_size`              | number  | No       | 100                | Knob size percentage (0-100)                                                                |
+| `tick_color`             | string  | No       | 'rgba(0,0,0,0.22)' | Color of tick marks                                                                         |
+| `font_bg_color`          | string  | No       | '#ffffff'          | Background color of LED display                                                             |
+| `font_color`             | string  | No       | '#000000'          | Color of LED display digits                                                                 |
+| `title_color`            | string  | No       | '#3e2723'          | Color of the title text                                                                     |
+| `title_font_size`        | number  | No       | 14                 | Font size for the title                                                                     |
+| `value_font_size`        | number  | No       | 36                 | Font size for the value display                                                             |
+| `show_value`             | boolean | No       | true               | Show the digital value display                                                              |
+| `wear_level`             | number  | No       | 50                 | Intensity of wear marks (0-100)                                                             |
+| `aged_texture`           | string  | No       | 'everywhere'       | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number  | No       | 50                 | Intensity of aged texture effect (0-100)                                                    |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-slider-card
+title: Volume
+min: 0
+max: 100
+step: 1
+value: 50
+ring_style: brass
+face_color: '#8c7626'
+plate_color: '#8c7626'
+plate_transparent: false
+rivet_color: '#6a5816'
+slider_color: '#444444'
+knob_shape: square
+knob_size: 100
+tick_color: 'rgba(0,0,0,0.22)'
+font_bg_color: '#ffffff'
+font_color: '#000000'
+title_color: '#3e2723'
+title_font_size: 14
+value_font_size: 36
+show_value: true
+wear_level: 50
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
 
 </details>
 
