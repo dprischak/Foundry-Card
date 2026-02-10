@@ -5,7 +5,7 @@
 - **Theme Support:** Added a new theme selector to all cards, allowing for quick aesthetic changes.
 - **Color Standardization:** Standardized `title_color` across all cards, with backward compatibility for `title_font_color`.
 
-### � New Cards
+### New Cards
 
 #### 🎚️ Foundry Slider Card
 
@@ -16,9 +16,9 @@
 - **LED Display:** Digital LED-style value display with customizable fonts and colors.
 - **Customizable Knob:** Multiple knob shapes (circular, square, rectangular) and adjustable size (0-100%).
 - **Theme Support:** Full theme support with all the standard industrial ring styles and visual effects.
-- **Visual Effects:** Includes wear levels, aged texture, and glass effects for authentic vintage appearance.
+- **Visual Effects:** Includes wear levels, and aged texture effects for authentic vintage appearance.
 
-### �🛠️ Improvements
+### Improvements
 
 - **Issue #31:** Fixed Readme link to the latest release
 
