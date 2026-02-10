@@ -96,8 +96,7 @@ class FoundrySliderEditor extends HTMLElement {
     };
     data.effects = {
       wear_level: config.wear_level ?? 50,
-      glass_effect_enabled: config.glass_effect_enabled ?? true,
-      aged_texture: config.aged_texture ?? 'everywhere',
+      aged_texture: (config.aged_texture ?? 'everywhere') !== 'none',
       aged_texture_intensity: config.aged_texture_intensity ?? 50,
     };
     return data;
@@ -141,6 +140,7 @@ class FoundrySliderEditor extends HTMLElement {
     // Merge effects
     if (formData.effects) {
       Object.assign(config, formData.effects);
+      config.aged_texture = config.aged_texture ? 'everywhere' : 'none';
     }
 
     return config;
@@ -347,22 +347,9 @@ class FoundrySliderEditor extends HTMLElement {
             },
           },
           {
-            name: 'glass_effect_enabled',
-            label: 'Glass Effect',
-            selector: { boolean: {} },
-          },
-          {
             name: 'aged_texture',
             label: 'Aged Texture',
-            selector: {
-              select: {
-                options: [
-                  { value: 'none', label: 'None' },
-                  { value: 'glass_only', label: 'Glass Only' },
-                  { value: 'everywhere', label: 'Everywhere' },
-                ],
-              },
-            },
+            selector: { boolean: {} },
           },
           {
             name: 'aged_texture_intensity',

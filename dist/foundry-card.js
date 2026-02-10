@@ -5158,6 +5158,7 @@ var FoundrySliderCard = class extends HTMLElement {
     const title = cfg.title || "";
     const width = 155;
     const height = 350;
+    this._viewBoxHeight = height;
     const plateWidth = 145;
     const plateHeight = 340;
     const plateX = 5;
@@ -5236,7 +5237,7 @@ var FoundrySliderCard = class extends HTMLElement {
       screenX + screenW - tickMajorLength - 2
     );
     const wearLevel = cfg.wear_level;
-    const glassEffectEnabled = cfg.glass_effect_enabled;
+    const glassEffectEnabled = false;
     const agedTexture = cfg.aged_texture;
     const agedTextureIntensity = cfg.aged_texture_intensity;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
@@ -5417,6 +5418,18 @@ var FoundrySliderCard = class extends HTMLElement {
       rimHeight
     )}
 
+            ${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `
+              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
+                    rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
+                    style="pointer-events:none;" />
+            ` : ""}
+
+            ${effectiveAgedTexture === "glass_only" ? `
+              <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
+                    rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
+                    style="pointer-events:none;" />
+            ` : ""}
+
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: #3e2723">${title}</text>` : ""}
 
@@ -5453,7 +5466,7 @@ var FoundrySliderCard = class extends HTMLElement {
                   rx="${knobRx}"
                   ry="${knobRy}"
                   fill="url(#knobGrad-${uid})"
-                  style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45));" />
+              style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45)); pointer-events: none;" />
 
             <!-- LED Display Box -->
             ${cfg.show_value ? this.renderLEDDisplay(uid, cfg, ledX, ledY, ledWidth, ledHeight, glassEffectEnabled) : ""}
@@ -5812,8 +5825,43 @@ var FoundrySliderCard = class extends HTMLElement {
     slider.oninput = (e) => this._onSliderInput(e);
     slider.onchange = (e) => this._onSliderChange(e);
     const root = this.shadowRoot.getElementById("actionRoot");
+    const sliderContainer = this.shadowRoot.querySelector(
+      ".slider-input-container"
+    );
+    const pointerTarget = sliderContainer || root;
+    if (pointerTarget) {
+      pointerTarget.onpointerdown = (e) => {
+        if (e.button !== 0) return;
+        this._draggingSlider = true;
+        this._suppressTap = true;
+        pointerTarget.setPointerCapture(e.pointerId);
+        this._setSliderValueFromClientY(e.clientY, false);
+        e.preventDefault();
+      };
+      pointerTarget.onpointermove = (e) => {
+        if (!this._draggingSlider) return;
+        this._setSliderValueFromClientY(e.clientY, false);
+        e.preventDefault();
+      };
+      pointerTarget.onpointerup = (e) => {
+        if (!this._draggingSlider) return;
+        this._draggingSlider = false;
+        pointerTarget.releasePointerCapture(e.pointerId);
+        this._setSliderValueFromClientY(e.clientY, true);
+        e.preventDefault();
+      };
+      pointerTarget.onpointercancel = (e) => {
+        if (!this._draggingSlider) return;
+        this._draggingSlider = false;
+        pointerTarget.releasePointerCapture(e.pointerId);
+      };
+    }
     if (root) {
       root.onclick = (e) => {
+        if (this._suppressTap) {
+          this._suppressTap = false;
+          return;
+        }
         if (e.target.id !== "slider") {
           this._handleAction("tap");
         }
@@ -5830,6 +5878,38 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.value = Number(v);
     this._updateValueDisplay(v);
     fireEvent(this, "foundry-slider-change", { value: Number(v) });
+  }
+  _setSliderValueFromClientY(clientY, commit) {
+    const slider = this.shadowRoot.getElementById("slider");
+    const svg = this.shadowRoot.querySelector(".slider-svg");
+    if (!slider || !svg || this._trackHeight === void 0) return;
+    const rect = svg.getBoundingClientRect();
+    if (!rect.height) return;
+    const scaleY = rect.height / (this._viewBoxHeight || rect.height);
+    const yInSvg = (clientY - rect.top) / scaleY;
+    const cfg = this.config || {};
+    const min = Number(cfg.min) || 0;
+    const max = Number(cfg.max) || 0;
+    const range = max - min || 1;
+    const tRaw = (this._trackBottomY - yInSvg) / this._trackHeight;
+    const t = Math.min(1, Math.max(0, tRaw));
+    const rawValue = min + t * range;
+    const step = Number(cfg.step) || 1;
+    const decimals = (() => {
+      const s = String(step);
+      return s.includes(".") ? s.split(".")[1].length : 0;
+    })();
+    const stepped = step ? Math.round((rawValue - min) / step) * step + min : rawValue;
+    const value = Number(stepped.toFixed(decimals));
+    slider.value = value;
+    if (commit) {
+      this.config.value = Number(value);
+      this._updateValueDisplay(value);
+      fireEvent(this, "foundry-slider-change", { value: Number(value) });
+    } else {
+      this._updateValueDisplay(value);
+      fireEvent(this, "foundry-slider-input", { value: Number(value) });
+    }
   }
   _updateValueDisplay(v) {
     const formatted = this._formatValue(v);
@@ -6038,8 +6118,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     };
     data.effects = {
       wear_level: config.wear_level ?? 50,
-      glass_effect_enabled: config.glass_effect_enabled ?? true,
-      aged_texture: config.aged_texture ?? "everywhere",
+      aged_texture: (config.aged_texture ?? "everywhere") !== "none",
       aged_texture_intensity: config.aged_texture_intensity ?? 50
     };
     return data;
@@ -6070,6 +6149,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     }
     if (formData.effects) {
       Object.assign(config, formData.effects);
+      config.aged_texture = config.aged_texture ? "everywhere" : "none";
     }
     return config;
   }
@@ -6274,22 +6354,9 @@ var FoundrySliderEditor = class extends HTMLElement {
             }
           },
           {
-            name: "glass_effect_enabled",
-            label: "Glass Effect",
-            selector: { boolean: {} }
-          },
-          {
             name: "aged_texture",
             label: "Aged Texture",
-            selector: {
-              select: {
-                options: [
-                  { value: "none", label: "None" },
-                  { value: "glass_only", label: "Glass Only" },
-                  { value: "everywhere", label: "Everywhere" }
-                ]
-              }
-            }
+            selector: { boolean: {} }
           },
           {
             name: "aged_texture_intensity",
