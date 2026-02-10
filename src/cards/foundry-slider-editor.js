@@ -111,13 +111,12 @@ class FoundrySliderEditor extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? 'brass',
-      background_color:
-        this._hexToRgb(
-          config.background_color ??
-            config.plate_color ??
-            config.slider_background_color ??
-            '#8c7626'
-        ) ?? [140, 118, 38],
+      background_color: this._hexToRgb(
+        config.background_color ??
+          config.plate_color ??
+          config.slider_background_color ??
+          '#8c7626'
+      ) ?? [140, 118, 38],
       plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [
         140, 118, 38,
       ],

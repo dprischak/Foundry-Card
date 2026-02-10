@@ -111,7 +111,7 @@ class FoundrySliderCard extends HTMLElement {
     const screenH = bevelH - 8;
     const screenCenterX = screenX + screenW / 2;
 
-      const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
+    const TRACK_WIDTH_MULTIPLIER = 0.32; // Track width = knob_size * this multiplier
 
     // Calculate knob dimensions based on shape (0-100 maps to 4-32px)
     const KNOB_SIZE_MAX = 32;
@@ -123,27 +123,31 @@ class FoundrySliderCard extends HTMLElement {
 
     switch (cfg.knob_shape) {
       case 'circular':
-          knobWidth = knobSize;
-          knobHeight = knobSize;
+        knobWidth = knobSize;
+        knobHeight = knobSize;
         knobBorderRadius = '50%';
         break;
       case 'rectangular':
-          knobWidth = knobSize;
-          knobHeight = Math.round(knobSize * 1.33); // 3:4 ratio
+        knobWidth = knobSize;
+        knobHeight = Math.round(knobSize * 1.33); // 3:4 ratio
         knobBorderRadius = '10px';
         break;
       case 'square':
       default:
-          knobWidth = knobSize;
-          knobHeight = knobSize;
+        knobWidth = knobSize;
+        knobHeight = knobSize;
         knobBorderRadius = '10px';
         break;
     }
 
     const knobRx =
-      knobBorderRadius === '50%' ? knobWidth / 2 : Number.parseFloat(knobBorderRadius);
+      knobBorderRadius === '50%'
+        ? knobWidth / 2
+        : Number.parseFloat(knobBorderRadius);
     const knobRy =
-      knobBorderRadius === '50%' ? knobHeight / 2 : Number.parseFloat(knobBorderRadius);
+      knobBorderRadius === '50%'
+        ? knobHeight / 2
+        : Number.parseFloat(knobBorderRadius);
 
     this._knobWidth = knobWidth;
     this._knobHeight = knobHeight;
@@ -163,12 +167,10 @@ class FoundrySliderCard extends HTMLElement {
     const ledY = screenY + screenH - ledHeight - 10;
 
     // Track dimensions - centered horizontally inside screen
-      const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
+    const trackWidth = knobSize * TRACK_WIDTH_MULTIPLIER; // Dynamic based on knob size
     const trackX = screenCenterX - trackWidth / 2;
     const trackTopY = screenY + 40;
-    const trackBottomY = cfg.show_value
-      ? ledY - 10
-      : screenY + screenH - 16;
+    const trackBottomY = cfg.show_value ? ledY - 10 : screenY + screenH - 16;
     const trackHeight = trackBottomY - trackTopY;
     const sliderInputTop = trackTopY;
     const sliderInputBottom = trackBottomY;
@@ -180,7 +182,6 @@ class FoundrySliderCard extends HTMLElement {
     this._trackBottomY = trackBottomY;
     this._trackHeight = trackHeight;
     this._trackCenterX = trackX + trackWidth / 2;
-    
 
     // Tick mark positioning
     const tickMajorLength = 12;
@@ -377,17 +378,25 @@ class FoundrySliderCard extends HTMLElement {
               rimHeight
             )}
 
-            ${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `
+            ${
+              effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent
+                ? `
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
                     rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
                     style="pointer-events:none;" />
-            ` : ''}
+            `
+                : ''
+            }
 
-            ${effectiveAgedTexture === 'glass_only' ? `
+            ${
+              effectiveAgedTexture === 'glass_only'
+                ? `
               <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
                     rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
                     style="pointer-events:none;" />
-            ` : ''}
+            `
+                : ''
+            }
 
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: #3e2723">${title}</text>` : ''}
@@ -814,9 +823,7 @@ class FoundrySliderCard extends HTMLElement {
         const opacity = Math.min(mark.baseOpacity * (wearLevel / 50), 0.25);
         const cx = (mark.cx * scaleX).toFixed(2);
         const cy = (mark.cy * scaleY).toFixed(2);
-        const r = mark.r
-          ? (mark.r * ((scaleX + scaleY) / 2)).toFixed(2)
-          : null;
+        const r = mark.r ? (mark.r * ((scaleX + scaleY) / 2)).toFixed(2) : null;
         const rx = mark.rx ? (mark.rx * scaleX).toFixed(2) : null;
         const ry = mark.ry ? (mark.ry * scaleY).toFixed(2) : null;
         return `<${mark.type} cx="${cx}" cy="${cy}" ${r ? `r="${r}"` : `rx="${rx}" ry="${ry}"`} fill="${mark.fill}" opacity="${opacity}"/>`;
@@ -950,10 +957,7 @@ class FoundrySliderCard extends HTMLElement {
       const clamped = Math.min(max, Math.max(min, value));
       const t = (clamped - min) / range;
       const centerY = this._trackBottomY - t * this._trackHeight;
-      knob.setAttribute(
-        'y',
-        (centerY - this._knobHeight / 2).toFixed(2)
-      );
+      knob.setAttribute('y', (centerY - this._knobHeight / 2).toFixed(2));
       knob.setAttribute(
         'x',
         (this._trackCenterX - this._knobWidth / 2).toFixed(2)
