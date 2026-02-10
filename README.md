@@ -11,7 +11,7 @@
 [hacs-link]: https://hacs.xyz/
 [hacs-default]: https://img.shields.io/badge/HACS-Default-blue?style=flat&logo=homeassistantcommunitystore&logoSize=auto
 [hacs-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
-[releases]: https://github.com/custom-cards/foundry-card/releases/latest
+[releases]: https://github.com/dprischak/foundry-card/releases/latest
 [forum-url]: https://community.home-assistant.io/
 [forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
 [releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
