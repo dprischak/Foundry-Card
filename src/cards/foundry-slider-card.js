@@ -42,6 +42,7 @@ class FoundrySliderCard extends HTMLElement {
     // Display Settings
     this.config.show_value =
       this.config.show_value !== undefined ? this.config.show_value : true;
+    this.config.title_color = this.config.title_color || '#3e2723';
     this.config.title_font_size =
       this.config.title_font_size !== undefined
         ? this.config.title_font_size
@@ -399,7 +400,7 @@ class FoundrySliderCard extends HTMLElement {
             }
 
             <!-- Title -->
-            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: #3e2723">${title}</text>` : ''}
+            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ''}
 
             <!-- Slider Track -->
             <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
@@ -1046,6 +1047,7 @@ class FoundrySliderCard extends HTMLElement {
       ring_style: 'brass',
       background_color: '#8c7626',
       plate_color: '#8c7626',
+      plate_transparent: false,
       rivet_color: '#6a5816',
       slider_color: '#444444',
       knob_color: '#c9a961',
@@ -1054,6 +1056,7 @@ class FoundrySliderCard extends HTMLElement {
       tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',
+      title_color: '#000000',
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,

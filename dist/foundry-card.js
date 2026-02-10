@@ -5138,6 +5138,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.slider_color = this.config.slider_color || "#444444";
     this.config.tick_color = this.config.tick_color || "rgba(0,0,0,0.22)";
     this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
+    this.config.title_color = this.config.title_color || "#3e2723";
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
     this.config.value_font_size = this.config.value_font_size !== void 0 ? this.config.value_font_size : 36;
     this.config.knob_shape = this.config.knob_shape || "square";
@@ -5181,7 +5182,6 @@ var FoundrySliderCard = class extends HTMLElement {
     const KNOB_SIZE_MIN = KNOB_SIZE_MAX / 8;
     const knobSizePercent = Math.max(0, Math.min(100, Number(cfg.knob_size)));
     const knobSize = KNOB_SIZE_MIN + (KNOB_SIZE_MAX - KNOB_SIZE_MIN) * (knobSizePercent / 100);
-    const knobSizeScaled = knobSize;
     let knobWidth, knobHeight, knobBorderRadius;
     switch (cfg.knob_shape) {
       case "circular":
@@ -5431,7 +5431,7 @@ var FoundrySliderCard = class extends HTMLElement {
             ` : ""}
 
             <!-- Title -->
-            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: #3e2723">${title}</text>` : ""}
+            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ""}
 
             <!-- Slider Track -->
             <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
@@ -5925,10 +5925,7 @@ var FoundrySliderCard = class extends HTMLElement {
       const clamped = Math.min(max, Math.max(min, value));
       const t = (clamped - min) / range;
       const centerY = this._trackBottomY - t * this._trackHeight;
-      knob.setAttribute(
-        "y",
-        (centerY - this._knobHeight / 2).toFixed(2)
-      );
+      knob.setAttribute("y", (centerY - this._knobHeight / 2).toFixed(2));
       knob.setAttribute(
         "x",
         (this._trackCenterX - this._knobWidth / 2).toFixed(2)
@@ -5992,6 +5989,7 @@ var FoundrySliderCard = class extends HTMLElement {
       ring_style: "brass",
       background_color: "#8c7626",
       plate_color: "#8c7626",
+      plate_transparent: false,
       rivet_color: "#6a5816",
       slider_color: "#444444",
       knob_color: "#c9a961",
@@ -6000,6 +5998,7 @@ var FoundrySliderCard = class extends HTMLElement {
       tick_color: "rgba(0,0,0,0.22)",
       font_bg_color: "#ffffff",
       font_color: "#000000",
+      title_color: "#3e2723",
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
@@ -6093,6 +6092,7 @@ var FoundrySliderEditor = class extends HTMLElement {
       ring_style: "brass",
       background_color: "#8c7626",
       plate_color: "#8c7626",
+      plate_transparent: false,
       rivet_color: "#6a5816",
       slider_color: "#444444",
       knob_color: "#c9a961",
@@ -6101,6 +6101,7 @@ var FoundrySliderEditor = class extends HTMLElement {
       tick_color: "rgba(0,0,0,0.22)",
       font_bg_color: "#ffffff",
       font_color: "#000000",
+      title_color: "#3e2723",
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
@@ -6129,6 +6130,11 @@ var FoundrySliderEditor = class extends HTMLElement {
         140,
         118,
         38
+      ],
+      title_color: this._hexToRgb(config.title_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
       ],
       plate_transparent: config.plate_transparent ?? false,
       rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
@@ -6181,6 +6187,7 @@ var FoundrySliderEditor = class extends HTMLElement {
       Object.assign(config, formData.appearance);
       config.background_color = this._rgbToHex(config.background_color);
       config.plate_color = this._rgbToHex(config.plate_color);
+      config.title_color = this._rgbToHex(config.title_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
@@ -6252,6 +6259,17 @@ var FoundrySliderEditor = class extends HTMLElement {
               {
                 name: "plate_color",
                 label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_color",
+                label: "Title Color",
                 selector: { color_rgb: {} }
               }
             ]
