@@ -890,33 +890,33 @@ A vertical slider control with vintage industrial aesthetics.
 
 #### Configuration Options
 
-| Option                   | Type    | Required | Default      | Description                                                                                 |
-| ------------------------ | ------- | -------- | ------------ | ------------------------------------------------------------------------------------------- |
-| `entity`                 | string  | No       | -            | Entity ID (optional, for control integration)                                               |
-| `title`                  | string  | No       | "Slider"     | Card title                                                                                  |
-| `min`                    | number  | No       | 0            | Minimum slider value                                                                        |
-| `max`                    | number  | No       | 100          | Maximum slider value                                                                        |
-| `step`                   | number  | No       | 1            | Slider step increment                                                                       |
-| `value`                  | number  | No       | 50           | Initial/current slider value                                                                |
-| `ring_style`             | string  | No       | 'brass'      | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
-| `face_color`             | string  | No       | '#8c7626'    | Background face color                                                                       |
-| `plate_color`            | string  | No       | '#8c7626'    | Background plate color                                                                      |
-| `plate_transparent`      | boolean | No       | false        | Make the plate transparent                                                                  |
-| `rivet_color`            | string  | No       | '#6a5816'    | Color of decorative rivets                                                                  |
-| `slider_color`           | string  | No       | '#444444'    | Color of the slider track                                                                   |
-| `knob_color`             | string  | No       | '#c9a961'    | Color of the slider knob (derived from ring_style)                                          |
-| `knob_shape`             | string  | No       | 'square'     | Knob shape: 'circular', 'square', 'rectangular'                                             |
-| `knob_size`              | number  | No       | 100          | Knob size percentage (0-100)                                                                |
-| `tick_color`             | string  | No       | 'rgba(0,0,0,0.22)' | Color of tick marks                                                               |
-| `font_bg_color`          | string  | No       | '#ffffff'    | Background color of LED display                                                             |
-| `font_color`             | string  | No       | '#000000'    | Color of LED display digits                                                                 |
-| `title_color`            | string  | No       | '#3e2723'    | Color of the title text                                                                     |
-| `title_font_size`        | number  | No       | 14           | Font size for the title                                                                     |
-| `value_font_size`        | number  | No       | 36           | Font size for the value display                                                             |
-| `show_value`             | boolean | No       | true         | Show the digital value display                                                              |
-| `wear_level`             | number  | No       | 50           | Intensity of wear marks (0-100)                                                             |
-| `aged_texture`           | string  | No       | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
-| `aged_texture_intensity` | number  | No       | 50           | Intensity of aged texture effect (0-100)                                                    |
+| Option                   | Type    | Required | Default            | Description                                                                                 |
+| ------------------------ | ------- | -------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | No       | -                  | Entity ID (optional, for control integration)                                               |
+| `title`                  | string  | No       | "Slider"           | Card title                                                                                  |
+| `min`                    | number  | No       | 0                  | Minimum slider value                                                                        |
+| `max`                    | number  | No       | 100                | Maximum slider value                                                                        |
+| `step`                   | number  | No       | 1                  | Slider step increment                                                                       |
+| `value`                  | number  | No       | 50                 | Initial/current slider value                                                                |
+| `ring_style`             | string  | No       | 'brass'            | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
+| `face_color`             | string  | No       | '#8c7626'          | Background face color                                                                       |
+| `plate_color`            | string  | No       | '#8c7626'          | Background plate color                                                                      |
+| `plate_transparent`      | boolean | No       | false              | Make the plate transparent                                                                  |
+| `rivet_color`            | string  | No       | '#6a5816'          | Color of decorative rivets                                                                  |
+| `slider_color`           | string  | No       | '#444444'          | Color of the slider track                                                                   |
+| `knob_color`             | string  | No       | '#c9a961'          | Color of the slider knob (derived from ring_style)                                          |
+| `knob_shape`             | string  | No       | 'square'           | Knob shape: 'circular', 'square', 'rectangular'                                             |
+| `knob_size`              | number  | No       | 100                | Knob size percentage (0-100)                                                                |
+| `tick_color`             | string  | No       | 'rgba(0,0,0,0.22)' | Color of tick marks                                                                         |
+| `font_bg_color`          | string  | No       | '#ffffff'          | Background color of LED display                                                             |
+| `font_color`             | string  | No       | '#000000'          | Color of LED display digits                                                                 |
+| `title_color`            | string  | No       | '#3e2723'          | Color of the title text                                                                     |
+| `title_font_size`        | number  | No       | 14                 | Font size for the title                                                                     |
+| `value_font_size`        | number  | No       | 36                 | Font size for the value display                                                             |
+| `show_value`             | boolean | No       | true               | Show the digital value display                                                              |
+| `wear_level`             | number  | No       | 50                 | Intensity of wear marks (0-100)                                                             |
+| `aged_texture`           | string  | No       | 'everywhere'       | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number  | No       | 50                 | Intensity of aged texture effect (0-100)                                                    |
 
 <details>
   <summary>Click to see examples</summary>
