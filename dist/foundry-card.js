@@ -5979,6 +5979,17 @@ var FoundrySliderCard = class extends HTMLElement {
   static getConfigElement() {
     return document.createElement("foundry-slider-editor");
   }
+  static get supportsCardResize() {
+    return true;
+  }
+  getGridOptions() {
+    return {
+      columns: 6,
+      rows: 6,
+      min_columns: 3,
+      min_rows: 3
+    };
+  }
   static getStubConfig() {
     return {
       title: "Slider",
@@ -6002,6 +6013,10 @@ var FoundrySliderCard = class extends HTMLElement {
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
+      grid_options: {
+        columns: 6,
+        rows: 6
+      },
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
@@ -6105,6 +6120,10 @@ var FoundrySliderEditor = class extends HTMLElement {
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
+      grid_options: {
+        columns: 6,
+        rows: 6
+      },
       wear_level: 50,
       aged_texture: "everywhere",
       aged_texture_intensity: 50

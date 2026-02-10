@@ -93,6 +93,10 @@ class FoundrySliderEditor extends HTMLElement {
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
+      grid_options: {
+        columns: 6,
+        rows: 6,
+      },
       wear_level: 50,
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
