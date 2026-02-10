@@ -11,15 +11,32 @@ const fireEvent = (node, type, detail, options) => {
   return event;
 };
 
+import { loadThemes, applyTheme } from './themes.js';
+
 class FoundryButtonEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._themes = {};
+    this._themesLoaded = false;
   }
 
   setConfig(config) {
     this._config = { ...config };
     this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      this.render();
+    } catch (e) {
+      console.error('Error loading themes:', e);
+    }
   }
 
   set hass(hass) {
@@ -57,8 +74,22 @@ class FoundryButtonEditor extends HTMLElement {
     this._form.schema = this._getSchema();
   }
 
-  _handleFormChanged(ev) {
-    const newConfig = this._formToConfig(ev.detail.value);
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+
+    // Check if theme changed
+    if (
+      newConfig.theme &&
+      newConfig.theme !== this._config.theme &&
+      this._themes &&
+      this._themes[newConfig.theme]
+    ) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    }
+
+    // Remove theme from config so it doesn't persist in YAML
+    delete newConfig.theme;
+
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
       fireEvent(this, 'config-changed', { config: this._config });

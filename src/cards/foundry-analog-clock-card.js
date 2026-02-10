@@ -317,7 +317,7 @@ class FoundryAnalogClockCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_color || config.title_font_color) : ''}
               
               <!-- Hands -->
               

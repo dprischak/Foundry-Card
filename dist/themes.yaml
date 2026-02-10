@@ -1,0 +1,227 @@
+industrial:
+  plate_color: '#8c7626'
+  rivet_color: '#6a5816'
+  title_color: '#3e2723'
+  font_color: '#3e2723'
+  font_bg_color: '#f8f8f0'
+  ring_style: 'brass'
+  number_color: '#3e2723'
+  primary_tick_color: '#3e2723'
+  secondary_tick_color: '#5d4e37'
+  needle_color: '#C41E3A'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 50
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 50
+  face_color: '#929090'
+  background_style: 'gradient'
+
+racing:
+  plate_color: '#929090'
+  rivet_color: '#edece8'
+  title_color: '#000000'
+  font_color: '#59ff00'
+  font_bg_color: '#0a0000'
+  ring_style: 'black'
+  number_color: '#000000'
+  primary_tick_color: '#000000'
+  secondary_tick_color: '#000000'
+  needle_color: '#C41E3A'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 50
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 50
+  face_color: '#929090'
+  background_style: 'solid'
+
+warm:
+  plate_color: '#f5e6d3'
+  rivet_color: '#8b5a2b'
+  title_color: '#5c4033'
+  font_color: '#5c4033'
+  font_bg_color: '#f5e6d3'
+  ring_style: 'bronze'
+  number_color: '#5c4033'
+  primary_tick_color: '#5c4033'
+  secondary_tick_color: '#8b5a2b'
+  needle_color: '#cd5c5c'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 5
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 5
+  face_color: '#f5e6d3'
+  background_style: 'gradient'
+
+cool:
+  plate_color: '#e0f7fa'
+  rivet_color: '#4dd0e1'
+  title_color: '#006064'
+  font_color: '#006064'
+  font_bg_color: '#e0f7fa'
+  ring_style: 'silver'
+  number_color: '#006064'
+  primary_tick_color: '#006064'
+  secondary_tick_color: '#4dd0e1'
+  needle_color: '#00acc1'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 0
+  aged_texture: 'none'
+  aged_texture_intensity: 0
+  face_color: '#d1eae5'
+  background_style: 'solid'
+
+vintage:
+  plate_color: '#d4c5a9'
+  rivet_color: '#8b7355'
+  title_color: '#4a3728'
+  font_color: '#4a3728'
+  font_bg_color: '#f5e6d3'
+  ring_style: 'brass'
+  number_color: '#4a3728'
+  primary_tick_color: '#4a3728'
+  secondary_tick_color: '#8b7355'
+  needle_color: '#8b4513'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 75
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 70
+  face_color: '#f5e6d3'
+  background_style: 'gradient'
+
+midnight:
+  plate_color: '#1a1a2e'
+  rivet_color: '#16213e'
+  title_color: '#eee'
+  font_color: '#00ff41'
+  font_bg_color: '#0a0e27'
+  ring_style: 'black'
+  number_color: '#eee'
+  primary_tick_color: '#eee'
+  secondary_tick_color: '#888'
+  needle_color: '#00ff41'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 10
+  aged_texture: 'glass_only'
+  aged_texture_intensity: 20
+  face_color: '#0f3460'
+  background_style: 'solid'
+
+steampunk:
+  plate_color: '#8b4513'
+  rivet_color: '#654321'
+  title_color: '#f4e4c1'
+  font_color: '#f4e4c1'
+  font_bg_color: '#3e2723'
+  ring_style: 'copper'
+  number_color: '#000000'
+  primary_tick_color: '#f4e4c1'
+  secondary_tick_color: '#cd853f'
+  needle_color: '#ff6347'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 80
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 75
+  face_color: '#d2691e'
+  background_style: 'gradient'
+
+military:
+  plate_color: '#4a5240'
+  rivet_color: '#2f3328'
+  title_color: '#d4d4aa'
+  font_color: '#d4d4aa'
+  font_bg_color: '#3a3a2a'
+  ring_style: 'black'
+  number_color: '#d4d4aa'
+  primary_tick_color: '#d4d4aa'
+  secondary_tick_color: '#6b7062'
+  needle_color: '#ff6b35'
+  plate_transparent: false
+  glass_effect_enabled: false
+  wear_level: 60
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 40
+  face_color: '#5a6352'
+  background_style: 'solid'
+
+retro:
+  plate_color: '#d4a574'
+  rivet_color: '#c0c0c0'
+  title_color: '#3e2723'
+  font_color: '#3e2723'
+  font_bg_color: '#f5deb3'
+  ring_style: 'chrome'
+  number_color: '#3e2723'
+  primary_tick_color: '#3e2723'
+  secondary_tick_color: '#8b7355'
+  needle_color: '#ff6347'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 45
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 35
+  face_color: '#f4a460'
+  background_style: 'gradient'
+
+arctic:
+  plate_color: '#f0f8ff'
+  rivet_color: '#b0c4de'
+  title_color: '#2c3e50'
+  font_color: '#2c3e50'
+  font_bg_color: '#ffffff'
+  ring_style: 'silver'
+  number_color: '#2c3e50'
+  primary_tick_color: '#2c3e50'
+  secondary_tick_color: '#87ceeb'
+  needle_color: '#4682b4'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 5
+  aged_texture: 'glass_only'
+  aged_texture_intensity: 10
+  face_color: '#e6f2ff'
+  background_style: 'gradient'
+
+copper:
+  plate_color: '#b87333'
+  rivet_color: '#8b4513'
+  title_color: '#f4e4c1'
+  font_color: '#f4e4c1'
+  font_bg_color: '#3e2723'
+  ring_style: 'copper'
+  number_color: '#000000'
+  primary_tick_color: '#f4e4c1'
+  secondary_tick_color: '#cd853f'
+  needle_color: '#40e0d0'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 55
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 50
+  face_color: '#d2691e'
+  background_style: 'gradient'
+
+neon:
+  plate_color: '#0a0a0a'
+  rivet_color: '#1a1a1a'
+  title_color: '#ff00ff'
+  font_color: '#00ffff'
+  font_bg_color: '#000000'
+  ring_style: 'black'
+  number_color: '#ff00ff'
+  primary_tick_color: '#ff00ff'
+  secondary_tick_color: '#00ffff'
+  needle_color: '#ff00ff'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 0
+  aged_texture: 'none'
+  aged_texture_intensity: 0
+  face_color: '#1a1a1a'
+  background_style: 'solid'

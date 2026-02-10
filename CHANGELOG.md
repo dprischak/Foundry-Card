@@ -1,9 +1,13 @@
 ## v26.2.2
 
+### 🚀 New Features
+
+- **Theme Support:** Added a new theme selector to all cards, allowing for quick aesthetic changes.
+- **Color Standardization:** Standardized `title_color` across all cards, with backward compatibility for `title_font_color`.
+
 ### 🛠️ Improvements
 
 - **Issue #31:** Fixed Readme link to the latest release
-
 
 ## v26.2.1
 

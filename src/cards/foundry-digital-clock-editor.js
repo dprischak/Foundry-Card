@@ -1,12 +1,29 @@
+import { loadThemes, applyTheme } from './themes.js';
+
 class FoundryDigitalClockCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._themes = {};
+    this._themesLoaded = false;
   }
 
   setConfig(config) {
     this._config = { ...config };
     this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      this.render();
+    } catch (e) {
+      console.error('Error loading themes:', e);
+    }
   }
 
   set hass(hass) {
@@ -71,8 +88,22 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
     this._form2.computeLabel = this._computeLabel;
   }
 
-  _handleFormChanged(ev) {
-    const newConfig = this._formToConfig(ev.detail.value);
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+
+    // Check if theme changed
+    if (
+      newConfig.theme &&
+      newConfig.theme !== this._config.theme &&
+      this._themes &&
+      this._themes[newConfig.theme]
+    ) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    }
+
+    // Remove theme from config so it doesn't persist in YAML
+    delete newConfig.theme;
+
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
       this.dispatchEvent(
@@ -93,9 +124,9 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
         255, 255, 255,
       ],
       font_color: this._hexToRgb(config.font_color ?? '#000000') ?? [0, 0, 0],
-      title_color: this._hexToRgb(config.title_color ?? '#3e2723') ?? [
-        62, 39, 35,
-      ],
+      title_color: this._hexToRgb(
+        config.title_color || config.title_font_color || '#3e2723'
+      ) ?? [62, 39, 35],
       rivet_color: this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
         109, 93, 75,
       ],
@@ -211,6 +242,22 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
         type: 'expandable',
         title: 'Appearance',
         schema: [
+          {
+            name: 'theme',
+            label: 'Theme',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None/Custom' },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1),
+                  })),
+                ],
+              },
+            },
+          },
           {
             name: 'ring_style',
             label: 'Ring Style',

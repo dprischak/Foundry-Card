@@ -100,6 +100,9 @@ class FoundryThermostatCard extends HTMLElement {
   render() {
     const config = this.config;
     const uid = this._uniqueId;
+    // Normalize font color (used for title) priority: font_color > title_font_color > default
+    const fontColor = config.font_color || config.title_font_color || '#3e2723';
+    // config.title_color removed/migrated to font_color usage
     const title = config.title || 'Temperature';
 
     const ringStyle = config.ring_style;
@@ -110,7 +113,6 @@ class FoundryThermostatCard extends HTMLElement {
     const plateTransparent = config.plate_transparent;
     const rivetColor = config.rivet_color;
     const fontBgColor = config.font_bg_color || '#ffffff';
-    const titleFontColor = config.title_font_color || '#3e2723';
 
     // Appearance
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
@@ -209,6 +211,7 @@ class FoundryThermostatCard extends HTMLElement {
             text-anchor: middle;
             pointer-events: none;
             letter-spacing: 1px;
+            fill: ${fontColor};
         }
         .rivet {
           fill: ${rivetColor};
@@ -265,9 +268,9 @@ class FoundryThermostatCard extends HTMLElement {
 
             <g transform="translate(${rimX}, ${rimY})">
                 
-                <text x="57.5" y="28" class="title" style="fill: ${titleFontColor}">${title}</text>
+                <text x="57.5" y="28" class="title" style="fill: ${fontColor}">${title}</text>
                 
-                ${config.unit ? `<text x="57.5" y="42" class="title" style="font-size: 11px; fill:${titleFontColor}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ''}
+                ${config.unit ? `<text x="57.5" y="42" class="title" style="font-size: 11px; fill:${fontColor}; opacity: 0.8;" text-anchor="middle">${config.unit}</text>` : ''}
                 
                 <g id="scale-group" transform="translate(10, 0)"></g>
 
@@ -304,7 +307,7 @@ class FoundryThermostatCard extends HTMLElement {
     `;
 
     this._attachActionListeners();
-    this.drawScale(titleFontColor);
+    this.drawScale(fontColor);
     this.drawSegments();
   }
 
@@ -388,7 +391,8 @@ class FoundryThermostatCard extends HTMLElement {
     this.config.plate_color = this.config.plate_color || '#8c7626';
     this.config.rivet_color = this.config.rivet_color || '#6a5816';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.title_font_color = this.config.title_font_color || '#3e2723';
+    this.config.title_color =
+      this.config.title_color || this.config.title_font_color || '#3e2723';
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
@@ -419,12 +423,15 @@ class FoundryThermostatCard extends HTMLElement {
 
   _valueToY(val) {
     const yTop = 55;
-    const yBottom = 285;
+    const yBottom = 295; // Updated to match bottom of scale
     const min = this.config.min !== undefined ? this.config.min : -40;
     const max = this.config.max !== undefined ? this.config.max : 120;
 
     const pct = (val - min) / (max - min);
-    return yBottom - pct * (yBottom - yTop);
+    // Clamp pct to 0-1 range to prevent drawing outside? Or allow over/under?
+    // Generally thermometers clamp visual liquid
+    const clampedPct = Math.max(0, Math.min(1, pct));
+    return yBottom - clampedPct * (yBottom - yTop);
   }
 
   drawScale(color) {
@@ -448,6 +455,7 @@ class FoundryThermostatCard extends HTMLElement {
     for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
       const y = this._valueToY(v);
       svgContent += `<line x1="32" y1="${y}" x2="58" y2="${y}" stroke="${tickColor}" stroke-width="1.5" />`;
+      // Adjust text position slightly
       svgContent += `<text x="29" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="${tickColor}" font-weight="bold">${v}</text>`;
     }
 
@@ -531,7 +539,7 @@ class FoundryThermostatCard extends HTMLElement {
       plate_color: '#8c7626',
       rivet_color: '#6a5816',
       font_bg_color: '#ffffff',
-      title_font_color: '#3e2723',
+      font_color: '#3e2723',
       segments: [
         { from: 0, to: 33, color: '#4CAF50' },
         { from: 33, to: 66, color: '#FFC107' },

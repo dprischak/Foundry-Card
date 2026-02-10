@@ -597,7 +597,7 @@ class FoundryGaugeCard extends HTMLElement {
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
-              <circle cx="100" cy="100" r="85" fill="${config.background_style === 'solid' ? config.face_color || '#f8f8f0' : `url(#gaugeFace-${uid})`}" ${agedTextureEnabled || effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
+              <circle cx="100" cy="100" r="85" fill="${config.background_style === 'solid' ? config.face_color || '#f8f8f0' : `url(#gaugeFace-${uid})`}" ${agedTexture !== 'none' && (agedTextureEnabled || effectiveAgedTexture === 'everywhere') ? `filter="url(#aged-${uid})" clip-path="url(#gaugeFaceClip-${uid})"` : ''}/>
                             
 
               <!-- Glass effect overlay -->
@@ -613,7 +613,7 @@ class FoundryGaugeCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color || config.title_color) : ''}
               
               <!-- Center hub background -->
 			  <circle cx="100" cy="100" r="12"
