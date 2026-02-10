@@ -9480,6 +9480,36 @@ var FoundrySliderCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    this._updateFromEntity();
+  }
+  _updateFromEntity() {
+    if (!this._hass || !this.config.entity) return;
+    const stateObj = this._hass.states[this.config.entity];
+    if (!stateObj) return;
+    let entityValue;
+    const domain = this.config.entity.split(".")[0];
+    if (domain === "light") {
+      const brightness = stateObj.attributes.brightness;
+      if (brightness !== void 0) {
+        entityValue = Math.round(brightness / 255 * 100);
+      }
+    } else if (domain === "fan") {
+      entityValue = stateObj.attributes.percentage;
+    } else if (domain === "cover") {
+      entityValue = stateObj.attributes.current_position;
+    } else {
+      entityValue = parseFloat(stateObj.state);
+    }
+    if (entityValue !== void 0 && !isNaN(entityValue)) {
+      if (!this._draggingSlider) {
+        this.config.value = entityValue;
+        const slider = this.shadowRoot?.getElementById("slider");
+        if (slider) {
+          slider.value = entityValue;
+        }
+        this._updateValueDisplay(entityValue);
+      }
+    }
   }
   render() {
     const cfg = this.config;
@@ -10208,6 +10238,7 @@ var FoundrySliderCard = class extends HTMLElement {
     const v = e.target.value;
     this.config.value = Number(v);
     this._updateValueDisplay(v);
+    this._updateEntity(Number(v));
     fireEvent(this, "foundry-slider-change", { value: Number(v) });
   }
   _setSliderValueFromClientY(clientY, commit) {
@@ -10235,6 +10266,7 @@ var FoundrySliderCard = class extends HTMLElement {
     slider.value = value;
     if (commit) {
       this.config.value = Number(value);
+      this._updateEntity(Number(value));
       this._updateValueDisplay(value);
       fireEvent(this, "foundry-slider-change", { value: Number(value) });
     } else {
@@ -10261,6 +10293,38 @@ var FoundrySliderCard = class extends HTMLElement {
         "x",
         (this._trackCenterX - this._knobWidth / 2).toFixed(2)
       );
+    }
+  }
+  _updateEntity(value) {
+    if (!this._hass || !this.config.entity) return;
+    const entityId = this.config.entity;
+    const domain = entityId.split(".")[0];
+    if (domain === "input_number") {
+      this._hass.callService("input_number", "set_value", {
+        entity_id: entityId,
+        value
+      });
+    } else if (domain === "number") {
+      this._hass.callService("number", "set_value", {
+        entity_id: entityId,
+        value
+      });
+    } else if (domain === "light") {
+      const brightness = Math.round(value / 100 * 255);
+      this._hass.callService("light", "turn_on", {
+        entity_id: entityId,
+        brightness
+      });
+    } else if (domain === "fan") {
+      this._hass.callService("fan", "set_percentage", {
+        entity_id: entityId,
+        percentage: value
+      });
+    } else if (domain === "cover") {
+      this._hass.callService("cover", "set_cover_position", {
+        entity_id: entityId,
+        position: value
+      });
     }
   }
   _getLedCharCount(cfg) {

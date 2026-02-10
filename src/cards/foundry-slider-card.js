@@ -80,6 +80,46 @@ class FoundrySliderCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    this._updateFromEntity();
+  }
+
+  _updateFromEntity() {
+    if (!this._hass || !this.config.entity) return;
+
+    const stateObj = this._hass.states[this.config.entity];
+    if (!stateObj) return;
+
+    let entityValue;
+    const domain = this.config.entity.split('.')[0];
+
+    if (domain === 'light') {
+      // For lights, get brightness and convert to 0-100 scale
+      const brightness = stateObj.attributes.brightness;
+      if (brightness !== undefined) {
+        entityValue = Math.round((brightness / 255) * 100);
+      }
+    } else if (domain === 'fan') {
+      // For fans, get percentage
+      entityValue = stateObj.attributes.percentage;
+    } else if (domain === 'cover') {
+      // For covers, get current_position
+      entityValue = stateObj.attributes.current_position;
+    } else {
+      // For input_number and number entities, use the state
+      entityValue = parseFloat(stateObj.state);
+    }
+
+    if (entityValue !== undefined && !isNaN(entityValue)) {
+      // Only update if not currently dragging
+      if (!this._draggingSlider) {
+        this.config.value = entityValue;
+        const slider = this.shadowRoot?.getElementById('slider');
+        if (slider) {
+          slider.value = entityValue;
+        }
+        this._updateValueDisplay(entityValue);
+      }
+    }
   }
 
   render() {
@@ -904,6 +944,7 @@ class FoundrySliderCard extends HTMLElement {
     const v = e.target.value;
     this.config.value = Number(v);
     this._updateValueDisplay(v);
+    this._updateEntity(Number(v));
     fireEvent(this, 'foundry-slider-change', { value: Number(v) });
   }
 
@@ -939,6 +980,7 @@ class FoundrySliderCard extends HTMLElement {
     slider.value = value;
     if (commit) {
       this.config.value = Number(value);
+      this._updateEntity(Number(value));
       this._updateValueDisplay(value);
       fireEvent(this, 'foundry-slider-change', { value: Number(value) });
     } else {
@@ -967,6 +1009,45 @@ class FoundrySliderCard extends HTMLElement {
         'x',
         (this._trackCenterX - this._knobWidth / 2).toFixed(2)
       );
+    }
+  }
+
+  _updateEntity(value) {
+    if (!this._hass || !this.config.entity) return;
+
+    const entityId = this.config.entity;
+    const domain = entityId.split('.')[0];
+
+    // Call the appropriate service based on entity domain
+    if (domain === 'input_number') {
+      this._hass.callService('input_number', 'set_value', {
+        entity_id: entityId,
+        value: value,
+      });
+    } else if (domain === 'number') {
+      this._hass.callService('number', 'set_value', {
+        entity_id: entityId,
+        value: value,
+      });
+    } else if (domain === 'light') {
+      // For lights, update brightness (0-255 range)
+      const brightness = Math.round((value / 100) * 255);
+      this._hass.callService('light', 'turn_on', {
+        entity_id: entityId,
+        brightness: brightness,
+      });
+    } else if (domain === 'fan') {
+      // For fans, update percentage (0-100 range)
+      this._hass.callService('fan', 'set_percentage', {
+        entity_id: entityId,
+        percentage: value,
+      });
+    } else if (domain === 'cover') {
+      // For covers, set position (0-100 range)
+      this._hass.callService('cover', 'set_cover_position', {
+        entity_id: entityId,
+        position: value,
+      });
     }
   }
 
