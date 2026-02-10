@@ -5247,18 +5247,21 @@ var FoundrySliderCard = class extends HTMLElement {
       <style>
         :host {
           display: block;
+          width: 100%;
+          height: 100%;
         }
         ha-card {
           background: transparent;
           box-shadow: none;
           width: 100%;
+          height: 100%;
           display: flex;
           justify-content: center;
         }
         .card {
           position: relative;
-          width: ${width}px;
-          height: ${height}px;
+          width: 100%;
+          height: 100%;
           cursor: pointer;
         }
         .slider-svg {
