@@ -21,7 +21,8 @@ class FoundrySliderCard extends HTMLElement {
     // Brass Theme Defaults (from digital clock)
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.plate_color = this.config.plate_color || '#8c7626';
-    this.config.background_color =
+    this.config.face_color =
+      this.config.face_color ??
       this.config.background_color ??
       this.config.plate_color ??
       this.config.slider_background_color ??
@@ -202,7 +203,7 @@ class FoundrySliderCard extends HTMLElement {
       cfg.plate_transparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
-    const backgroundColor = cfg.background_color ?? cfg.plate_color;
+    const backgroundColor = cfg.face_color ?? cfg.plate_color;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -1045,7 +1046,7 @@ class FoundrySliderCard extends HTMLElement {
       step: 1,
       value: 50,
       ring_style: 'brass',
-      background_color: '#8c7626',
+      face_color: '#8c7626',
       plate_color: '#8c7626',
       plate_transparent: false,
       rivet_color: '#6a5816',

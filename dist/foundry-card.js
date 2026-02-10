@@ -5129,7 +5129,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.plate_color = this.config.plate_color || "#8c7626";
-    this.config.background_color = this.config.background_color ?? this.config.plate_color ?? this.config.slider_background_color ?? "#8c7626";
+    this.config.face_color = this.config.face_color ?? this.config.background_color ?? this.config.plate_color ?? this.config.slider_background_color ?? "#8c7626";
     this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
     this.config.rivet_color = this.config.rivet_color || "#6a5816";
     this.config.knob_color = this.config.knob_color || "#c9a961";
@@ -5242,7 +5242,7 @@ var FoundrySliderCard = class extends HTMLElement {
     const agedTextureIntensity = cfg.aged_texture_intensity;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = cfg.plate_transparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
-    const backgroundColor = cfg.background_color ?? cfg.plate_color;
+    const backgroundColor = cfg.face_color ?? cfg.plate_color;
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -5987,7 +5987,7 @@ var FoundrySliderCard = class extends HTMLElement {
       step: 1,
       value: 50,
       ring_style: "brass",
-      background_color: "#8c7626",
+      face_color: "#8c7626",
       plate_color: "#8c7626",
       plate_transparent: false,
       rivet_color: "#6a5816",
@@ -5998,7 +5998,7 @@ var FoundrySliderCard = class extends HTMLElement {
       tick_color: "rgba(0,0,0,0.22)",
       font_bg_color: "#ffffff",
       font_color: "#000000",
-      title_color: "#3e2723",
+      title_color: "#000000",
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
@@ -6090,7 +6090,7 @@ var FoundrySliderEditor = class extends HTMLElement {
       step: 1,
       value: 50,
       ring_style: "brass",
-      background_color: "#8c7626",
+      face_color: "#ffffff",
       plate_color: "#8c7626",
       plate_transparent: false,
       rivet_color: "#6a5816",
@@ -6123,8 +6123,8 @@ var FoundrySliderEditor = class extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? "brass",
-      background_color: this._hexToRgb(
-        config.background_color ?? config.plate_color ?? config.slider_background_color ?? "#8c7626"
+      face_color: this._hexToRgb(
+        config.face_color ?? config.background_color ?? config.plate_color ?? config.slider_background_color ?? "#8c7626"
       ) ?? [140, 118, 38],
       plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
         140,
@@ -6185,7 +6185,8 @@ var FoundrySliderEditor = class extends HTMLElement {
     });
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
-      config.background_color = this._rgbToHex(config.background_color);
+      config.face_color = this._rgbToHex(config.face_color);
+      delete config.background_color;
       config.plate_color = this._rgbToHex(config.plate_color);
       config.title_color = this._rgbToHex(config.title_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
@@ -6252,8 +6253,8 @@ var FoundrySliderEditor = class extends HTMLElement {
             name: "",
             schema: [
               {
-                name: "background_color",
-                label: "Background Color",
+                name: "face_color",
+                label: "Face Color",
                 selector: { color_rgb: {} }
               },
               {

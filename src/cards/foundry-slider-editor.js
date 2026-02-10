@@ -78,7 +78,7 @@ class FoundrySliderEditor extends HTMLElement {
       step: 1,
       value: 50,
       ring_style: 'brass',
-      background_color: '#ffffff',
+      face_color: '#ffffff',
       plate_color: '#8c7626',
       plate_transparent: false,
       rivet_color: '#6a5816',
@@ -113,8 +113,9 @@ class FoundrySliderEditor extends HTMLElement {
     const data = { ...config };
     data.appearance = {
       ring_style: config.ring_style ?? 'brass',
-      background_color: this._hexToRgb(
-        config.background_color ??
+      face_color: this._hexToRgb(
+        config.face_color ??
+          config.background_color ??
           config.plate_color ??
           config.slider_background_color ??
           '#8c7626'
@@ -173,7 +174,8 @@ class FoundrySliderEditor extends HTMLElement {
     // Merge appearance settings
     if (formData.appearance) {
       Object.assign(config, formData.appearance);
-      config.background_color = this._rgbToHex(config.background_color);
+      config.face_color = this._rgbToHex(config.face_color);
+      delete config.background_color;
       config.plate_color = this._rgbToHex(config.plate_color);
       config.title_color = this._rgbToHex(config.title_color);
       config.rivet_color = this._rgbToHex(config.rivet_color);
@@ -248,8 +250,8 @@ class FoundrySliderEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'background_color',
-                label: 'Background Color',
+                name: 'face_color',
+                label: 'Face Color',
                 selector: { color_rgb: {} },
               },
               {
