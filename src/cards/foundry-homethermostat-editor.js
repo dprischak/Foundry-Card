@@ -13,14 +13,13 @@ const fireEvent = (node, type, detail, options) => {
 
 import { loadThemes, applyTheme } from './themes.js';
 
-class FoundryButtonEditor extends HTMLElement {
+class FoundryHomeThermostatEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this._themes = {};
     this._themesLoaded = false;
   }
-
   setConfig(config) {
     this._config = { ...config };
     this.render();
@@ -47,31 +46,32 @@ class FoundryButtonEditor extends HTMLElement {
   render() {
     if (!this._hass || !this._config) return;
 
-    if (!this._root) {
-      this._root = document.createElement('div');
-      this._root.className = 'card-config';
-      const style = document.createElement('style');
-      style.textContent = `
-                .card-config { display: flex; flex-direction: column; gap: 16px; }
-            `;
-      this.shadowRoot.appendChild(style);
-      this.shadowRoot.appendChild(this._root);
+    const schema = this._getSchema();
+    const data = this._configToForm(this._config);
+
+    const element = this.shadowRoot.querySelector('ha-form');
+    if (element) {
+      element.hass = this._hass;
+      element.data = data;
+      element.schema = schema;
+      element.computeLabel = this._computeLabel;
+      return;
     }
 
-    // Create form if it doesn't exist
-    if (!this._form) {
-      this._form = document.createElement('ha-form');
-      this._form.computeLabel = this._computeLabel;
-      this._form.addEventListener('value-changed', (ev) =>
-        this._handleFormChanged(ev)
-      );
-      this._root.appendChild(this._form);
-    }
+    const container = document.createElement('div');
+    const form = document.createElement('ha-form');
+    form.hass = this._hass;
+    form.data = data;
+    form.schema = schema;
+    form.computeLabel = this._computeLabel;
 
-    // Update form data and schema
-    this._form.hass = this._hass;
-    this._form.data = this._configToForm(this._config);
-    this._form.schema = this._getSchema();
+    form.addEventListener('value-changed', (ev) => {
+      this._handleFormChanged(ev);
+    });
+
+    container.appendChild(form);
+    this.shadowRoot.innerHTML = '';
+    this.shadowRoot.appendChild(container);
   }
 
   async _handleFormChanged(ev) {
@@ -90,113 +90,44 @@ class FoundryButtonEditor extends HTMLElement {
     // Remove theme from config so it doesn't persist in YAML
     delete newConfig.theme;
 
-    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._config = newConfig;
-      fireEvent(this, 'config-changed', { config: this._config });
-    }
-  }
-
-  _configToForm(config) {
-    const data = { ...config };
-
-    // Defaults for styles to match schema
-    data.ring_style = config.ring_style ?? 'brass';
-    data.plate_color = this._hexToRgb(config.plate_color ?? '#f5f5f5') ?? [
-      245, 245, 245,
-    ];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [
-      255, 255, 255,
-    ];
-    data.font_color = this._hexToRgb(config.font_color ?? '#000000') ?? [
-      0, 0, 0,
-    ];
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.wear_level = config.wear_level ?? 50;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.aged_texture = config.aged_texture ?? 'everywhere';
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
-
-    return data;
-  }
-
-  _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
-
-    // Convert Colors back to Hex
-    if (config.plate_color)
-      config.plate_color = this._rgbToHex(config.plate_color);
-    if (config.font_bg_color)
-      config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color)
-      config.font_color = this._rgbToHex(config.font_color);
-
-    return config;
+    this._config = newConfig;
+    fireEvent(this, 'config-changed', { config: this._config });
   }
 
   _getSchema() {
     return [
       {
         name: 'entity',
-        label: 'Entity (Optional)',
-        selector: { entity: {} },
+        label: 'Entity (Climate)',
+        selector: { entity: { domain: 'climate' } },
       },
       {
-        type: 'grid',
-        name: '',
-        schema: [
-          { name: 'icon', label: 'Icon', selector: { icon: {} } },
-          {
-            name: 'tap_action',
-            label: 'Tap Action',
-            selector: {
-              ui_action: {
-                actions: [
-                  'more-info',
-                  'toggle',
-                  'navigate',
-                  'url',
-                  'call-service',
-                  'perform-action',
-                  'assist',
-                  'none',
-                ],
-              },
-            },
-          },
-        ],
+        name: 'title',
+        label: 'Title',
+        selector: { text: {} },
       },
-      {
-        name: '',
-        type: 'expandable',
-        title: 'Content Templates (Jinja2 Supported)',
-        schema: [
-          {
-            name: 'primary_info',
-            label: 'Primary Info',
-            selector: { template: {} },
-          },
-          {
-            name: 'secondary_info',
-            label: 'Secondary Info',
-            selector: { template: {} },
-          },
-          {
-            name: 'secondary_info_2',
-            label: 'Secondary Info 2',
-            selector: { template: {} },
-          },
-          {
-            name: 'icon_color',
-            label: 'Icon Color',
-            selector: { template: {} },
-          },
-        ],
-      },
+      // Scale removed as requested
       {
         name: '',
         type: 'expandable',
         title: 'Appearance',
         schema: [
+          {
+            name: 'theme',
+            label: 'Theme',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None/Custom' },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1),
+                  })),
+                ],
+              },
+            },
+          },
           {
             name: 'ring_style',
             label: 'Ring Style',
@@ -236,6 +167,16 @@ class FoundryButtonEditor extends HTMLElement {
                 label: 'Plate Color',
                 selector: { color_rgb: {} },
               },
+              {
+                name: 'title_color',
+                label: 'Title Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'rivet_color',
+                label: 'Rivet Color',
+                selector: { color_rgb: {} },
+              },
             ],
           },
           {
@@ -255,7 +196,7 @@ class FoundryButtonEditor extends HTMLElement {
           },
           {
             name: 'aged_texture',
-            label: 'Aged Texture Style',
+            label: 'Aged Texture/Noise',
             selector: {
               select: {
                 mode: 'dropdown',
@@ -272,14 +213,59 @@ class FoundryButtonEditor extends HTMLElement {
             label: 'Texture Intensity (%)',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
-          {
-            name: 'card_width',
-            label: 'Card Max Width (px)',
-            selector: { number: { min: 100, max: 500, mode: 'box' } },
-          },
         ],
       },
     ];
+  }
+
+  _configToForm(config) {
+    const data = { ...config };
+
+    // Defaults
+    data.title = config.title ?? 'Thermostat';
+
+    data.ring_style = config.ring_style ?? 'brass';
+
+    data.title_color = this._hexToRgb(
+      config.title_color || config.title_font_color || '#3e2723'
+    ) ?? [62, 39, 35];
+    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#1a1a1a') ?? [
+      26, 26, 26,
+    ];
+    data.font_color = this._hexToRgb(config.font_color ?? '#ff0055') ?? [
+      255, 0, 85,
+    ];
+    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
+      109, 93, 75,
+    ];
+    data.plate_color = this._hexToRgb(config.plate_color ?? '#2b2b2b') ?? [
+      43, 43, 43,
+    ];
+
+    data.plate_transparent = config.plate_transparent ?? false;
+    data.wear_level = config.wear_level ?? 50;
+    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
+    data.aged_texture = config.aged_texture ?? 'everywhere';
+    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+
+    return data;
+  }
+
+  _formToConfig(formData) {
+    const config = { ...this._config, ...formData };
+
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
+    if (config.font_bg_color)
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    if (config.font_color)
+      config.font_color = this._rgbToHex(config.font_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
+
+    return config;
   }
 
   _hexToRgb(hex) {
@@ -314,4 +300,7 @@ class FoundryButtonEditor extends HTMLElement {
   }
 }
 
-customElements.define('foundry-button-editor', FoundryButtonEditor);
+customElements.define(
+  'foundry-homethermostat-editor',
+  FoundryHomeThermostatEditor
+);

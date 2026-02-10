@@ -11,7 +11,7 @@
 [hacs-link]: https://hacs.xyz/
 [hacs-default]: https://img.shields.io/badge/HACS-Default-blue?style=flat&logo=homeassistantcommunitystore&logoSize=auto
 [hacs-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
-[releases]: https://github.com/custom-cards/foundry-card/releases/latest
+[releases]: https://github.com/dprischak/foundry-card/releases/latest
 [forum-url]: https://community.home-assistant.io/
 [forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
 [releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
@@ -23,6 +23,8 @@ A collection of custom dashboard cards for Home Assistant that are designed with
 
 <p></p>
 <a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card.gif" style="border-radius: 8px"></a>
+
+**New in v26.2.3:** theme support! You can now easily switch between predefined themes in the editor for all cards.
 
 ## Table of Contents
 
@@ -36,11 +38,13 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Thermostat](#foundry-thermostat)
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
-4. [Development](#development)
-5. [Roadmap](#roadmap)
-6. [Support](#support)
-7. [License](#license)
-8. [Credits](#credits)
+   - [Foundry Home Thermostat](#foundry-home-thermostat)
+4. [Custom Themes](#custom-themes)
+5. [Development](#development)
+6. [Roadmap](#roadmap)
+7. [Support](#support)
+8. [License](#license)
+9. [Credits](#credits)
 
 <a name="cards-included"></a>
 
@@ -123,6 +127,17 @@ A vintage uptime monitor:
 - Color-coded status thresholds
 - Detailed history tracking
 
+<a name="foundry-home-thermostat"></a>
+
+### 🌡️ Foundry Home Thermostat
+
+A vintage-style thermostat controller featuring:
+
+- Odometer-style displays for modes and values
+- Interactive controls for temperature, fan, and presets
+- Dual setpoint support for Heat/Cool mode
+- Rich industrial design with wear and glass effects
+
 <a name="installation"></a>
 
 ## Installation
@@ -142,18 +157,19 @@ or
 3. Search for `Foundry Card`
 4. Click the download button. ⬇️
 5. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
-6. Add vehicle-status-card to your dashboard
+6. Add any foundry card to your dashboard
 
 ### Manual Installation
 
-1. Download `foundry-card.js` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
-2. Copy it to `<config>/www/` directory (create the `www` folder if it doesn't exist)
-3. Add the resource to your Lovelace dashboard:
+1. Download `foundry-card.js` and `themes.yaml` from the [latest release](https://github.com/dprischak/Foundry-Card/releases)
+2. Copy `foundry-card.js` to `<config>/www/` directory (create the `www` folder if it doesn't exist)
+3. Copy `themes.yaml` to `<config>/www/` directory (same location as the .js file)
+4. Add the resource to your Lovelace dashboard:
    - Go to Settings → Dashboards → Resources
    - Click "Add Resource"
    - URL: `/local/foundry-card.js`
    - Resource type: JavaScript Module
-4. Refresh your browser
+5. Refresh your browser
 
 <a name="usage"></a>
 
@@ -222,6 +238,13 @@ unit: '°C'
 | `glass_effect_enabled`       | boolean | No       | true                    | Enable glass effect overlay                                     |
 | `aged_texture`               | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'        |
 | `aged_texture_intensity`     | number  | No       | 50                      | Intensity of aged texture effect (0-100, higher = more visible) |
+| `title_color`                | string  | No       | '#3e2723'               | Color of the title text                                         |
+| `background_style`           | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'               |
+| `face_color`                 | string  | No       | '#f8f8f0'               | Color of the gauge face (if solid) or base for gradient         |
+| `number_color`               | string  | No       | '#3e2723'               | Color of value numbers                                          |
+| `primary_tick_color`         | string  | No       | '#3e2723'               | Color of major hash marks                                       |
+| `secondary_tick_color`       | string  | No       | '#5d4e37'               | Color of minor hash marks                                       |
+| `needle_color`               | string  | No       | '#C41E3A'               | Color of the main needle                                        |
 | `tap_action`                 | object  | No       | `{action: 'more-info'}` | Action to perform on tap (see Actions below)                    |
 | `hold_action`                | object  | No       | `{action: 'more-info'}` | Action to perform on hold (see Actions below)                   |
 | `double_tap_action`          | object  | No       | `{action: 'more-info'}` | Action to perform on double tap (see Actions below)             |
@@ -315,8 +338,6 @@ segments:
     to: 3
     color: '#F44336'
 ```
-
-<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/sump.png" width="300" alt="Heavily weathered industrial"/>
 
 </details>
 
@@ -456,6 +477,15 @@ Add a vintage analog clock to your dashboard:
 | `second_hand_enabled`    | boolean | No       | true                    | Show/hide the second hand                                                                           |
 | `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                                            |
 | `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                           |
+| `background_style`       | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'                                                   |
+| `face_color`             | string  | No       | '#f8f8f0'               | Color of clock face (if solid) or base for gradient                                                 |
+| `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                                             |
+| `number_color`           | string  | No       | '#3e2723'               | Color of numbers                                                                                    |
+| `primary_tick_color`     | string  | No       | '#3e2723'               | Color of major hash marks                                                                           |
+| `secondary_tick_color`   | string  | No       | '#5d4e37'               | Color of minor hash marks                                                                           |
+| `hour_hand_color`        | string  | No       | '#3e2723'               | Color of hour hand                                                                                  |
+| `minute_hand_color`      | string  | No       | '#3e2723'               | Color of minute hand                                                                                |
+| `second_hand_color`      | string  | No       | '#C41E3A'               | Color of second hand                                                                                |
 | `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                                                     |
 
 <details>
@@ -617,7 +647,7 @@ An industrial liquid-in-glass thermometer:
 | ------------------------ | ------------ | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
 | `entity`                 | string       | **Yes**  | -                       | Temperature entity to monitor                                                               |
 | `title`                  | string       | No       | "Temperature"           | Card title                                                                                  |
-| `title_font_color`       | string       | No       | "#3e2723"               | Color of the title text                                                                     |
+| `font_color`             | string       | No       | "#3e2723"               | Color of the title and scale text                                                           |
 | `unit`                   | string       | No       | -                       | Unit of measurement string to display                                                       |
 | `min`                    | number       | No       | -40                     | Minimum temperature value                                                                   |
 | `max`                    | number       | No       | 120                     | Maximum temperature value                                                                   |
@@ -794,6 +824,143 @@ color_thresholds:
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/uptime.png" width="300" alt="Preview"/>
 
 </details>
+
+### Foundry Home Thermostat
+
+A vintage-style thermostat controller with odometer-style displays and interactive controls.
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default      | Description                                                                                 |
+| ------------------------ | ------- | -------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -            | Thermostat entity (climate domain)                                                          |
+| `title`                  | string  | No       | "Thermostat" | Card title                                                                                  |
+| `ring_style`             | string  | No       | 'brass'      | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `plate_color`            | string  | No       | '#8c7626'    | Background plate color                                                                      |
+| `title_color`            | string  | No       | '#3e2723'    | Color of the title text and labels                                                          |
+| `font_bg_color`          | string  | No       | '#ffffff'    | Background color of the odometer displays                                                   |
+| `font_color`             | string  | No       | '#000000'    | Color of the odometer text                                                                  |
+| `rivet_color`            | string  | No       | '#6d5d4b'    | Color of rivets                                                                             |
+| `plate_transparent`      | boolean | No       | false        | Make the plate transparent                                                                  |
+| `wear_level`             | number  | No       | 50           | Intensity of wear marks (0-100)                                                             |
+| `glass_effect_enabled`   | boolean | No       | true         | Enable glass effect overlay                                                                 |
+| `aged_texture`           | string  | No       | 'everywhere' | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
+| `aged_texture_intensity` | number  | No       | 50           | Intensity of aged texture effect (0-100)                                                    |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-homethermostat-card
+entity: climate.t6_pro_z_wave_programmable_thermostat_with_smartstart
+title: Thermostat
+ring_style: brass
+plate_color: '#8c7626'
+title_color: '#3e2723'
+font_bg_color: '#ffffff'
+font_color: '#000000'
+rivet_color: '#6d5d4b'
+plate_transparent: false
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
+
+<img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/homethermo.png" width="300" alt="Preview"/>
+
+</details>
+
+<a name="custom-themes"></a>
+
+## Custom Themes
+
+Foundry Cards include built-in themes (industrial, racing, warm, cool) that can be applied through the visual editor. You can also create your own custom themes using a `UserThemes.yaml` file.
+
+### Creating Custom Themes
+
+1. Create a file named `userthemes.yaml` (case-sensitive) in your `<config>/www/` directory (same location as `foundry-card.js` and `themes.yaml`)
+
+2. Define your custom themes using the YAML format shown below
+
+3. Refresh your browser - your custom themes will automatically appear in the theme dropdown in the card editor
+
+### Theme File Format
+
+Each theme is defined with a name followed by its properties. Here's the structure:
+
+```yaml
+theme_name:
+  plate_color: '#8c7626' # Background plate color
+  rivet_color: '#6a5816' # Corner rivet color
+  title_color: '#3e2723' # Title text color
+  font_color: '#3e2723' # Digital display text color
+  font_bg_color: '#f8f8f0' # Digital display background
+  ring_style: 'brass' # Ring style: brass, silver, chrome, copper, black, white, blue, green, red
+  number_color: '#3e2723' # Gauge numbers color
+  primary_tick_color: '#3e2723' # Major tick marks color
+  secondary_tick_color: '#5d4e37' # Minor tick marks color
+  needle_color: '#C41E3A' # Gauge needle color
+  plate_transparent: false # true/false - transparent background
+  glass_effect_enabled: true # true/false - glass overlay effect
+  wear_level: 50 # 0-100 - amount of wear marks
+  aged_texture: 'everywhere' # none, glass_only, or everywhere
+  aged_texture_intensity: 50 # 0-100 - texture intensity
+  face_color: '#929090' # Gauge/clock face color
+  background_style: 'gradient' # gradient or solid
+```
+
+### Example Custom Theme
+
+Here's an example `userthemes.yaml` with two custom themes:
+
+```yaml
+midnight:
+  plate_color: '#1a1a2e'
+  rivet_color: '#16213e'
+  title_color: '#eee'
+  font_color: '#00ff41'
+  font_bg_color: '#0a0e27'
+  ring_style: 'black'
+  number_color: '#eee'
+  primary_tick_color: '#eee'
+  secondary_tick_color: '#888'
+  needle_color: '#00ff41'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 20
+  aged_texture: 'glass_only'
+  aged_texture_intensity: 30
+  face_color: '#0f3460'
+  background_style: 'solid'
+
+steampunk:
+  plate_color: '#8b4513'
+  rivet_color: '#654321'
+  title_color: '#f4e4c1'
+  font_color: '#f4e4c1'
+  font_bg_color: '#3e2723'
+  ring_style: 'copper'
+  number_color: '#f4e4c1'
+  primary_tick_color: '#f4e4c1'
+  secondary_tick_color: '#cd853f'
+  needle_color: '#ff6347'
+  plate_transparent: false
+  glass_effect_enabled: true
+  wear_level: 80
+  aged_texture: 'everywhere'
+  aged_texture_intensity: 70
+  face_color: '#d2691e'
+  background_style: 'gradient'
+```
+
+### Notes
+
+- Theme names must be unique and use lowercase letters, numbers, and underscores only
+- Not all properties are used by all cards (e.g., `needle_color` only applies to gauge cards)
+- Custom themes will appear in the theme dropdown alongside built-in themes
+- If a property is omitted, the card will use its default value
+- Changes to `userthemes.yaml` require a browser refresh to take effect
 
 <a name="development"></a>
 

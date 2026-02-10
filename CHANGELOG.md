@@ -1,3 +1,14 @@
+## v26.2.2
+
+### 🚀 New Features
+
+- **Theme Support:** Added a new theme selector to all cards, allowing for quick aesthetic changes.
+- **Color Standardization:** Standardized `title_color` across all cards, with backward compatibility for `title_font_color`.
+
+### 🛠️ Improvements
+
+- **Issue #31:** Fixed Readme link to the latest release
+
 ## v26.2.1
 
 ### 📅 Version Changes
@@ -12,10 +23,23 @@
 ### 🛠️ Improvements
 
 - **Issue #18:** Added title color to entites, uptime and digital clock
+- **Issue #19:** Added additional color options to the guage and analog clock cards
 
 ### 🐛 Defect Fixes
 
 - **Issue #21:** Unable to change thermostat card color ranges in visual editor
+- **Issue:** Gague card odometer glitches
+- **Issue:** Gague card odometer 3,8,9 where always slightly higher then the other numbers
+
+### 🚀 New Cards
+
+#### 🌡️ Foundry Home Thermostat
+
+**A vintage-style thermostat controller.**
+
+- **Odometer Controls:** Unique rolling odometer displays for setting values.
+- **Interactive:** Clickable overlays for easy adjustment of temperature and modes.
+- **Dual Setpoint:** Full support for Heat/Cool mode with high and low targets.
 
 ## v5.0
 

@@ -1,12 +1,12 @@
 {
   "name": "foundry-card",
-  "version": "26.2.1",
+  "version": "26.2.2",
   "description": "A collection of custom dashboard cards for Home Assistant",
   "type": "module",
   "main": "dist/foundry-card.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js",
+    "build": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js && robocopy . dist themes.yaml /XO /NJH /NJS /NFL /NDL || if %ERRORLEVEL% LEQ 1 exit 0",
     "watch": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js --sourcemap --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -36,5 +36,8 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
     "prettier": "^3.8.1"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
   }
 }
