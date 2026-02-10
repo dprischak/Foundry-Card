@@ -1138,7 +1138,6 @@ Future cards planned for the Foundry Card collection:
 - Retro Sliders
 - Seismic Graph Card
 - Industrial Energy Map
-- Industrial Climate Card
 
 <a name="support"></a>
 

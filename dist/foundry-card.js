@@ -12385,6 +12385,22 @@ var FoundryButtonEditor = class extends HTMLElement {
         title: "Appearance",
         schema: [
           {
+            name: "theme",
+            label: "Theme",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None/Custom" },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1)
+                  }))
+                ]
+              }
+            }
+          },
+          {
             name: "ring_style",
             label: "Ring Style",
             selector: {
