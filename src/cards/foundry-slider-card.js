@@ -119,7 +119,6 @@ class FoundrySliderCard extends HTMLElement {
     const knobSizePercent = Math.max(0, Math.min(100, Number(cfg.knob_size)));
     const knobSize =
       KNOB_SIZE_MIN + (KNOB_SIZE_MAX - KNOB_SIZE_MIN) * (knobSizePercent / 100);
-      const knobSizeScaled = knobSize; // Adjusted to remove scaling
     let knobWidth, knobHeight, knobBorderRadius;
 
     switch (cfg.knob_shape) {
