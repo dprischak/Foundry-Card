@@ -21,6 +21,7 @@ class FoundrySliderEditor extends HTMLElement {
       const style = document.createElement('style');
       style.textContent = `
         .card-config { display:flex; flex-direction:column; gap:12px; }
+        .actions { display:flex; justify-content:flex-end; }
       `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
@@ -31,6 +32,19 @@ class FoundrySliderEditor extends HTMLElement {
         this._handleFormChanged.bind(this)
       );
       this._root.appendChild(this._form);
+
+      this._actions = document.createElement('div');
+      this._actions.classList.add('actions');
+
+      this._restoreButton = document.createElement('ha-button');
+      this._restoreButton.textContent = 'Restore Defaults';
+      this._restoreButton.addEventListener(
+        'click',
+        this._restoreDefaults.bind(this)
+      );
+
+      this._actions.appendChild(this._restoreButton);
+      this._root.appendChild(this._actions);
     }
 
     if (this._form) this._form.hass = this._hass;
@@ -53,6 +67,44 @@ class FoundrySliderEditor extends HTMLElement {
         })
       );
     }
+  }
+
+  _restoreDefaults() {
+    const defaults = {
+      type: 'custom:foundry-slider-card',
+      title: 'Slider',
+      min: 0,
+      max: 100,
+      step: 1,
+      value: 50,
+      ring_style: 'brass',
+      background_color: '#ffffff',
+      plate_color: '#8c7626',
+      rivet_color: '#6a5816',
+      slider_color: '#444444',
+      knob_color: '#c9a961',
+      knob_shape: 'square',
+      knob_size: 100,
+      tick_color: 'rgba(0,0,0,0.22)',
+      font_bg_color: '#ffffff',
+      font_color: '#000000',
+      title_font_size: 16,
+      value_font_size: 36,
+      show_value: true,
+      wear_level: 50,
+      aged_texture: 'everywhere',
+      aged_texture_intensity: 50,
+    };
+
+    this._config = { ...defaults };
+    this.render();
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   _configToForm(config) {
