@@ -11,15 +11,32 @@ const fireEvent = (node, type, detail, options) => {
   return event;
 };
 
+import { loadThemes, applyTheme } from './themes.js';
+
 class FoundryUptimeEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._themes = {};
+    this._themesLoaded = false;
   }
 
   setConfig(config) {
     this._config = { ...config };
     this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      this.render();
+    } catch (e) {
+      console.error('Error loading themes:', e);
+    }
   }
 
   set hass(hass) {
@@ -282,8 +299,22 @@ class FoundryUptimeEditor extends HTMLElement {
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
-  _handleFormChanged(ev) {
-    const newConfig = this._formToConfig(ev.detail.value);
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+
+    // Check if theme changed
+    if (
+      newConfig.theme &&
+      newConfig.theme !== this._config.theme &&
+      this._themes &&
+      this._themes[newConfig.theme]
+    ) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    }
+
+    // Remove theme from config so it doesn't persist in YAML
+    delete newConfig.theme;
+
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._updateConfig(newConfig);
     }
@@ -304,6 +335,8 @@ class FoundryUptimeEditor extends HTMLElement {
     if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
     if (config.title_color)
       data.title_color = this._hexToRgb(config.title_color);
+    else if (config.title_font_color)
+      data.title_color = this._hexToRgb(config.title_font_color);
     else data.title_color = [62, 39, 35]; // default #3e2723
     if (config.plate_color)
       data.plate_color = this._hexToRgb(config.plate_color);
@@ -402,6 +435,22 @@ class FoundryUptimeEditor extends HTMLElement {
         type: 'expandable',
         title: 'Appearance',
         schema: [
+          {
+            name: 'theme',
+            label: 'Theme',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None/Custom' },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1),
+                  })),
+                ],
+              },
+            },
+          },
           { name: 'title', label: 'Title', selector: { text: {} } },
           {
             name: 'ring_style',

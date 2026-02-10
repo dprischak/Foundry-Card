@@ -1,3 +1,5 @@
+import { loadThemes, applyTheme } from './themes.js';
+
 //************************************************************************************************************
 // Card Editor
 //************************************************************************************************************
@@ -5,6 +7,8 @@ class FoundryGaugeCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._themes = {};
+    this._themesLoaded = false;
   }
 
   setConfig(config) {
@@ -14,6 +18,19 @@ class FoundryGaugeCardEditor extends HTMLElement {
       segments: Array.isArray(config.segments) ? config.segments : [],
     };
     this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      this.render();
+    } catch (e) {
+      console.error('Error loading themes:', e);
+    }
   }
 
   set hass(hass) {
@@ -421,8 +438,22 @@ class FoundryGaugeCardEditor extends HTMLElement {
 
   // --- HA Form Logic ---
 
-  _handleFormChanged(ev) {
-    const newConfig = this._formToConfig(ev.detail.value);
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+
+    // Check if theme changed
+    if (
+      newConfig.theme &&
+      newConfig.theme !== this._config.theme &&
+      this._themes &&
+      this._themes[newConfig.theme]
+    ) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    }
+
+    // Remove theme from config so it doesn't persist in YAML
+    delete newConfig.theme;
+
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._updateConfig(newConfig);
     }
@@ -454,8 +485,8 @@ class FoundryGaugeCardEditor extends HTMLElement {
     };
 
     data.style_fonts_ticks = {
-      title_font_color: this._hexToRgb(
-        config.title_font_color ?? '#3e2723'
+      title_color: this._hexToRgb(
+        config.title_color || config.title_font_color || '#3e2723'
       ) ?? [62, 39, 35],
       number_color: this._hexToRgb(config.number_color ?? '#3e2723') ?? [
         62, 39, 35,
@@ -507,11 +538,17 @@ class FoundryGaugeCardEditor extends HTMLElement {
       plate_color: this._config?.plate_color ?? '#8c7626',
       high_needle_color: this._config?.high_needle_color ?? '#FF9800',
       face_color: this._config?.face_color ?? '#f8f8f0',
-      title_font_color: this._config?.title_font_color ?? '#3e2723',
+
+      title_color:
+        this._config?.title_color ??
+        this._config?.title_font_color ??
+        '#3e2723',
       number_color: this._config?.number_color ?? '#3e2723',
       primary_tick_color: this._config?.primary_tick_color ?? '#3e2723',
       secondary_tick_color: this._config?.secondary_tick_color ?? '#5d4e37',
+
       needle_color: this._config?.needle_color ?? '#C41E3A',
+      background_style: this._config?.background_style ?? 'gradient',
     };
 
     Object.keys(formData).forEach((key) => {
@@ -551,9 +588,9 @@ class FoundryGaugeCardEditor extends HTMLElement {
     if (fc) config.face_color = fc;
     else config.face_color = defaults.face_color;
 
-    const tfc = this._rgbToHex(config.title_font_color);
-    if (tfc) config.title_font_color = tfc;
-    else config.title_font_color = defaults.title_font_color;
+    const tfc = this._rgbToHex(config.title_color);
+    if (tfc) config.title_color = tfc;
+    else config.title_color = defaults.title_color;
 
     const nc = this._rgbToHex(config.number_color);
     if (nc) config.number_color = nc;
@@ -676,6 +713,22 @@ class FoundryGaugeCardEditor extends HTMLElement {
         title: 'Appearance',
         schema: [
           {
+            name: 'theme',
+            label: 'Theme',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None/Custom' },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1),
+                  })),
+                ],
+              },
+            },
+          },
+          {
             name: 'ring_style',
             label: 'Ring Style',
             selector: {
@@ -781,7 +834,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'title_font_color',
+                name: 'title_color',
                 label: 'Title Color',
                 selector: { color_rgb: {} },
               },
