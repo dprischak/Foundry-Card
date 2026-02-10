@@ -10400,8 +10400,24 @@ var FoundrySliderEditor = class extends HTMLElement {
       this._root = document.createElement("div");
       const style = document.createElement("style");
       style.textContent = `
-        .card-config { display:flex; flex-direction:column; gap:12px; }
-        .actions { display:flex; justify-content:flex-end; }
+        /* Layout adjustments */
+        .card-config { display: flex; flex-direction: column; gap: 16px; }
+        
+        .reset-btn {
+          background-color: var(--secondary-text-color, #757575);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 14px;
+          margin-top: 12px;
+          width: 100%;
+        }
+        .reset-btn:hover {
+          background-color: var(--error-color, #db4437);
+        }
       `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
@@ -10411,16 +10427,12 @@ var FoundrySliderEditor = class extends HTMLElement {
         this._handleFormChanged.bind(this)
       );
       this._root.appendChild(this._form);
-      this._actions = document.createElement("div");
-      this._actions.classList.add("actions");
-      this._restoreButton = document.createElement("ha-button");
-      this._restoreButton.textContent = "Restore Defaults";
-      this._restoreButton.addEventListener(
-        "click",
-        this._restoreDefaults.bind(this)
-      );
-      this._actions.appendChild(this._restoreButton);
-      this._root.appendChild(this._actions);
+      const resetBtn = document.createElement("button");
+      resetBtn.className = "reset-btn";
+      resetBtn.textContent = "\u26A0\uFE0F Reset to Default Configuration";
+      resetBtn.title = "Reset all settings to defaults (keeps entity)";
+      resetBtn.addEventListener("click", () => this._resetToDefaults());
+      this._root.appendChild(resetBtn);
     }
     if (this._form) this._form.hass = this._hass;
     const formData = this._configToForm(this._config);
@@ -10435,26 +10447,25 @@ var FoundrySliderEditor = class extends HTMLElement {
     }
     delete newConfig.theme;
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._config = newConfig;
-      this.dispatchEvent(
-        new CustomEvent("config-changed", {
-          detail: { config: this._config },
-          bubbles: true,
-          composed: true
-        })
-      );
+      this._updateConfig(newConfig);
     }
   }
-  _restoreDefaults() {
-    const defaults = {
-      type: "custom:foundry-slider-card",
+  _resetToDefaults() {
+    if (!confirm(
+      "Reset all settings to defaults? This will keep your entity but reset all other configuration."
+    )) {
+      return;
+    }
+    const entity = this._config.entity;
+    this._updateConfig({
+      entity,
       title: "Slider",
       min: 0,
       max: 100,
       step: 1,
       value: 50,
       ring_style: "brass",
-      face_color: "#ffffff",
+      face_color: "#8c7626",
       plate_color: "#8c7626",
       plate_transparent: false,
       rivet_color: "#6a5816",
@@ -10469,16 +10480,13 @@ var FoundrySliderEditor = class extends HTMLElement {
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
-      grid_options: {
-        columns: 6,
-        rows: 6
-      },
       wear_level: 50,
       aged_texture: "everywhere",
       aged_texture_intensity: 50
-    };
-    this._config = { ...defaults };
-    this.render();
+    });
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
     this.dispatchEvent(
       new CustomEvent("config-changed", {
         detail: { config: this._config },
