@@ -584,16 +584,17 @@ class FoundryUptimeCard extends HTMLElement {
               <text id="uptime-score" x="${rimX + rimWidth - 24}" y="${rimY + 28}" font-size="14" font-family="ds-digitaldot" text-anchor="end" fill="${config.font_color}" style="letter-spacing:1px;">--%</text>
 
               <!-- Footer (Bottom of Ring area) -->
-              ${config.show_footer
-        ? `
+              ${
+                config.show_footer
+                  ? `
                     <!-- Start Time (Bottom Left).-->
                     <text id="footer-start" x="${rimX + 24}" y="${rimY + rimHeight - 20}" text-anchor="start" font-size="12" fill="${config.font_color}" class="label-font">...</text>
                     
                     <!-- End Time (Bottom Right) -->
                     <text id="footer-end" x="${rimX + rimWidth - 24}" y="${rimY + rimHeight - 20}" text-anchor="end" font-size="12" fill="${config.font_color}" class="label-font">Now</text>
               `
-        : ''
-      }
+                  : ''
+              }
 
               <!-- Wear Marks -->
               ${this.renderWearMarks(config.wear_level, plateHeight)}

@@ -507,7 +507,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
     }
 
     // Remove theme from config so it doesn't persist in YAML <--- THIS WAS THE OLD LOGIC, NOW REMOVED
-    // delete newConfig.theme; 
+    // delete newConfig.theme;
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._updateConfig(newConfig);

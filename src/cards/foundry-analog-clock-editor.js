@@ -194,7 +194,7 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
         'tick_color',
         'hour_hand_color',
         'minute_hand_color',
-        'second_hand_color'
+        'second_hand_color',
       ];
 
       // Check if any of these changed

@@ -385,33 +385,35 @@ class FoundrySliderCard extends HTMLElement {
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
             ${this.renderSquareRim(
-      cfg.ring_style,
-      uid,
-      backgroundColor,
-      glassEffectEnabled,
-      rimX,
-      rimY,
-      rimWidth,
-      rimHeight
-    )}
+              cfg.ring_style,
+              uid,
+              backgroundColor,
+              glassEffectEnabled,
+              rimX,
+              rimY,
+              rimWidth,
+              rimHeight
+            )}
 
-            ${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent
-        ? `
+            ${
+              effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent
+                ? `
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
                     rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
                     style="pointer-events:none;" />
             `
-        : ''
-      }
+                : ''
+            }
 
-            ${effectiveAgedTexture === 'glass_only'
-        ? `
+            ${
+              effectiveAgedTexture === 'glass_only'
+                ? `
               <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
                     rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
                     style="pointer-events:none;" />
             `
-        : ''
-      }
+                : ''
+            }
 
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ''}
@@ -432,13 +434,13 @@ class FoundrySliderCard extends HTMLElement {
 
             <!-- Tick Marks -->
             ${this.renderTickMarks(
-        cfg,
-        trackTopY,
-        trackBottomY,
-        tickStartX,
-        tickMajorLength,
-        tickMinorLength
-      )}
+              cfg,
+              trackTopY,
+              trackBottomY,
+              tickStartX,
+              tickMajorLength,
+              tickMinorLength
+            )}
 
             <!-- Slider Knob -->
             <rect id="sliderKnob"
@@ -690,8 +692,9 @@ class FoundrySliderCard extends HTMLElement {
             stroke-width="1" />
       
       <!-- Glass glare effect -->
-      ${glassEffectEnabled
-        ? `
+      ${
+        glassEffectEnabled
+          ? `
         <path d="M ${x + 4} ${y + 4} 
                  L ${x + width - 4} ${y + 4} 
                  L ${x + width - 4} ${y + height * 0.4} 
@@ -699,7 +702,7 @@ class FoundrySliderCard extends HTMLElement {
               fill="white" 
               opacity="0.08" />
       `
-        : ''
+          : ''
       }
       
       <!-- Value Text -->

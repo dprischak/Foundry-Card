@@ -37,7 +37,9 @@ export async function loadThemes() {
             themes[finalName] = themeData;
           }
         } else {
-          console.warn(`[Foundry Cards] Failed to fetch theme file: ${filename} (Status: ${response.status})`);
+          console.warn(
+            `[Foundry Cards] Failed to fetch theme file: ${filename} (Status: ${response.status})`
+          );
         }
       } catch (e) {
         console.warn(`Failed to load theme file: ${filename}`, e);

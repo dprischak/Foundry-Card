@@ -126,7 +126,7 @@ class FoundrySliderEditor extends HTMLElement {
         'aged_texture_intensity',
         'slider_color',
         'knob_color',
-        'tick_color'
+        'tick_color',
       ];
 
       // Check if any of these changed
@@ -203,10 +203,10 @@ class FoundrySliderEditor extends HTMLElement {
       ring_style: config.ring_style ?? 'brass',
       face_color: this._hexToRgb(
         config.face_color ??
-        config.background_color ??
-        config.plate_color ??
-        config.slider_background_color ??
-        '#8c7626'
+          config.background_color ??
+          config.plate_color ??
+          config.slider_background_color ??
+          '#8c7626'
       ) ?? [140, 118, 38],
       plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [
         140, 118, 38,

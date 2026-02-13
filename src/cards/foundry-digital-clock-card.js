@@ -267,22 +267,23 @@ class FoundryDigitalClockCard extends HTMLElement {
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
               
               <!-- Digital Time -->
-              ${this.config.show_seconds !== false
-        ? `
+              ${
+                this.config.show_seconds !== false
+                  ? `
                   <!-- Layout with Seconds: H:M:S -->
                   <g font-size="50" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--:--</text>
                     <text id="pmIndicator" x="205" y="75" text-anchor="start"></text>
                   </g>
                 `
-        : `
+                  : `
                   <!-- Layout without Seconds: H:M -->
                   <g font-size="55" font-family="ds-digitalnormal" fill="${fontColor}" dominant-baseline="middle" stroke="${fontColor}" stroke-width="0.2" style="pointer-events: none; letter-spacing: 2px;">
                     <text id="timeDisplay" x="130" y="75" text-anchor="middle">--:--</text>
                     <text id="pmIndicator" x="185" y="75" text-anchor="start"></text>
                   </g>
                 `
-      }
+              }
               
               <!-- Wear Marks -->
               ${this.renderWearMarks(wearLevel)}

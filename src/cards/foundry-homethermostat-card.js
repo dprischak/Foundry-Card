@@ -137,7 +137,7 @@ class FoundryHomeThermostatCard extends HTMLElement {
   _updateScreenValues(stateObj, attributes) {
     const currentTemp =
       attributes.current_temperature !== undefined &&
-        attributes.current_temperature !== null
+      attributes.current_temperature !== null
         ? attributes.current_temperature
         : '--';
     let humidity = '--';
@@ -1097,7 +1097,10 @@ class FoundryHomeThermostatCard extends HTMLElement {
 }
 
 if (!customElements.get('foundry-homethermostat-card')) {
-  customElements.define('foundry-homethermostat-card', FoundryHomeThermostatCard);
+  customElements.define(
+    'foundry-homethermostat-card',
+    FoundryHomeThermostatCard
+  );
 }
 
 window.customCards = window.customCards || [];
