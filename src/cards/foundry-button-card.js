@@ -1,5 +1,6 @@
 import { handleAction } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryButtonCard extends HTMLElement {
   constructor() {
@@ -45,6 +46,19 @@ class FoundryButtonCard extends HTMLElement {
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          if (this.shadowRoot) {
+            this.shadowRoot.innerHTML = '';
+          }
+          this._updateRender();
+        }
+      });
+    }
   }
 
   set hass(hass) {

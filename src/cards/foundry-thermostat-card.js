@@ -1,5 +1,6 @@
 import { fireEvent } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryThermostatCard extends HTMLElement {
   constructor() {
@@ -279,19 +280,19 @@ class FoundryThermostatCard extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-                  const tubeWidth = 20;
-                  const tubeX = 47.5;
-                  const pct =
-                    config.mercury_width !== undefined
-                      ? config.mercury_width
-                      : 50;
-                  const widthPx = (tubeWidth * pct) / 100;
-                  const xPx = tubeX + (tubeWidth - widthPx) / 2;
-                  return `
+        const tubeWidth = 20;
+        const tubeX = 47.5;
+        const pct =
+          config.mercury_width !== undefined
+            ? config.mercury_width
+            : 50;
+        const widthPx = (tubeWidth * pct) / 100;
+        const xPx = tubeX + (tubeWidth - widthPx) / 2;
+        return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-                })()}
+      })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || '#444', 10)}" stroke="#444" stroke-width="0.5" />
@@ -378,6 +379,17 @@ class FoundryThermostatCard extends HTMLElement {
     }
 
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+          this.updateCard();
+        }
+      });
+    }
 
     if (!this.config.tap_action)
       this.config.tap_action = { action: 'more-info' };

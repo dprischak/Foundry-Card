@@ -33,6 +33,12 @@ class FoundryButtonEditor extends HTMLElement {
     try {
       this._themes = await loadThemes();
       this._themesLoaded = true;
+      // Force form re-creation by removing and clearing it
+      if (this._form && this._form.parentNode) {
+        this._form.parentNode.removeChild(this._form);
+      }
+      this._form = null;
+      // Force UI update
       this.render();
     } catch (e) {
       console.error('Error loading themes:', e);
@@ -77,18 +83,61 @@ class FoundryButtonEditor extends HTMLElement {
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
 
-    // Check if theme changed
+    // 1. Theme Selection Logic
+    // If the theme CHANGED really, apply the new theme values
     if (
       newConfig.theme &&
       newConfig.theme !== this._config.theme &&
       this._themes &&
       this._themes[newConfig.theme]
     ) {
+      // Apply the theme values to the config
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      // NOTE: We do NOT delete newConfig.theme anymore. We want to persist it.
     }
+    // 2. Manual Override Logic
+    // If the theme is set (and didn't just change in this event), check if any controlled properties changed.
+    else if (
+      this._config.theme &&
+      this._config.theme !== 'none' &&
+      newConfig.theme === this._config.theme
+    ) {
+      // List of properties that themes control
+      const themeProperties = [
+        'plate_color',
+        'rivet_color',
+        'ring_style',
+        'title_color',
+        'font_color',
+        'font_bg_color',
+        'number_color',
+        'primary_tick_color',
+        'secondary_tick_color',
+        'background_style',
+        'face_color',
+        'liquid_color',
+        'needle_color',
+        'plate_transparent',
+        'glass_effect_enabled',
+        'wear_level',
+        'aged_texture',
+        'aged_texture_intensity',
+        'slider_color',
+        'knob_color',
+        'tick_color',
+      ];
 
-    // Remove theme from config so it doesn't persist in YAML
-    delete newConfig.theme;
+      // Check if any of these changed
+      const hasOverride = themeProperties.some(
+        (prop) =>
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      );
+
+      if (hasOverride) {
+        // User manually changed a value. Detach from theme.
+        newConfig.theme = 'none';
+      }
+    }
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
@@ -100,6 +149,7 @@ class FoundryButtonEditor extends HTMLElement {
     const data = { ...config };
 
     // Defaults for styles to match schema
+    data.theme = config.theme ?? 'none';
     data.ring_style = config.ring_style ?? 'brass';
     data.plate_color = this._hexToRgb(config.plate_color ?? '#f5f5f5') ?? [
       245, 245, 245,

@@ -24,7 +24,17 @@ class FoundryThermostatEditor extends HTMLElement {
     try {
       this._themes = await loadThemes();
       this._themesLoaded = true;
-      this.render();
+      // Force complete re-creation by clearing root
+      if (this._root && this._root.parentNode) {
+        this._root.parentNode.removeChild(this._root);
+      }
+      this._root = null;
+      this._form1 = null;
+      this._form2 = null;
+      this._segmentsContainer = null;
+      if (!this._advancedMode) {
+        this.render();
+      }
     } catch (e) {
       console.error('Error loading themes:', e);
     }
@@ -256,18 +266,61 @@ class FoundryThermostatEditor extends HTMLElement {
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
 
-    // Check if theme changed
+    // 1. Theme Selection Logic
+    // If the theme CHANGED really, apply the new theme values
     if (
       newConfig.theme &&
       newConfig.theme !== this._config.theme &&
       this._themes &&
       this._themes[newConfig.theme]
     ) {
+      // Apply the theme values to the config
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      // NOTE: We do NOT delete newConfig.theme anymore. We want to persist it.
     }
+    // 2. Manual Override Logic
+    // If the theme is set (and didn't just change in this event), check if any controlled properties changed.
+    else if (
+      this._config.theme &&
+      this._config.theme !== 'none' &&
+      newConfig.theme === this._config.theme
+    ) {
+      // List of properties that themes control
+      const themeProperties = [
+        'plate_color',
+        'rivet_color',
+        'ring_style',
+        'title_color',
+        'font_color',
+        'font_bg_color',
+        'number_color',
+        'primary_tick_color',
+        'secondary_tick_color',
+        'background_style',
+        'face_color',
+        'liquid_color',
+        'needle_color',
+        'plate_transparent',
+        'glass_effect_enabled',
+        'wear_level',
+        'aged_texture',
+        'aged_texture_intensity',
+        'slider_color',
+        'knob_color',
+        'tick_color',
+      ];
 
-    // Remove theme from config so it doesn't persist in YAML
-    delete newConfig.theme;
+      // Check if any of these changed
+      const hasOverride = themeProperties.some(
+        (prop) =>
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      );
+
+      if (hasOverride) {
+        // User manually changed a value. Detach from theme.
+        newConfig.theme = 'none';
+      }
+    }
 
     // Migration: If we have a legacy title_font_color, migrate it to font_color if font_color is not set or if we want to consolidate
     if (newConfig.title_font_color && !newConfig.font_color) {
@@ -286,6 +339,8 @@ class FoundryThermostatEditor extends HTMLElement {
     const data = { ...config };
     delete data.segments; // Do not pass segments to ha-form
 
+    // Defaults
+    data.theme = config.theme ?? 'none';
     // Color Conversions
     data.liquid_color = this._hexToRgb(config.liquid_color ?? '#cc0000') || [
       204, 0, 0,

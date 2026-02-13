@@ -1,4 +1,5 @@
 import { fireEvent, getActionConfig } from './utils.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryAnalogClockCard extends HTMLElement {
   constructor() {
@@ -14,6 +15,16 @@ class FoundryAnalogClockCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+        }
+      });
+    }
 
     // Default behavior like built-in cards
     if (!this.config.tap_action) {
@@ -317,7 +328,7 @@ class FoundryAnalogClockCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize, config.title_color || config.title_font_color) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.number_color) : ''}
               
               <!-- Hands -->
               
@@ -334,9 +345,8 @@ class FoundryAnalogClockCard extends HTMLElement {
               </g>
 
               <!-- Second Hand -->
-              ${
-                secondHandEnabled
-                  ? `
+              ${secondHandEnabled
+        ? `
               <g id="secondHand" style="transform-origin: 100px 100px; transition: transform 0.2s cubic-bezier(0.4, 2.08, 0.55, 0.44);">
                   <!-- Shaft -->
                   <rect x="99" y="30" width="2" height="85" fill="${config.second_hand_color || '#C41E3A'}" />
@@ -344,8 +354,8 @@ class FoundryAnalogClockCard extends HTMLElement {
                   <path d="M 99 30 L 100 20 L 101 30 Z" fill="${config.second_hand_color || '#C41E3A'}" />
               </g>
               `
-                  : ''
-              }
+        : ''
+      }
 
               <!-- Center Cap -->
               <circle cx="100" cy="100" r="5" class="rivet"/>

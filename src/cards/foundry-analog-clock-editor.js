@@ -20,6 +20,13 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     try {
       this._themes = await loadThemes();
       this._themesLoaded = true;
+      // Force complete re-creation by clearing root
+      if (this._root && this._root.parentNode) {
+        this._root.parentNode.removeChild(this._root);
+      }
+      this._root = null;
+      this._form1 = null;
+      this._form2 = null;
       this.render();
     } catch (e) {
       console.error('Error loading themes:', e);
@@ -143,21 +150,74 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
 
-    // Check if theme changed
+    // 1. Theme Selection Logic
+    // If the theme CHANGED really, apply the new theme values
     if (
       newConfig.theme &&
       newConfig.theme !== this._config.theme &&
       this._themes &&
       this._themes[newConfig.theme]
     ) {
+      // Apply the theme values to the config
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      // NOTE: We do NOT delete newConfig.theme anymore. We want to persist it.
+    }
+    // 2. Manual Override Logic
+    // If the theme is set (and didn't just change in this event), check if any controlled properties changed.
+    else if (
+      this._config.theme &&
+      this._config.theme !== 'none' &&
+      newConfig.theme === this._config.theme
+    ) {
+      // List of properties that themes control
+      const themeProperties = [
+        'plate_color',
+        'rivet_color',
+        'ring_style',
+        'title_color',
+        'font_color',
+        'font_bg_color',
+        'number_color',
+        'primary_tick_color',
+        'secondary_tick_color',
+        'background_style',
+        'face_color',
+        'liquid_color',
+        'needle_color',
+        'plate_transparent',
+        'glass_effect_enabled',
+        'wear_level',
+        'aged_texture',
+        'aged_texture_intensity',
+        'slider_color',
+        'knob_color',
+        'tick_color',
+        'hour_hand_color',
+        'minute_hand_color',
+        'second_hand_color'
+      ];
+
+      // Check if any of these changed
+      const hasOverride = themeProperties.some(
+        (prop) =>
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      );
+
+      if (hasOverride) {
+        // User manually changed a value. Detach from theme.
+        newConfig.theme = 'none';
+      }
     }
 
-    // Remove theme from config so it doesn't persist in YAML
-    delete newConfig.theme;
-
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._updateConfig(newConfig);
+      this._config = newConfig;
+      this.dispatchEvent(
+        new CustomEvent('config-changed', {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true,
+        })
+      );
     }
   }
 
@@ -165,6 +225,7 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     const data = { ...config };
 
     data.appearance = {
+      theme: config.theme ?? 'none',
       ring_style: config.ring_style,
       rivet_color: this._hexToRgb(config.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
