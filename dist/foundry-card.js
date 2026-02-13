@@ -2731,7 +2731,9 @@ async function loadThemes() {
             themes[finalName] = themeData;
           }
         } else {
-          console.warn(`[Foundry Cards] Failed to fetch theme file: ${filename} (Status: ${response.status})`);
+          console.warn(
+            `[Foundry Cards] Failed to fetch theme file: ${filename} (Status: ${response.status})`
+          );
         }
       } catch (e) {
         console.warn(`Failed to load theme file: ${filename}`, e);
@@ -7211,7 +7213,10 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
   }
 };
 if (!customElements.get("foundry-homethermostat-card")) {
-  customElements.define("foundry-homethermostat-card", FoundryHomeThermostatCard);
+  customElements.define(
+    "foundry-homethermostat-card",
+    FoundryHomeThermostatCard
+  );
 }
 window.customCards = window.customCards || [];
 window.customCards.push({
