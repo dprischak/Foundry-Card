@@ -1,4 +1,5 @@
 import { fireEvent, getActionConfig } from './utils.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryAnalogClockCard extends HTMLElement {
   constructor() {
@@ -14,6 +15,16 @@ class FoundryAnalogClockCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+        }
+      });
+    }
 
     // Default behavior like built-in cards
     if (!this.config.tap_action) {
@@ -317,7 +328,7 @@ class FoundryAnalogClockCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize, config.title_color || config.title_font_color) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.number_color) : ''}
               
               <!-- Hands -->
               

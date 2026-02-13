@@ -1,5 +1,6 @@
 import { fireEvent, getActionConfig } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundrySliderCard extends HTMLElement {
   constructor() {
@@ -11,7 +12,18 @@ class FoundrySliderCard extends HTMLElement {
   setConfig(config) {
     this.config = { ...config };
 
-    // Basic Slider Settings
+    this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+          this._updateValueDisplay(this.config.value);
+        }
+      });
+    }
     this.config.min = this.config.min !== undefined ? this.config.min : 0;
     this.config.max = this.config.max !== undefined ? this.config.max : 100;
     this.config.step = this.config.step !== undefined ? this.config.step : 1;

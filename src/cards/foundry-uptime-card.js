@@ -1,5 +1,6 @@
 import { fireEvent } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryUptimeCard extends HTMLElement {
   constructor() {
@@ -15,6 +16,17 @@ class FoundryUptimeCard extends HTMLElement {
       color: { ...(config.color || {}) },
       duration: config.duration ? { ...config.duration } : undefined,
     };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this._rendered = false;
+          this._renderHistory();
+        }
+      });
+    }
 
     if (!this.config.entity) {
       throw new Error('Entity is required');

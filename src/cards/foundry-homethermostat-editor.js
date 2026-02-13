@@ -32,7 +32,9 @@ class FoundryHomeThermostatEditor extends HTMLElement {
     try {
       this._themes = await loadThemes();
       this._themesLoaded = true;
-      this.render();
+      // Force form re-creation by clearing root
+      this.shadowRoot.innerHTML = '';
+      this.render(); // Home Thermostat uses render() to build the form
     } catch (e) {
       console.error('Error loading themes:', e);
     }
@@ -77,18 +79,51 @@ class FoundryHomeThermostatEditor extends HTMLElement {
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
 
-    // Check if theme changed
+    // 1. Theme Selection Logic
+    // If the theme CHANGED really, apply the new theme values
     if (
       newConfig.theme &&
       newConfig.theme !== this._config.theme &&
       this._themes &&
       this._themes[newConfig.theme]
     ) {
+      // Apply the theme values to the config
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      // NOTE: We do NOT delete newConfig.theme anymore. We want to persist it.
     }
+    // 2. Manual Override Logic
+    // If the theme is set (and didn't just change in this event), check if any controlled properties changed.
+    else if (
+      this._config.theme &&
+      this._config.theme !== 'none' &&
+      newConfig.theme === this._config.theme
+    ) {
+      // List of properties that themes control
+      const themeProperties = [
+        'plate_color',
+        'rivet_color',
+        'ring_style',
+        'font_color',
+        'font_bg_color',
+        'title_color',
+        'wear_level',
+        'glass_effect_enabled',
+        'plate_transparent',
+        'aged_texture',
+        'aged_texture_intensity',
+      ];
 
-    // Remove theme from config so it doesn't persist in YAML
-    delete newConfig.theme;
+      // Check if any of these changed
+      const hasOverride = themeProperties.some(
+        (prop) =>
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      );
+
+      if (hasOverride) {
+        // User manually changed a value. Detach from theme.
+        newConfig.theme = 'none';
+      }
+    }
 
     this._config = newConfig;
     fireEvent(this, 'config-changed', { config: this._config });
@@ -222,6 +257,7 @@ class FoundryHomeThermostatEditor extends HTMLElement {
     const data = { ...config };
 
     // Defaults
+    data.theme = config.theme ?? 'none';
     data.title = config.title ?? 'Thermostat';
 
     data.ring_style = config.ring_style ?? 'brass';

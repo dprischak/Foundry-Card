@@ -1,5 +1,6 @@
 import { fireEvent } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryEntitiesCard extends HTMLElement {
   constructor() {
@@ -9,6 +10,16 @@ class FoundryEntitiesCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+        }
+      });
+    }
 
     if (!this.config.entities) {
       throw new Error('Entities list is required');

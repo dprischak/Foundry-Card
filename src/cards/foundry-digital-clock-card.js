@@ -1,5 +1,6 @@
 import { fireEvent, getActionConfig } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryDigitalClockCard extends HTMLElement {
   constructor() {
@@ -10,6 +11,16 @@ class FoundryDigitalClockCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+        }
+      });
+    }
 
     if (!this.config.tap_action) {
       this.config.tap_action = { action: 'more-info' };
