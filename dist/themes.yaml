@@ -226,7 +226,7 @@ neon:
   face_color: '#1a1a1a'
   background_style: 'solid'
 
-barbie:
+pink:
   plate_color: '#fea4a4'
   rivet_color: '#ff0000'
   title_color: '#800000'
