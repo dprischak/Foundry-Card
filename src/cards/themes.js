@@ -1,46 +1,62 @@
 import yaml from 'js-yaml';
 
+// Module-level cache
+let cachedThemesPromise = null;
+
 export async function loadThemes() {
-  const themes = {};
+  // if (cachedThemesPromise) {
+  //   return cachedThemesPromise;
+  // }
 
-  // Determine base path from the current script's URL
-  const basePath = new URL('.', import.meta.url).href;
+  const loadAll = async () => {
+    const themes = {};
+    // Determine base path from the current script's URL
+    const basePath = new URL('.', import.meta.url).href;
 
-  const load = async (filename) => {
-    try {
-      const url =
-        new URL(filename, basePath).href + '?v=' + new Date().getTime();
-      const response = await fetch(url);
-      if (response.ok) {
-        const text = await response.text();
-        const data = yaml.load(text);
+    const load = async (filename) => {
+      try {
+        const url =
+          new URL(filename, basePath).href + '?v=' + new Date().getTime();
 
-        // Handle duplicate theme names by appending numbers
-        for (const [themeName, themeData] of Object.entries(data)) {
-          let finalName = themeName;
-          let counter = 2;
+        const response = await fetch(url);
+        if (response.ok) {
+          const text = await response.text();
+          const data = yaml.load(text);
 
-          // If theme name already exists, append a number
-          while (themes[finalName]) {
-            finalName = `${themeName}_${counter}`;
-            counter++;
+          // Handle duplicate theme names by appending numbers
+          for (const [themeName, themeData] of Object.entries(data)) {
+            let finalName = themeName;
+            let counter = 2;
+
+            // If theme name already exists, append a number
+            while (themes[finalName]) {
+              finalName = `${themeName}_${counter}`;
+              counter++;
+            }
+
+            themes[finalName] = themeData;
           }
-
-          themes[finalName] = themeData;
+        } else {
+          console.warn(
+            `[Foundry Cards] Failed to fetch theme file: ${filename} (Status: ${response.status})`
+          );
         }
+      } catch (e) {
+        console.warn(`Failed to load theme file: ${filename}`, e);
       }
-    } catch (e) {
-      console.warn(`Failed to load theme file: ${filename}`, e);
-    }
+    };
+
+    // Load default themes
+    await load('themes.yaml');
+
+    // Attempt to load user themes (optional)
+    await load('userthemes.yaml');
+
+    return themes;
   };
 
-  // Load default themes
-  await load('themes.yaml');
-
-  // Attempt to load user themes (optional)
-  await load('userthemes.yaml');
-
-  return themes;
+  cachedThemesPromise = loadAll();
+  return cachedThemesPromise;
 }
 
 export function applyTheme(config, theme) {
@@ -78,9 +94,6 @@ export function applyTheme(config, theme) {
       newConfig[key] = theme[key];
     }
   }
-
-  // Handle special mappings or logic if needed (e.g. if theme has generic 'text_color' mapping to multiple fields)
-  // For now, we assume 1:1 mapping based on the standardized names.
 
   return newConfig;
 }

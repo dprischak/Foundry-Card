@@ -1,4 +1,5 @@
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryHomeThermostatCard extends HTMLElement {
   constructor() {
@@ -13,6 +14,17 @@ class FoundryHomeThermostatCard extends HTMLElement {
     }
 
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+          this._updateValues();
+        }
+      });
+    }
 
     // Defaults
     this.config.title =
@@ -1084,7 +1096,12 @@ class FoundryHomeThermostatCard extends HTMLElement {
   }
 }
 
-customElements.define('foundry-homethermostat-card', FoundryHomeThermostatCard);
+if (!customElements.get('foundry-homethermostat-card')) {
+  customElements.define(
+    'foundry-homethermostat-card',
+    FoundryHomeThermostatCard
+  );
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({

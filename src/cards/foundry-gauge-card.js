@@ -1,4 +1,5 @@
 import { debounce, fireEvent, getActionConfig } from './utils.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryGaugeCard extends HTMLElement {
   constructor() {
@@ -106,6 +107,17 @@ class FoundryGaugeCard extends HTMLElement {
 
     // Validate and sanitize configuration
     this._validateConfig();
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+          this.updateGauge();
+        }
+      });
+    }
 
     // Default behavior like built-in cards
     if (!this.config.tap_action) {
@@ -613,7 +625,7 @@ class FoundryGaugeCard extends HTMLElement {
               <g id="numbers"></g>
               
               <!-- Title text -->
-              ${title ? this.renderTitleText(title, titleFontSize, config.title_font_color || config.title_color) : ''}
+              ${title ? this.renderTitleText(title, titleFontSize, config.number_color) : ''}
               
               <!-- Center hub background -->
 			  <circle cx="100" cy="100" r="12"

@@ -1,5 +1,6 @@
 import { fireEvent } from './utils.js';
 import { ensureLedFont } from './fonts.js';
+import { loadThemes, applyTheme } from './themes.js';
 
 class FoundryThermostatCard extends HTMLElement {
   constructor() {
@@ -378,6 +379,17 @@ class FoundryThermostatCard extends HTMLElement {
     }
 
     this.config = { ...config };
+
+    // Theme handling
+    if (this.config.theme && this.config.theme !== 'none') {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+          this.updateCard();
+        }
+      });
+    }
 
     if (!this.config.tap_action)
       this.config.tap_action = { action: 'more-info' };

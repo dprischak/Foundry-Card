@@ -34,7 +34,7 @@ racing:
   aged_texture: 'everywhere'
   aged_texture_intensity: 50
   face_color: '#929090'
-  background_style: 'solid'
+  background_style: 'gradient'
 
 warm:
   plate_color: '#f5e6d3'
@@ -42,7 +42,7 @@ warm:
   title_color: '#5c4033'
   font_color: '#5c4033'
   font_bg_color: '#f5e6d3'
-  ring_style: 'bronze'
+  ring_style: 'brass'
   number_color: '#5c4033'
   primary_tick_color: '#5c4033'
   secondary_tick_color: '#8b5a2b'
@@ -224,4 +224,23 @@ neon:
   aged_texture: 'none'
   aged_texture_intensity: 0
   face_color: '#1a1a1a'
+  background_style: 'solid'
+
+pink:
+  plate_color: '#fea4a4'
+  rivet_color: '#ff0000'
+  title_color: '#800000'
+  font_color: '#ff0000'
+  font_bg_color: '#f8dddd'
+  ring_style: 'red'
+  number_color: '#000000'
+  primary_tick_color: '#ed1d1d'
+  secondary_tick_color: '#f58f8f'
+  needle_color: '#f7879a'
+  plate_transparent: false
+  glass_effect_enabled: false
+  wear_level: 0
+  aged_texture: 'none'
+  aged_texture_intensity: 50
+  face_color: '#f5e5e5'
   background_style: 'solid'

@@ -1044,6 +1044,8 @@ steampunk:
 - Custom themes will appear in the theme dropdown alongside built-in themes
 - If a property is omitted, the card will use its default value
 - Changes to `userthemes.yaml` require a browser refresh to take effect
+- Themes are persistant. Cards will load what is in the themes.
+- If you change a value in a card that is controlled by the themes it will change your card to no theme.
 
 <a name="development"></a>
 
