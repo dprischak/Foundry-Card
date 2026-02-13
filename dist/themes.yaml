@@ -42,7 +42,7 @@ warm:
   title_color: '#5c4033'
   font_color: '#5c4033'
   font_bg_color: '#f5e6d3'
-  ring_style: 'bronze'
+  ring_style: 'brass'
   number_color: '#5c4033'
   primary_tick_color: '#5c4033'
   secondary_tick_color: '#8b5a2b'
