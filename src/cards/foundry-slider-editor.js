@@ -131,6 +131,8 @@ class FoundrySliderEditor extends HTMLElement {
       knob_shape: 'square',
       knob_size: 100,
       tick_color: 'rgba(0,0,0,0.22)',
+      primary_tick_color: 'rgba(0,0,0,0.22)',
+      secondary_tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',
       title_color: '#3e2723',
@@ -179,6 +181,14 @@ class FoundrySliderEditor extends HTMLElement {
         68, 68, 68,
       ],
       tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0],
+      primary_tick_color:
+        this._colorToRgb(
+          config.primary_tick_color ?? config.tick_color ?? '#000000'
+        ) ?? [0, 0, 0],
+      secondary_tick_color:
+        this._colorToRgb(
+          config.secondary_tick_color ?? config.tick_color ?? '#000000'
+        ) ?? [0, 0, 0],
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? 'square',
@@ -226,6 +236,10 @@ class FoundrySliderEditor extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
+      config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
+      config.secondary_tick_color = this._rgbToHex(
+        config.secondary_tick_color
+      );
     }
 
     // Merge knob settings
@@ -355,7 +369,23 @@ class FoundrySliderEditor extends HTMLElement {
               },
               {
                 name: 'tick_color',
-                label: 'Tick Mark Color',
+                label: 'Tick Color (Fallback)',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'primary_tick_color',
+                label: 'Major Tick Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'secondary_tick_color',
+                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],

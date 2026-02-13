@@ -908,6 +908,8 @@ A vertical slider control with vintage industrial aesthetics.
 | `knob_shape`             | string  | No       | 'square'           | Knob shape: 'circular', 'square', 'rectangular'                                             |
 | `knob_size`              | number  | No       | 100                | Knob size percentage (0-100)                                                                |
 | `tick_color`             | string  | No       | 'rgba(0,0,0,0.22)' | Color of tick marks                                                                         |
+| `primary_tick_color`     | string  | No       | 'rgba(0,0,0,0.22)' | Color of major tick marks (falls back to `tick_color`)                                      |
+| `secondary_tick_color`   | string  | No       | 'rgba(0,0,0,0.22)' | Color of minor tick marks (falls back to `tick_color`)                                      |
 | `font_bg_color`          | string  | No       | '#ffffff'          | Background color of LED display                                                             |
 | `font_color`             | string  | No       | '#000000'          | Color of LED display digits                                                                 |
 | `title_color`            | string  | No       | '#3e2723'          | Color of the title text                                                                     |
@@ -937,6 +939,8 @@ slider_color: '#444444'
 knob_shape: square
 knob_size: 100
 tick_color: 'rgba(0,0,0,0.22)'
+primary_tick_color: 'rgba(0,0,0,0.22)'
+secondary_tick_color: 'rgba(0,0,0,0.22)'
 font_bg_color: '#ffffff'
 font_color: '#000000'
 title_color: '#3e2723'

@@ -9465,6 +9465,8 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
     this.config.slider_color = this.config.slider_color || "#444444";
     this.config.tick_color = this.config.tick_color || "rgba(0,0,0,0.22)";
+    this.config.primary_tick_color = this.config.primary_tick_color ?? this.config.tick_color;
+    this.config.secondary_tick_color = this.config.secondary_tick_color ?? this.config.tick_color;
     this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
     this.config.title_color = this.config.title_color || "#3e2723";
     this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
@@ -9995,6 +9997,8 @@ var FoundrySliderCard = class extends HTMLElement {
     const max = cfg.max;
     const step = cfg.step;
     const tickColor = cfg.tick_color;
+    const primaryTickColor = cfg.primary_tick_color ?? tickColor;
+    const secondaryTickColor = cfg.secondary_tick_color ?? tickColor;
     const range = max - min;
     const trackHeight = trackBottomY - trackTopY;
     let ticks = "";
@@ -10002,7 +10006,7 @@ var FoundrySliderCard = class extends HTMLElement {
       const percent = i / 10;
       const y = trackBottomY - trackHeight * percent;
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
-                      stroke="${tickColor}" stroke-width="2" />`;
+                      stroke="${primaryTickColor}" stroke-width="2" />`;
     }
     const numSteps = range / step;
     if (numSteps > 0 && numSteps <= 100) {
@@ -10013,7 +10017,7 @@ var FoundrySliderCard = class extends HTMLElement {
         const isMajor = i % Math.ceil(numSteps / 10) === 0;
         if (!isMajor) {
           ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
-                          stroke="${tickColor}" stroke-width="1" />`;
+                          stroke="${secondaryTickColor}" stroke-width="1" />`;
         }
       }
     }
@@ -10538,6 +10542,8 @@ var FoundrySliderEditor = class extends HTMLElement {
       knob_shape: "square",
       knob_size: 100,
       tick_color: "rgba(0,0,0,0.22)",
+      primary_tick_color: "rgba(0,0,0,0.22)",
+      secondary_tick_color: "rgba(0,0,0,0.22)",
       font_bg_color: "#ffffff",
       font_color: "#000000",
       title_color: "#3e2723",
@@ -10587,7 +10593,13 @@ var FoundrySliderEditor = class extends HTMLElement {
         68,
         68
       ],
-      tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0]
+      tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0],
+      primary_tick_color: this._colorToRgb(
+        config.primary_tick_color ?? config.tick_color ?? "#000000"
+      ) ?? [0, 0, 0],
+      secondary_tick_color: this._colorToRgb(
+        config.secondary_tick_color ?? config.tick_color ?? "#000000"
+      ) ?? [0, 0, 0]
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? "square",
@@ -10632,6 +10644,10 @@ var FoundrySliderEditor = class extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
+      config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
+      config.secondary_tick_color = this._rgbToHex(
+        config.secondary_tick_color
+      );
     }
     if (formData.knob_settings) {
       Object.assign(config, formData.knob_settings);
@@ -10753,7 +10769,23 @@ var FoundrySliderEditor = class extends HTMLElement {
               },
               {
                 name: "tick_color",
-                label: "Tick Mark Color",
+                label: "Tick Color (Fallback)",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Major Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Minor Tick Color",
                 selector: { color_rgb: {} }
               }
             ]

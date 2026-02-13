@@ -39,6 +39,10 @@ class FoundrySliderCard extends HTMLElement {
     // Slider-specific colors
     this.config.slider_color = this.config.slider_color || '#444444';
     this.config.tick_color = this.config.tick_color || 'rgba(0,0,0,0.22)';
+    this.config.primary_tick_color =
+      this.config.primary_tick_color ?? this.config.tick_color;
+    this.config.secondary_tick_color =
+      this.config.secondary_tick_color ?? this.config.tick_color;
 
     // Display Settings
     this.config.show_value =
@@ -666,6 +670,8 @@ class FoundrySliderCard extends HTMLElement {
     const max = cfg.max;
     const step = cfg.step;
     const tickColor = cfg.tick_color;
+    const primaryTickColor = cfg.primary_tick_color ?? tickColor;
+    const secondaryTickColor = cfg.secondary_tick_color ?? tickColor;
 
     const range = max - min;
     const trackHeight = trackBottomY - trackTopY;
@@ -678,7 +684,7 @@ class FoundrySliderCard extends HTMLElement {
       const y = trackBottomY - trackHeight * percent; // Inverted: bottom is min
 
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
-                      stroke="${tickColor}" stroke-width="2" />`;
+                      stroke="${primaryTickColor}" stroke-width="2" />`;
     }
 
     // Minor ticks at each step (if step is reasonable)
@@ -693,7 +699,7 @@ class FoundrySliderCard extends HTMLElement {
         const isMajor = i % Math.ceil(numSteps / 10) === 0;
         if (!isMajor) {
           ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
-                          stroke="${tickColor}" stroke-width="1" />`;
+                          stroke="${secondaryTickColor}" stroke-width="1" />`;
         }
       }
     }
