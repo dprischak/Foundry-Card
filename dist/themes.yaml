@@ -4,6 +4,12 @@ industrial:
   title_color: '#3e2723'
   font_color: '#3e2723'
   font_bg_color: '#f8f8f0'
+  line_color: '#C41E3A'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#5d4e37'
+  grid_major_color: '#3e2723'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#3e2723'
   primary_tick_color: '#3e2723'
@@ -24,6 +30,12 @@ racing:
   title_color: '#000000'
   font_color: '#59ff00'
   font_bg_color: '#0a0000'
+  line_color: '#C41E3A'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#000000'
+  grid_major_color: '#000000'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#000000'
   primary_tick_color: '#000000'
@@ -44,6 +56,12 @@ warm:
   title_color: '#5c4033'
   font_color: '#5c4033'
   font_bg_color: '#f5e6d3'
+  line_color: '#cd5c5c'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b5a2b'
+  grid_major_color: '#5c4033'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#5c4033'
   primary_tick_color: '#5c4033'
@@ -64,6 +82,12 @@ cool:
   title_color: '#006064'
   font_color: '#006064'
   font_bg_color: '#e0f7fa'
+  line_color: '#00acc1'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#4dd0e1'
+  grid_major_color: '#006064'
+  grid_opacity: 0.6
   ring_style: 'silver'
   number_color: '#006064'
   primary_tick_color: '#006064'
@@ -84,6 +108,12 @@ vintage:
   title_color: '#4a3728'
   font_color: '#4a3728'
   font_bg_color: '#f5e6d3'
+  line_color: '#8b4513'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b7355'
+  grid_major_color: '#4a3728'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#4a3728'
   primary_tick_color: '#4a3728'
@@ -104,6 +134,12 @@ midnight:
   title_color: '#eee'
   font_color: '#00ff41'
   font_bg_color: '#0a0e27'
+  line_color: '#00ff41'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#888'
+  grid_major_color: '#eee'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#eee'
   primary_tick_color: '#eee'
@@ -124,6 +160,12 @@ steampunk:
   title_color: '#f4e4c1'
   font_color: '#f4e4c1'
   font_bg_color: '#3e2723'
+  line_color: '#ff6347'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#cd853f'
+  grid_major_color: '#f4e4c1'
+  grid_opacity: 0.6
   ring_style: 'copper'
   number_color: '#000000'
   primary_tick_color: '#f4e4c1'
@@ -144,6 +186,12 @@ military:
   title_color: '#d4d4aa'
   font_color: '#d4d4aa'
   font_bg_color: '#3a3a2a'
+  line_color: '#ff6b35'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#6b7062'
+  grid_major_color: '#d4d4aa'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#d4d4aa'
   primary_tick_color: '#d4d4aa'
@@ -164,6 +212,12 @@ retro:
   title_color: '#3e2723'
   font_color: '#3e2723'
   font_bg_color: '#f5deb3'
+  line_color: '#ff6347'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b7355'
+  grid_major_color: '#3e2723'
+  grid_opacity: 0.6
   ring_style: 'chrome'
   number_color: '#3e2723'
   primary_tick_color: '#3e2723'
@@ -184,6 +238,12 @@ arctic:
   title_color: '#2c3e50'
   font_color: '#2c3e50'
   font_bg_color: '#ffffff'
+  line_color: '#4682b4'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#87ceeb'
+  grid_major_color: '#2c3e50'
+  grid_opacity: 0.6
   ring_style: 'silver'
   number_color: '#2c3e50'
   primary_tick_color: '#2c3e50'
@@ -204,6 +264,12 @@ copper:
   title_color: '#f4e4c1'
   font_color: '#f4e4c1'
   font_bg_color: '#3e2723'
+  line_color: '#40e0d0'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#cd853f'
+  grid_major_color: '#f4e4c1'
+  grid_opacity: 0.6
   ring_style: 'copper'
   number_color: '#000000'
   primary_tick_color: '#f4e4c1'
@@ -224,6 +290,12 @@ neon:
   title_color: '#ff00ff'
   font_color: '#00ffff'
   font_bg_color: '#000000'
+  line_color: '#ff00ff'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#00ffff'
+  grid_major_color: '#ff00ff'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#ff00ff'
   primary_tick_color: '#ff00ff'

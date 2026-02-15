@@ -2770,7 +2770,13 @@ function applyTheme(config, theme) {
     "aged_texture_intensity",
     "slider_color",
     "knob_color",
-    "tick_color"
+    "tick_color",
+    "line_color",
+    "line_width",
+    "fill_under_line",
+    "grid_minor_color",
+    "grid_major_color",
+    "grid_opacity"
   ];
   for (const key of themeProperties) {
     if (theme[key] !== void 0) {
@@ -14211,6 +14217,8 @@ var FoundryChartCard = class extends HTMLElement {
     this.config.hours_to_show = this.config.hours_to_show || 24;
     this.config.update_interval = this.config.update_interval || 60;
     this.config.bucket_count = this.config.bucket_count || 50;
+    this.config.bucket_minutes = this.config.bucket_minutes || null;
+    this.config.aggregation = this.config.aggregation || "avg";
     this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title || "Foundry Chart";
@@ -14244,6 +14252,7 @@ var FoundryChartCard = class extends HTMLElement {
       title_color: "#3e2723",
       hours_to_show: 24,
       bucket_count: 50,
+      bucket_minutes: null,
       update_interval: 60,
       ring_style: "brass",
       rivet_color: "#6a5816",
@@ -14259,7 +14268,8 @@ var FoundryChartCard = class extends HTMLElement {
       grid_minor_color: "#cfead6",
       grid_major_color: "#8fc79d",
       grid_opacity: 0.6,
-      value_precision: 2
+      value_precision: 2,
+      aggregation: "avg"
     };
   }
   set hass(hass) {
@@ -14310,7 +14320,10 @@ var FoundryChartCard = class extends HTMLElement {
     const endTs = now.getTime();
     const totalDuration = endTs - startTs;
     const chartWidth = 200;
-    const bucketCount = Math.max(10, this.config.bucket_count || 50);
+    const bucketCount = Math.max(
+      10,
+      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.bucket_count || 50
+    );
     const bucketDur = totalDuration / bucketCount;
     const segments = [];
     let currentValue = null;
@@ -14343,22 +14356,38 @@ var FoundryChartCard = class extends HTMLElement {
       segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
     }
     const buckets = [];
+    const aggregation = this.config.aggregation || "avg";
     for (let i = 0; i < bucketCount; i++) {
       const bStart = startTs + i * bucketDur;
       const bEnd = bStart + bucketDur;
       let weightedSum = 0;
       let weightedDur = 0;
+      let minValue2 = null;
+      let maxValue2 = null;
       for (const seg of segments) {
         if (seg.value === null || seg.value === void 0) continue;
         const overlapStart = Math.max(seg.start, bStart);
         const overlapEnd = Math.min(seg.end, bEnd);
         if (overlapEnd > overlapStart) {
           const dur = overlapEnd - overlapStart;
-          weightedSum += seg.value * dur;
-          weightedDur += dur;
+          if (aggregation === "min") {
+            minValue2 = minValue2 === null ? seg.value : Math.min(minValue2, seg.value);
+          } else if (aggregation === "max") {
+            maxValue2 = maxValue2 === null ? seg.value : Math.max(maxValue2, seg.value);
+          } else {
+            weightedSum += seg.value * dur;
+            weightedDur += dur;
+          }
         }
       }
-      const value = weightedDur > 0 ? weightedSum / weightedDur : null;
+      let value = null;
+      if (aggregation === "min") {
+        value = minValue2;
+      } else if (aggregation === "max") {
+        value = maxValue2;
+      } else {
+        value = weightedDur > 0 ? weightedSum / weightedDur : null;
+      }
       buckets.push({ id: i, value });
     }
     const values = buckets.map((b) => b.value).filter((v) => v !== null && v !== void 0);
@@ -14383,12 +14412,6 @@ var FoundryChartCard = class extends HTMLElement {
       const text = value === null ? "--" : `${value.toFixed(this.config.value_precision)}${unit}`;
       valueEl.textContent = text;
       valueEl.setAttribute("fill", this.config.font_color);
-    }
-    const labelEl = this.shadowRoot.getElementById("chart-label");
-    if (labelEl) {
-      const friendly = this._hass.states[this.config.entity]?.attributes?.friendly_name || this.config.entity;
-      labelEl.textContent = friendly;
-      labelEl.setAttribute("fill", this.config.font_color);
     }
     const emptyEl = this.shadowRoot.getElementById("chart-empty");
     const lineEl = this.shadowRoot.getElementById("chart-line");
@@ -14474,9 +14497,14 @@ var FoundryChartCard = class extends HTMLElement {
     const plateWidth = 280;
     const plateHeight = 190;
     const rimWidth = 240;
-    const rimHeight = 110;
+    const rimGap = 8;
+    const plateInset = 5;
+    const rivetOffset = 15;
+    const topRivetY = plateInset + rivetOffset;
+    const bottomRivetY = plateHeight - plateInset - rivetOffset;
     const rimX = (plateWidth - rimWidth) / 2;
-    const rimY = 35;
+    const rimY = topRivetY + rimGap;
+    const rimHeight = bottomRivetY - rimGap - rimY;
     const chartWidth = 200;
     const chartHeight = 60;
     const chartX = rimX + (rimWidth - chartWidth) / 2;
@@ -14545,7 +14573,6 @@ var FoundryChartCard = class extends HTMLElement {
 
               <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
-              <text id="chart-label" x="${rimX + 24}" y="${rimY + 26}" font-size="13" font-weight="bold" fill="${config.font_color}" class="label-font" text-anchor="start">--</text>
               <text id="chart-value" x="${rimX + rimWidth - 24}" y="${rimY + 26}" font-size="13" font-family="ds-digitaldot" text-anchor="end" fill="${config.font_color}" style="letter-spacing:1px;">--</text>
 
               <g transform="translate(${chartX}, ${chartY})">
@@ -14790,7 +14817,13 @@ var FoundryChartEditor = class extends HTMLElement {
         "glass_effect_enabled",
         "wear_level",
         "aged_texture",
-        "aged_texture_intensity"
+        "aged_texture_intensity",
+        "line_color",
+        "line_width",
+        "fill_under_line",
+        "grid_minor_color",
+        "grid_major_color",
+        "grid_opacity"
       ];
       const overriddenProps = themeProperties.filter(
         (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
@@ -14891,6 +14924,11 @@ var FoundryChartEditor = class extends HTMLElement {
             selector: { number: { min: 10, max: 200 } }
           },
           {
+            name: "bucket_minutes",
+            label: "Bucket Minutes (optional)",
+            selector: { number: { min: 1, max: 180 } }
+          },
+          {
             name: "update_interval",
             label: "Update Interval (s)",
             selector: { number: { min: 10, max: 3600 } }
@@ -14909,6 +14947,20 @@ var FoundryChartEditor = class extends HTMLElement {
             name: "value_precision",
             label: "Value Precision",
             selector: { number: { min: 0, max: 6, mode: "slider" } }
+          },
+          {
+            name: "aggregation",
+            label: "Aggregation",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "avg", label: "Average" },
+                  { value: "min", label: "Minimum" },
+                  { value: "max", label: "Maximum" }
+                ]
+              }
+            }
           },
           {
             name: "show_footer",

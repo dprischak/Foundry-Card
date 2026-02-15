@@ -137,6 +137,12 @@ class FoundryChartEditor extends HTMLElement {
         'wear_level',
         'aged_texture',
         'aged_texture_intensity',
+        'line_color',
+        'line_width',
+        'fill_under_line',
+        'grid_minor_color',
+        'grid_major_color',
+        'grid_opacity',
       ];
 
       const overriddenProps = themeProperties.filter(
@@ -259,6 +265,11 @@ class FoundryChartEditor extends HTMLElement {
             selector: { number: { min: 10, max: 200 } },
           },
           {
+            name: 'bucket_minutes',
+            label: 'Bucket Minutes (optional)',
+            selector: { number: { min: 1, max: 180 } },
+          },
+          {
             name: 'update_interval',
             label: 'Update Interval (s)',
             selector: { number: { min: 10, max: 3600 } },
@@ -277,6 +288,20 @@ class FoundryChartEditor extends HTMLElement {
             name: 'value_precision',
             label: 'Value Precision',
             selector: { number: { min: 0, max: 6, mode: 'slider' } },
+          },
+          {
+            name: 'aggregation',
+            label: 'Aggregation',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'avg', label: 'Average' },
+                  { value: 'min', label: 'Minimum' },
+                  { value: 'max', label: 'Maximum' },
+                ],
+              },
+            },
           },
           {
             name: 'show_footer',

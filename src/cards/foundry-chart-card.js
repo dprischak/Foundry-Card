@@ -31,6 +31,8 @@ class FoundryChartCard extends HTMLElement {
     this.config.hours_to_show = this.config.hours_to_show || 24;
     this.config.update_interval = this.config.update_interval || 60;
     this.config.bucket_count = this.config.bucket_count || 50;
+    this.config.bucket_minutes = this.config.bucket_minutes || null;
+    this.config.aggregation = this.config.aggregation || 'avg';
     this.config.show_footer =
       this.config.show_footer !== undefined ? this.config.show_footer : true;
 
@@ -81,6 +83,7 @@ class FoundryChartCard extends HTMLElement {
       title_color: '#3e2723',
       hours_to_show: 24,
       bucket_count: 50,
+      bucket_minutes: null,
       update_interval: 60,
       ring_style: 'brass',
       rivet_color: '#6a5816',
@@ -97,6 +100,7 @@ class FoundryChartCard extends HTMLElement {
       grid_major_color: '#8fc79d',
       grid_opacity: 0.6,
       value_precision: 2,
+      aggregation: 'avg',
     };
   }
 
@@ -159,7 +163,12 @@ class FoundryChartCard extends HTMLElement {
     const totalDuration = endTs - startTs;
 
     const chartWidth = 200;
-    const bucketCount = Math.max(10, this.config.bucket_count || 50);
+    const bucketCount = Math.max(
+      10,
+      this.config.bucket_minutes
+        ? Math.round((hours * 60) / this.config.bucket_minutes)
+        : this.config.bucket_count || 50
+    );
     const bucketDur = totalDuration / bucketCount;
 
     const segments = [];
@@ -199,11 +208,15 @@ class FoundryChartCard extends HTMLElement {
     }
 
     const buckets = [];
+    const aggregation = this.config.aggregation || 'avg';
+
     for (let i = 0; i < bucketCount; i++) {
       const bStart = startTs + i * bucketDur;
       const bEnd = bStart + bucketDur;
       let weightedSum = 0;
       let weightedDur = 0;
+      let minValue = null;
+      let maxValue = null;
 
       for (const seg of segments) {
         if (seg.value === null || seg.value === undefined) continue;
@@ -211,12 +224,27 @@ class FoundryChartCard extends HTMLElement {
         const overlapEnd = Math.min(seg.end, bEnd);
         if (overlapEnd > overlapStart) {
           const dur = overlapEnd - overlapStart;
-          weightedSum += seg.value * dur;
-          weightedDur += dur;
+          if (aggregation === 'min') {
+            minValue =
+              minValue === null ? seg.value : Math.min(minValue, seg.value);
+          } else if (aggregation === 'max') {
+            maxValue =
+              maxValue === null ? seg.value : Math.max(maxValue, seg.value);
+          } else {
+            weightedSum += seg.value * dur;
+            weightedDur += dur;
+          }
         }
       }
 
-      const value = weightedDur > 0 ? weightedSum / weightedDur : null;
+      let value = null;
+      if (aggregation === 'min') {
+        value = minValue;
+      } else if (aggregation === 'max') {
+        value = maxValue;
+      } else {
+        value = weightedDur > 0 ? weightedSum / weightedDur : null;
+      }
       buckets.push({ id: i, value });
     }
 
@@ -251,15 +279,6 @@ class FoundryChartCard extends HTMLElement {
           : `${value.toFixed(this.config.value_precision)}${unit}`;
       valueEl.textContent = text;
       valueEl.setAttribute('fill', this.config.font_color);
-    }
-
-    const labelEl = this.shadowRoot.getElementById('chart-label');
-    if (labelEl) {
-      const friendly =
-        this._hass.states[this.config.entity]?.attributes?.friendly_name ||
-        this.config.entity;
-      labelEl.textContent = friendly;
-      labelEl.setAttribute('fill', this.config.font_color);
     }
 
     const emptyEl = this.shadowRoot.getElementById('chart-empty');
@@ -365,9 +384,14 @@ class FoundryChartCard extends HTMLElement {
     const plateWidth = 280;
     const plateHeight = 190;
     const rimWidth = 240;
-    const rimHeight = 110;
+    const rimGap = 10;
+    const plateInset = 5;
+    const rivetOffset = 15;
+    const topRivetY = plateInset + rivetOffset;
+    const bottomRivetY = plateHeight - plateInset - rivetOffset;
     const rimX = (plateWidth - rimWidth) / 2;
-    const rimY = 35;
+    const rimY = topRivetY + rimGap;
+    const rimHeight = bottomRivetY - rimGap - rimY;
 
     const chartWidth = 200;
     const chartHeight = 60;
@@ -438,7 +462,6 @@ class FoundryChartCard extends HTMLElement {
 
               <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
-              <text id="chart-label" x="${rimX + 24}" y="${rimY + 26}" font-size="13" font-weight="bold" fill="${config.font_color}" class="label-font" text-anchor="start">--</text>
               <text id="chart-value" x="${rimX + rimWidth - 24}" y="${rimY + 26}" font-size="13" font-family="ds-digitaldot" text-anchor="end" fill="${config.font_color}" style="letter-spacing:1px;">--</text>
 
               <g transform="translate(${chartX}, ${chartY})">
