@@ -16,6 +16,7 @@ industrial:
   aged_texture_intensity: 50
   face_color: '#929090'
   background_style: 'gradient'
+  knob_color: '#7a5a2a'
 
 racing:
   plate_color: '#929090'
@@ -35,6 +36,7 @@ racing:
   aged_texture_intensity: 50
   face_color: '#929090'
   background_style: 'gradient'
+  knob_color: '#2e2e2e'
 
 warm:
   plate_color: '#f5e6d3'
@@ -54,6 +56,7 @@ warm:
   aged_texture_intensity: 5
   face_color: '#f5e6d3'
   background_style: 'gradient'
+  knob_color: '#b36b2c'
 
 cool:
   plate_color: '#e0f7fa'
@@ -73,6 +76,7 @@ cool:
   aged_texture_intensity: 0
   face_color: '#d1eae5'
   background_style: 'solid'
+  knob_color: '#3b8fa5'
 
 vintage:
   plate_color: '#d4c5a9'
@@ -92,6 +96,7 @@ vintage:
   aged_texture_intensity: 70
   face_color: '#f5e6d3'
   background_style: 'gradient'
+  knob_color: '#8f6f3f'
 
 midnight:
   plate_color: '#1a1a2e'
@@ -111,6 +116,7 @@ midnight:
   aged_texture_intensity: 20
   face_color: '#0f3460'
   background_style: 'solid'
+  knob_color: '#00c853'
 
 steampunk:
   plate_color: '#8b4513'
@@ -130,6 +136,7 @@ steampunk:
   aged_texture_intensity: 75
   face_color: '#d2691e'
   background_style: 'gradient'
+  knob_color: '#a65b2b'
 
 military:
   plate_color: '#4a5240'
@@ -149,6 +156,7 @@ military:
   aged_texture_intensity: 40
   face_color: '#5a6352'
   background_style: 'solid'
+  knob_color: '#5a6b3f'
 
 retro:
   plate_color: '#d4a574'
@@ -168,6 +176,7 @@ retro:
   aged_texture_intensity: 35
   face_color: '#f4a460'
   background_style: 'gradient'
+  knob_color: '#c27b3a'
 
 arctic:
   plate_color: '#f0f8ff'
@@ -187,6 +196,7 @@ arctic:
   aged_texture_intensity: 10
   face_color: '#e6f2ff'
   background_style: 'gradient'
+  knob_color: '#6fb7d6'
 
 copper:
   plate_color: '#b87333'
@@ -206,6 +216,7 @@ copper:
   aged_texture_intensity: 50
   face_color: '#d2691e'
   background_style: 'gradient'
+  knob_color: '#c46a2a'
 
 neon:
   plate_color: '#0a0a0a'
@@ -225,6 +236,7 @@ neon:
   aged_texture_intensity: 0
   face_color: '#1a1a1a'
   background_style: 'solid'
+  knob_color: '#00e5ff'
 
 pink:
   plate_color: '#fea4a4'
@@ -244,3 +256,4 @@ pink:
   aged_texture_intensity: 50
   face_color: '#f5e5e5'
   background_style: 'solid'
+  knob_color: '#ff4fa3'
