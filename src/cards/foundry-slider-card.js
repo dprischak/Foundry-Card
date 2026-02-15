@@ -84,7 +84,7 @@ class FoundrySliderCard extends HTMLElement {
     this.config.aged_texture =
       this.config.aged_texture !== undefined
         ? this.config.aged_texture
-        : 'everywhere';
+        : 'glass_only';
     this.config.aged_texture_intensity =
       this.config.aged_texture_intensity !== undefined
         ? this.config.aged_texture_intensity
@@ -259,6 +259,9 @@ class FoundrySliderCard extends HTMLElement {
       cfg.plate_transparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
     const backgroundColor = cfg.face_color ?? cfg.plate_color;
 
     this.shadowRoot.innerHTML = `
@@ -414,17 +417,25 @@ class FoundrySliderCard extends HTMLElement {
                   <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                 </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
               </filter>
+
+              <clipPath id="plateClip-${uid}">
+                <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" />
+              </clipPath>
+
+              <clipPath id="screenClip-${uid}">
+                <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" />
+              </clipPath>
             </defs>
 
             <!-- Base Plate -->
             <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-                  fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
-                  stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
-                  stroke-width="0.5"
-                  filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
+              fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
+              stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
+              stroke-width="0.5"
+              clip-path="url(#plateClip-${uid})"
+              ${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `filter="url(#aged-${uid})"` : ''} />
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
@@ -436,28 +447,9 @@ class FoundrySliderCard extends HTMLElement {
               rimX,
               rimY,
               rimWidth,
-              rimHeight
+              rimHeight,
+              agedTextureOnFace
             )}
-
-            ${
-              effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent
-                ? `
-              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
-                    rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            `
-                : ''
-            }
-
-            ${
-              effectiveAgedTexture === 'glass_only'
-                ? `
-              <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
-                    rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            `
-                : ''
-            }
 
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ''}
@@ -591,7 +583,17 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    x,
+    y,
+    w,
+    h,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
@@ -610,7 +612,7 @@ class FoundrySliderCard extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
+        fill="${bgColor}" stroke="none" clip-path="url(#screenClip-${uid})" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
 
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
 

@@ -201,7 +201,7 @@ class FoundrySliderEditor extends HTMLElement {
       value_font_size: 36,
       show_value: true,
       wear_level: 50,
-      aged_texture: 'everywhere',
+      aged_texture: 'glass_only',
       aged_texture_intensity: 50,
     });
   }
@@ -279,7 +279,7 @@ class FoundrySliderEditor extends HTMLElement {
     };
     data.effects = {
       wear_level: sourceConfig.wear_level ?? 50,
-      aged_texture: (sourceConfig.aged_texture ?? 'everywhere') !== 'none',
+      aged_texture: sourceConfig.aged_texture ?? 'glass_only',
       aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50,
     };
     return data;
@@ -327,7 +327,6 @@ class FoundrySliderEditor extends HTMLElement {
     // Merge effects
     if (formData.effects) {
       Object.assign(config, formData.effects);
-      config.aged_texture = config.aged_texture ? 'everywhere' : 'none';
     }
 
     return config;
@@ -579,7 +578,16 @@ class FoundrySliderEditor extends HTMLElement {
           {
             name: 'aged_texture',
             label: 'Aged Texture',
-            selector: { boolean: {} },
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
           },
           {
             name: 'aged_texture_intensity',

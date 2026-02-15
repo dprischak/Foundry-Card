@@ -9724,7 +9724,7 @@ var FoundrySliderCard = class extends HTMLElement {
     this.config.knob_size = this.config.knob_size !== void 0 ? this.config.knob_size : 100;
     this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
     this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "glass_only";
     this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
     ensureLedFont();
     this.render();
@@ -9851,6 +9851,8 @@ var FoundrySliderCard = class extends HTMLElement {
     const agedTextureIntensity = cfg.aged_texture_intensity;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = cfg.plate_transparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const backgroundColor = cfg.face_color ?? cfg.plate_color;
     this.shadowRoot.innerHTML = `
       <style>
@@ -10005,17 +10007,25 @@ var FoundrySliderCard = class extends HTMLElement {
                   <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                 </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
               </filter>
+
+              <clipPath id="plateClip-${uid}">
+                <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" />
+              </clipPath>
+
+              <clipPath id="screenClip-${uid}">
+                <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" />
+              </clipPath>
             </defs>
 
             <!-- Base Plate -->
             <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-                  fill="${cfg.plate_transparent ? "none" : cfg.plate_color}"
-                  stroke="${cfg.plate_transparent ? "none" : "#888"}" 
-                  stroke-width="0.5"
-                  filter="${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
+              fill="${cfg.plate_transparent ? "none" : cfg.plate_color}"
+              stroke="${cfg.plate_transparent ? "none" : "#888"}" 
+              stroke-width="0.5"
+              clip-path="url(#plateClip-${uid})"
+              ${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `filter="url(#aged-${uid})"` : ""} />
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
@@ -10027,20 +10037,9 @@ var FoundrySliderCard = class extends HTMLElement {
       rimX,
       rimY,
       rimWidth,
-      rimHeight
+      rimHeight,
+      agedTextureOnFace
     )}
-
-            ${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `
-              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
-                    rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            ` : ""}
-
-            ${effectiveAgedTexture === "glass_only" ? `
-              <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
-                    rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            ` : ""}
 
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ""}
@@ -10171,7 +10170,7 @@ var FoundrySliderCard = class extends HTMLElement {
       </linearGradient>
     `;
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     const bevelX = x + 8;
@@ -10187,7 +10186,7 @@ var FoundrySliderCard = class extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
+        fill="${bgColor}" stroke="none" clip-path="url(#screenClip-${uid})" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
 
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
 
@@ -10844,7 +10843,7 @@ var FoundrySliderEditor = class extends HTMLElement {
       value_font_size: 36,
       show_value: true,
       wear_level: 50,
-      aged_texture: "everywhere",
+      aged_texture: "glass_only",
       aged_texture_intensity: 50
     });
   }
@@ -10908,11 +10907,9 @@ var FoundrySliderEditor = class extends HTMLElement {
     };
     data.led_settings = {
       show_value: sourceConfig.show_value ?? true,
-      font_bg_color: this._hexToRgb(sourceConfig.font_bg_color ?? "#ffffff") ?? [
-        255,
-        255,
-        255
-      ],
+      font_bg_color: this._hexToRgb(
+        sourceConfig.font_bg_color ?? "#ffffff"
+      ) ?? [255, 255, 255],
       font_color: this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [
         0,
         0,
@@ -10923,7 +10920,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     };
     data.effects = {
       wear_level: sourceConfig.wear_level ?? 50,
-      aged_texture: (sourceConfig.aged_texture ?? "everywhere") !== "none",
+      aged_texture: sourceConfig.aged_texture ?? "glass_only",
       aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50
     };
     return data;
@@ -10958,7 +10955,6 @@ var FoundrySliderEditor = class extends HTMLElement {
     }
     if (formData.effects) {
       Object.assign(config, formData.effects);
-      config.aged_texture = config.aged_texture ? "everywhere" : "none";
     }
     return config;
   }
@@ -11208,7 +11204,16 @@ var FoundrySliderEditor = class extends HTMLElement {
           {
             name: "aged_texture",
             label: "Aged Texture",
-            selector: { boolean: {} }
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
           },
           {
             name: "aged_texture_intensity",
