@@ -4713,6 +4713,14 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -4736,11 +4744,17 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
         "knob_color",
         "tick_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -4748,32 +4762,34 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const data = { ...config };
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
     data.appearance = {
-      theme: config.theme ?? "none",
-      ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
+      theme: sourceConfig.theme ?? "none",
+      ring_style: sourceConfig.ring_style,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
         88,
         22
       ],
-      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? "#8c7626") ?? [
         140,
         118,
         38
       ],
-      plate_transparent: config.plate_transparent,
-      wear_level: config.wear_level,
-      glass_effect_enabled: config.glass_effect_enabled,
-      aged_texture: config.aged_texture,
-      aged_texture_intensity: config.aged_texture_intensity,
-      background_style: config.background_style,
-      face_color: this._hexToRgb(config.face_color ?? "#f8f8f0") ?? [
+      plate_transparent: sourceConfig.plate_transparent,
+      wear_level: sourceConfig.wear_level,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+      background_style: sourceConfig.background_style,
+      face_color: this._hexToRgb(sourceConfig.face_color ?? "#f8f8f0") ?? [
         248,
         248,
         240
       ],
-      needle_color: this._hexToRgb(config.needle_color ?? "#C41E3A") ?? [
+      needle_color: this._hexToRgb(sourceConfig.needle_color ?? "#C41E3A") ?? [
         196,
         30,
         58
@@ -4781,35 +4797,35 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     };
     data.style_fonts_ticks = {
       title_color: this._hexToRgb(
-        config.title_color || config.title_font_color || "#3e2723"
+        sourceConfig.title_color || sourceConfig.title_font_color || "#3e2723"
       ) ?? [62, 39, 35],
-      number_color: this._hexToRgb(config.number_color ?? "#3e2723") ?? [
+      number_color: this._hexToRgb(sourceConfig.number_color ?? "#3e2723") ?? [
         62,
         39,
         35
       ],
       primary_tick_color: this._hexToRgb(
-        config.primary_tick_color ?? "#3e2723"
+        sourceConfig.primary_tick_color ?? "#3e2723"
       ) ?? [62, 39, 35],
       secondary_tick_color: this._hexToRgb(
-        config.secondary_tick_color ?? "#5d4e37"
+        sourceConfig.secondary_tick_color ?? "#5d4e37"
       ) ?? [93, 78, 55]
     };
     data.layout = {
-      title_font_size: config.title_font_size,
-      odometer_font_size: config.odometer_font_size,
-      odometer_vertical_position: config.odometer_vertical_position,
-      start_angle: config.start_angle,
-      end_angle: config.end_angle,
-      animation_duration: config.animation_duration
+      title_font_size: sourceConfig.title_font_size,
+      odometer_font_size: sourceConfig.odometer_font_size,
+      odometer_vertical_position: sourceConfig.odometer_vertical_position,
+      start_angle: sourceConfig.start_angle,
+      end_angle: sourceConfig.end_angle,
+      animation_duration: sourceConfig.animation_duration
     };
     data.high_needle = {
-      high_needle_enabled: config.high_needle_enabled,
+      high_needle_enabled: sourceConfig.high_needle_enabled,
       high_needle_color: this._hexToRgb(
-        config.high_needle_color ?? "#FF9800"
+        sourceConfig.high_needle_color ?? "#FF9800"
       ) ?? [255, 152, 0],
-      high_needle_duration: config.high_needle_duration,
-      high_needle_length: config.high_needle_length
+      high_needle_duration: sourceConfig.high_needle_duration,
+      high_needle_length: sourceConfig.high_needle_length
     };
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
@@ -6002,6 +6018,14 @@ var FoundryThermostatEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -6025,11 +6049,17 @@ var FoundryThermostatEditor = class extends HTMLElement {
         "knob_color",
         "tick_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (newConfig.title_font_color && !newConfig.font_color) {
@@ -6042,43 +6072,41 @@ var FoundryThermostatEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const data = { ...config };
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
     delete data.segments;
-    data.theme = config.theme ?? "none";
-    data.liquid_color = this._hexToRgb(config.liquid_color ?? "#cc0000") || [
-      204,
-      0,
-      0
-    ];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") || [
+    data.theme = sourceConfig.theme ?? "none";
+    data.liquid_color = this._hexToRgb(sourceConfig.liquid_color ?? "#cc0000") || [204, 0, 0];
+    data.plate_color = this._hexToRgb(sourceConfig.plate_color ?? "#f5f5f5") || [
       245,
       245,
       245
     ];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") || [
+    data.rivet_color = this._hexToRgb(sourceConfig.rivet_color ?? "#6d5d4b") || [
       109,
       93,
       75
     ];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") || [
+    data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color ?? "#ffffff") || [
       255,
       255,
       255
     ];
     data.font_color = this._hexToRgb(
-      config.font_color || config.title_font_color || "#3e2723"
+      sourceConfig.font_color || sourceConfig.title_font_color || "#3e2723"
     ) ?? [62, 39, 35];
-    data.ring_style = config.ring_style ?? "brass";
-    data.min = config.min ?? -40;
-    data.max = config.max ?? 120;
-    data.mercury_width = config.mercury_width ?? 50;
-    data.animation_duration = config.animation_duration ?? 1.5;
-    data.segments_under_mercury = config.segments_under_mercury ?? true;
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.wear_level = config.wear_level ?? 50;
-    data.aged_texture = config.aged_texture ?? "everywhere";
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.ring_style = sourceConfig.ring_style ?? "brass";
+    data.min = sourceConfig.min ?? -40;
+    data.max = sourceConfig.max ?? 120;
+    data.mercury_width = sourceConfig.mercury_width ?? 50;
+    data.animation_duration = sourceConfig.animation_duration ?? 1.5;
+    data.segments_under_mercury = sourceConfig.segments_under_mercury ?? true;
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     return data;
   }
   _formToConfig(formData) {
@@ -7296,6 +7324,13 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        this._config = newConfig;
+        fireEvent2(this, "config-changed", { config: this._config });
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -7309,11 +7344,17 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
         "aged_texture",
         "aged_texture_intensity"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     this._config = newConfig;
@@ -7443,38 +7484,32 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     ];
   }
   _configToForm(config) {
-    const data = { ...config };
-    data.theme = config.theme ?? "none";
-    data.title = config.title ?? "Thermostat";
-    data.ring_style = config.ring_style ?? "brass";
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.theme = sourceConfig.theme ?? "none";
+    data.title = sourceConfig.title ?? "Thermostat";
+    data.ring_style = sourceConfig.ring_style ?? "brass";
     data.title_color = this._hexToRgb(
-      config.title_color || config.title_font_color || "#3e2723"
+      sourceConfig.title_color || sourceConfig.title_font_color || "#3e2723"
     ) ?? [62, 39, 35];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#1a1a1a") ?? [
+    data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color ?? "#1a1a1a") ?? [
       26,
       26,
       26
     ];
-    data.font_color = this._hexToRgb(config.font_color ?? "#ff0055") ?? [
-      255,
-      0,
-      85
-    ];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+    data.font_color = this._hexToRgb(sourceConfig.font_color ?? "#ff0055") ?? [255, 0, 85];
+    data.rivet_color = this._hexToRgb(sourceConfig.rivet_color ?? "#6d5d4b") ?? [
       109,
       93,
       75
     ];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#2b2b2b") ?? [
-      43,
-      43,
-      43
-    ];
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.wear_level = config.wear_level ?? 50;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.aged_texture = config.aged_texture ?? "everywhere";
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.plate_color = this._hexToRgb(sourceConfig.plate_color ?? "#2b2b2b") ?? [43, 43, 43];
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     return data;
   }
   _formToConfig(formData) {
@@ -8250,6 +8285,21 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._config = newConfig;
+          this.dispatchEvent(
+            new CustomEvent("config-changed", {
+              detail: { config: this._config },
+              bubbles: true,
+              composed: true
+            })
+          );
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -8276,11 +8326,17 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
         "minute_hand_color",
         "second_hand_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -8295,62 +8351,64 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const data = { ...config };
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
     data.appearance = {
-      theme: config.theme ?? "none",
-      ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6a5816") ?? [
+      theme: sourceConfig.theme ?? "none",
+      ring_style: sourceConfig.ring_style,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
         88,
         22
       ],
-      plate_color: this._hexToRgb(config.plate_color ?? "#8c7626") ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? "#8c7626") ?? [
         140,
         118,
         38
       ],
-      plate_transparent: config.plate_transparent,
-      wear_level: config.wear_level,
-      glass_effect_enabled: config.glass_effect_enabled,
-      aged_texture: config.aged_texture,
-      aged_texture_intensity: config.aged_texture_intensity,
-      second_hand_enabled: config.second_hand_enabled,
-      background_style: config.background_style,
-      face_color: this._hexToRgb(config.face_color ?? "#f8f8f0") ?? [
+      plate_transparent: sourceConfig.plate_transparent,
+      wear_level: sourceConfig.wear_level,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+      second_hand_enabled: sourceConfig.second_hand_enabled,
+      background_style: sourceConfig.background_style,
+      face_color: this._hexToRgb(sourceConfig.face_color ?? "#f8f8f0") ?? [
         248,
         248,
         240
       ],
-      hour_hand_color: this._hexToRgb(config.hour_hand_color ?? "#3e2723") ?? [
+      hour_hand_color: this._hexToRgb(sourceConfig.hour_hand_color ?? "#3e2723") ?? [
         62,
         39,
         35
       ],
       minute_hand_color: this._hexToRgb(
-        config.minute_hand_color ?? "#3e2723"
+        sourceConfig.minute_hand_color ?? "#3e2723"
       ) ?? [62, 39, 35],
       second_hand_color: this._hexToRgb(
-        config.second_hand_color ?? "#C41E3A"
+        sourceConfig.second_hand_color ?? "#C41E3A"
       ) ?? [196, 30, 58]
     };
     data.style_fonts_ticks = {
       title_color: this._hexToRgb(
-        config.title_color || config.title_font_color || "#3e2723"
+        sourceConfig.title_color || sourceConfig.title_font_color || "#3e2723"
       ) ?? [62, 39, 35],
-      number_color: this._hexToRgb(config.number_color ?? "#3e2723") ?? [
+      number_color: this._hexToRgb(sourceConfig.number_color ?? "#3e2723") ?? [
         62,
         39,
         35
       ],
       primary_tick_color: this._hexToRgb(
-        config.primary_tick_color ?? "#3e2723"
+        sourceConfig.primary_tick_color ?? "#3e2723"
       ) ?? [62, 39, 35],
       secondary_tick_color: this._hexToRgb(
-        config.secondary_tick_color ?? "#5d4e37"
+        sourceConfig.secondary_tick_color ?? "#5d4e37"
       ) ?? [93, 78, 55]
     };
     data.layout = {
-      title_font_size: config.title_font_size
+      title_font_size: sourceConfig.title_font_size
     };
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
@@ -9378,6 +9436,21 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._config = newConfig;
+          this.dispatchEvent(
+            new CustomEvent("config-changed", {
+              detail: { config: this._config },
+              bubbles: true,
+              composed: true
+            })
+          );
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -9401,11 +9474,17 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
         "knob_color",
         "tick_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -9420,39 +9499,45 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const data = { ...config };
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
     data.appearance = {
-      theme: config.theme ?? "none",
-      ring_style: config.ring_style ?? "brass",
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+      theme: sourceConfig.theme ?? "none",
+      ring_style: sourceConfig.ring_style ?? "brass",
+      font_bg_color: this._hexToRgb(sourceConfig.font_bg_color ?? "#ffffff") ?? [
         255,
         255,
         255
       ],
-      font_color: this._hexToRgb(config.font_color ?? "#000000") ?? [0, 0, 0],
+      font_color: this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [
+        0,
+        0,
+        0
+      ],
       title_color: this._hexToRgb(
-        config.title_color || config.title_font_color || "#3e2723"
+        sourceConfig.title_color || sourceConfig.title_font_color || "#3e2723"
       ) ?? [62, 39, 35],
-      rivet_color: this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6d5d4b") ?? [
         109,
         93,
         75
       ],
-      plate_color: this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? "#f5f5f5") ?? [
         245,
         245,
         245
       ],
-      plate_transparent: config.plate_transparent ?? false,
-      wear_level: config.wear_level ?? 50,
-      glass_effect_enabled: config.glass_effect_enabled ?? true,
-      aged_texture: config.aged_texture ?? "everywhere",
-      aged_texture_intensity: config.aged_texture_intensity ?? 50
+      plate_transparent: sourceConfig.plate_transparent ?? false,
+      wear_level: sourceConfig.wear_level ?? 50,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled ?? true,
+      aged_texture: sourceConfig.aged_texture ?? "everywhere",
+      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50
     };
     data.layout = {
-      title_font_size: config.title_font_size ?? 14,
-      use_24h_format: config.use_24h_format ?? true,
-      show_seconds: config.show_seconds ?? true
+      title_font_size: sourceConfig.title_font_size ?? 14,
+      use_24h_format: sourceConfig.use_24h_format ?? true,
+      show_seconds: sourceConfig.show_seconds ?? true
     };
     return data;
   }
@@ -11881,6 +11966,15 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._config = newConfig;
+          fireEvent3(this, "config-changed", { config: this._config });
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -11904,11 +11998,17 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         "knob_color",
         "tick_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -11922,49 +12022,47 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     fireEvent3(this, "config-changed", { config: this._config });
   }
   _configToForm(config) {
-    const data = { ...config };
-    if (Array.isArray(config.entities)) {
-      data.entities = config.entities.map((e) => {
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    if (Array.isArray(sourceConfig.entities)) {
+      data.entities = sourceConfig.entities.map((e) => {
         if (typeof e === "string") return e;
         return e.entity || "";
       }).filter(Boolean);
     } else {
       data.entities = [];
     }
-    data.theme = config.theme ?? "none";
-    data.title = config.title ?? "Entities";
-    data.title_font_size = config.title_font_size ?? 14;
-    data.title_color = this._hexToRgb(config.title_color ?? "#3e2723") ?? [
+    data.theme = sourceConfig.theme ?? "none";
+    data.title = sourceConfig.title ?? "Entities";
+    data.title_font_size = sourceConfig.title_font_size ?? 14;
+    data.title_color = this._hexToRgb(sourceConfig.title_color ?? "#3e2723") ?? [
       62,
       39,
       35
     ];
-    data.ring_style = config.ring_style ?? "brass";
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+    data.ring_style = sourceConfig.ring_style ?? "brass";
+    data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color ?? "#ffffff") ?? [
       255,
       255,
       255
     ];
-    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [
-      0,
-      0,
-      0
-    ];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? "#6d5d4b") ?? [
+    data.font_color = this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [0, 0, 0];
+    data.rivet_color = this._hexToRgb(sourceConfig.rivet_color ?? "#6d5d4b") ?? [
       109,
       93,
       75
     ];
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+    data.plate_color = this._hexToRgb(sourceConfig.plate_color ?? "#f5f5f5") ?? [
       245,
       245,
       245
     ];
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.wear_level = config.wear_level ?? 50;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.aged_texture = config.aged_texture ?? "everywhere";
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     return data;
   }
   _configToFormAdvanced(config) {
@@ -12737,6 +12835,15 @@ var FoundryButtonEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._config = newConfig;
+          fireEvent4(this, "config-changed", { config: this._config });
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -12760,11 +12867,17 @@ var FoundryButtonEditor = class extends HTMLElement {
         "knob_color",
         "tick_color"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -12773,29 +12886,27 @@ var FoundryButtonEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const data = { ...config };
-    data.theme = config.theme ?? "none";
-    data.ring_style = config.ring_style ?? "brass";
-    data.plate_color = this._hexToRgb(config.plate_color ?? "#f5f5f5") ?? [
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.theme = sourceConfig.theme ?? "none";
+    data.ring_style = sourceConfig.ring_style ?? "brass";
+    data.plate_color = this._hexToRgb(sourceConfig.plate_color ?? "#f5f5f5") ?? [
       245,
       245,
       245
     ];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? "#ffffff") ?? [
+    data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color ?? "#ffffff") ?? [
       255,
       255,
       255
     ];
-    data.font_color = this._hexToRgb(config.font_color ?? "#000000") ?? [
-      0,
-      0,
-      0
-    ];
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.wear_level = config.wear_level ?? 50;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.aged_texture = config.aged_texture ?? "everywhere";
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.font_color = this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [0, 0, 0];
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     return data;
   }
   _formToConfig(formData) {
@@ -13850,6 +13961,14 @@ var FoundryUptimeEditor = class extends HTMLElement {
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
     } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
       const themeProperties = [
         "plate_color",
         "rivet_color",
@@ -13863,11 +13982,17 @@ var FoundryUptimeEditor = class extends HTMLElement {
         "aged_texture",
         "aged_texture_intensity"
       ];
-      const hasOverride = themeProperties.some(
-        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
-      if (hasOverride) {
-        newConfig.theme = "none";
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
       }
     }
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -13879,23 +14004,26 @@ var FoundryUptimeEditor = class extends HTMLElement {
     return schema2.name;
   }
   _configToForm(config) {
-    const data = { ...config };
-    data.theme = config.theme ?? "none";
-    if (config.font_bg_color)
-      data.font_bg_color = this._hexToRgb(config.font_bg_color);
-    if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
-    if (config.title_color)
-      data.title_color = this._hexToRgb(config.title_color);
-    else if (config.title_font_color)
-      data.title_color = this._hexToRgb(config.title_font_color);
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.theme = sourceConfig.theme ?? "none";
+    if (sourceConfig.font_bg_color)
+      data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
+    if (sourceConfig.font_color)
+      data.font_color = this._hexToRgb(sourceConfig.font_color);
+    if (sourceConfig.title_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_color);
+    else if (sourceConfig.title_font_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_font_color);
     else data.title_color = [62, 39, 35];
-    if (config.plate_color)
-      data.plate_color = this._hexToRgb(config.plate_color);
-    if (config.rivet_color)
-      data.rivet_color = this._hexToRgb(config.rivet_color);
-    if (config.alias) {
-      data.alias_ok = config.alias.ok;
-      data.alias_ko = config.alias.ko;
+    if (sourceConfig.plate_color)
+      data.plate_color = this._hexToRgb(sourceConfig.plate_color);
+    if (sourceConfig.rivet_color)
+      data.rivet_color = this._hexToRgb(sourceConfig.rivet_color);
+    if (sourceConfig.alias) {
+      data.alias_ok = sourceConfig.alias.ok;
+      data.alias_ko = sourceConfig.alias.ko;
     }
     return data;
   }

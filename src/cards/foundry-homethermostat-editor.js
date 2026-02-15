@@ -98,6 +98,15 @@ class FoundryHomeThermostatEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        this._config = newConfig;
+        fireEvent(this, 'config-changed', { config: this._config });
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
         'plate_color',
@@ -113,15 +122,21 @@ class FoundryHomeThermostatEditor extends HTMLElement {
         'aged_texture_intensity',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -254,35 +269,42 @@ class FoundryHomeThermostatEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
 
     // Defaults
-    data.theme = config.theme ?? 'none';
-    data.title = config.title ?? 'Thermostat';
+    data.theme = sourceConfig.theme ?? 'none';
+    data.title = sourceConfig.title ?? 'Thermostat';
 
-    data.ring_style = config.ring_style ?? 'brass';
+    data.ring_style = sourceConfig.ring_style ?? 'brass';
 
     data.title_color = this._hexToRgb(
-      config.title_color || config.title_font_color || '#3e2723'
+      sourceConfig.title_color || sourceConfig.title_font_color || '#3e2723'
     ) ?? [62, 39, 35];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#1a1a1a') ?? [
-      26, 26, 26,
-    ];
-    data.font_color = this._hexToRgb(config.font_color ?? '#ff0055') ?? [
+    data.font_bg_color = this._hexToRgb(
+      sourceConfig.font_bg_color ?? '#1a1a1a'
+    ) ?? [26, 26, 26];
+    data.font_color = this._hexToRgb(sourceConfig.font_color ?? '#ff0055') ?? [
       255, 0, 85,
     ];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
-      109, 93, 75,
-    ];
-    data.plate_color = this._hexToRgb(config.plate_color ?? '#2b2b2b') ?? [
-      43, 43, 43,
-    ];
+    data.rivet_color = this._hexToRgb(
+      sourceConfig.rivet_color ?? '#6d5d4b'
+    ) ?? [109, 93, 75];
+    data.plate_color = this._hexToRgb(
+      sourceConfig.plate_color ?? '#2b2b2b'
+    ) ?? [43, 43, 43];
 
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.wear_level = config.wear_level ?? 50;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.aged_texture = config.aged_texture ?? 'everywhere';
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
 
     return data;
   }

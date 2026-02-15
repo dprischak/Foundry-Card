@@ -469,6 +469,16 @@ class FoundryGaugeCardEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
         'plate_color',
@@ -494,15 +504,21 @@ class FoundryGaugeCardEditor extends HTMLElement {
         'tick_color',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -515,62 +531,69 @@ class FoundryGaugeCardEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
 
     data.appearance = {
-      theme: config.theme ?? 'none',
-      ring_style: config.ring_style,
-      rivet_color: this._hexToRgb(config.rivet_color ?? '#6a5816') ?? [
+      theme: sourceConfig.theme ?? 'none',
+      ring_style: sourceConfig.ring_style,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
       ],
-      plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? '#8c7626') ?? [
         140, 118, 38,
       ],
-      plate_transparent: config.plate_transparent,
-      wear_level: config.wear_level,
-      glass_effect_enabled: config.glass_effect_enabled,
-      aged_texture: config.aged_texture,
-      aged_texture_intensity: config.aged_texture_intensity,
-      background_style: config.background_style,
-      face_color: this._hexToRgb(config.face_color ?? '#f8f8f0') ?? [
+      plate_transparent: sourceConfig.plate_transparent,
+      wear_level: sourceConfig.wear_level,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+      background_style: sourceConfig.background_style,
+      face_color: this._hexToRgb(sourceConfig.face_color ?? '#f8f8f0') ?? [
         248, 248, 240,
       ],
-      needle_color: this._hexToRgb(config.needle_color ?? '#C41E3A') ?? [
+      needle_color: this._hexToRgb(sourceConfig.needle_color ?? '#C41E3A') ?? [
         196, 30, 58,
       ],
     };
 
     data.style_fonts_ticks = {
       title_color: this._hexToRgb(
-        config.title_color || config.title_font_color || '#3e2723'
+        sourceConfig.title_color || sourceConfig.title_font_color || '#3e2723'
       ) ?? [62, 39, 35],
-      number_color: this._hexToRgb(config.number_color ?? '#3e2723') ?? [
+      number_color: this._hexToRgb(sourceConfig.number_color ?? '#3e2723') ?? [
         62, 39, 35,
       ],
       primary_tick_color: this._hexToRgb(
-        config.primary_tick_color ?? '#3e2723'
+        sourceConfig.primary_tick_color ?? '#3e2723'
       ) ?? [62, 39, 35],
       secondary_tick_color: this._hexToRgb(
-        config.secondary_tick_color ?? '#5d4e37'
+        sourceConfig.secondary_tick_color ?? '#5d4e37'
       ) ?? [93, 78, 55],
     };
 
     data.layout = {
-      title_font_size: config.title_font_size,
-      odometer_font_size: config.odometer_font_size,
-      odometer_vertical_position: config.odometer_vertical_position,
-      start_angle: config.start_angle,
-      end_angle: config.end_angle,
-      animation_duration: config.animation_duration,
+      title_font_size: sourceConfig.title_font_size,
+      odometer_font_size: sourceConfig.odometer_font_size,
+      odometer_vertical_position: sourceConfig.odometer_vertical_position,
+      start_angle: sourceConfig.start_angle,
+      end_angle: sourceConfig.end_angle,
+      animation_duration: sourceConfig.animation_duration,
     };
 
     data.high_needle = {
-      high_needle_enabled: config.high_needle_enabled,
+      high_needle_enabled: sourceConfig.high_needle_enabled,
       high_needle_color: this._hexToRgb(
-        config.high_needle_color ?? '#FF9800'
+        sourceConfig.high_needle_color ?? '#FF9800'
       ) ?? [255, 152, 0],
-      high_needle_duration: config.high_needle_duration,
-      high_needle_length: config.high_needle_length,
+      high_needle_duration: sourceConfig.high_needle_duration,
+      high_needle_length: sourceConfig.high_needle_length,
     };
 
     data.actions = {};

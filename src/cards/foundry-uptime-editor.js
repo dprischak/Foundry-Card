@@ -332,6 +332,16 @@ class FoundryUptimeEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
         'plate_color',
@@ -347,15 +357,21 @@ class FoundryUptimeEditor extends HTMLElement {
         'aged_texture_intensity',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -370,27 +386,35 @@ class FoundryUptimeEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
     // Defaults
-    data.theme = config.theme ?? 'none';
+    data.theme = sourceConfig.theme ?? 'none';
     // Visuals - convert to Array for HA Form? NO, we want HEX for custom UI, but Array for Form?
     // Wait, the BOTTOM form uses color_rgb selector which needs Array.
     // My simple helper manages this.
-    if (config.font_bg_color)
-      data.font_bg_color = this._hexToRgb(config.font_bg_color);
-    if (config.font_color) data.font_color = this._hexToRgb(config.font_color);
-    if (config.title_color)
-      data.title_color = this._hexToRgb(config.title_color);
-    else if (config.title_font_color)
-      data.title_color = this._hexToRgb(config.title_font_color);
+    if (sourceConfig.font_bg_color)
+      data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
+    if (sourceConfig.font_color)
+      data.font_color = this._hexToRgb(sourceConfig.font_color);
+    if (sourceConfig.title_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_color);
+    else if (sourceConfig.title_font_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_font_color);
     else data.title_color = [62, 39, 35]; // default #3e2723
-    if (config.plate_color)
-      data.plate_color = this._hexToRgb(config.plate_color);
-    if (config.rivet_color)
-      data.rivet_color = this._hexToRgb(config.rivet_color);
-    if (config.alias) {
-      data.alias_ok = config.alias.ok;
-      data.alias_ko = config.alias.ko;
+    if (sourceConfig.plate_color)
+      data.plate_color = this._hexToRgb(sourceConfig.plate_color);
+    if (sourceConfig.rivet_color)
+      data.rivet_color = this._hexToRgb(sourceConfig.rivet_color);
+    if (sourceConfig.alias) {
+      data.alias_ok = sourceConfig.alias.ok;
+      data.alias_ko = sourceConfig.alias.ko;
     }
     return data;
   }
