@@ -224,14 +224,12 @@ class FoundrySliderEditor extends HTMLElement {
         68, 68, 68,
       ],
       tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0],
-      primary_tick_color:
-        this._colorToRgb(
-          config.primary_tick_color ?? config.tick_color ?? '#000000'
-        ) ?? [0, 0, 0],
-      secondary_tick_color:
-        this._colorToRgb(
-          config.secondary_tick_color ?? config.tick_color ?? '#000000'
-        ) ?? [0, 0, 0],
+      primary_tick_color: this._colorToRgb(
+        config.primary_tick_color ?? config.tick_color ?? '#000000'
+      ) ?? [0, 0, 0],
+      secondary_tick_color: this._colorToRgb(
+        config.secondary_tick_color ?? config.tick_color ?? '#000000'
+      ) ?? [0, 0, 0],
     };
     data.knob_settings = {
       knob_shape: config.knob_shape ?? 'square',
@@ -280,9 +278,7 @@ class FoundrySliderEditor extends HTMLElement {
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
       config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
-      config.secondary_tick_color = this._rgbToHex(
-        config.secondary_tick_color
-      );
+      config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
     }
 
     // Merge knob settings
