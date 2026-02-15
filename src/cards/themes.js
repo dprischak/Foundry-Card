@@ -87,6 +87,12 @@ export function applyTheme(config, theme) {
     'slider_color',
     'knob_color',
     'tick_color',
+    'line_color',
+    'line_width',
+    'fill_under_line',
+    'grid_minor_color',
+    'grid_major_color',
+    'grid_opacity',
   ];
 
   for (const key of themeProperties) {

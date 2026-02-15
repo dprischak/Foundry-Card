@@ -51,6 +51,10 @@ class FoundrySliderCard extends HTMLElement {
     // Slider-specific colors
     this.config.slider_color = this.config.slider_color || '#444444';
     this.config.tick_color = this.config.tick_color || 'rgba(0,0,0,0.22)';
+    this.config.primary_tick_color =
+      this.config.primary_tick_color ?? this.config.tick_color;
+    this.config.secondary_tick_color =
+      this.config.secondary_tick_color ?? this.config.tick_color;
 
     // Display Settings
     this.config.show_value =
@@ -80,7 +84,7 @@ class FoundrySliderCard extends HTMLElement {
     this.config.aged_texture =
       this.config.aged_texture !== undefined
         ? this.config.aged_texture
-        : 'everywhere';
+        : 'glass_only';
     this.config.aged_texture_intensity =
       this.config.aged_texture_intensity !== undefined
         ? this.config.aged_texture_intensity
@@ -92,6 +96,46 @@ class FoundrySliderCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    this._updateFromEntity();
+  }
+
+  _updateFromEntity() {
+    if (!this._hass || !this.config.entity) return;
+
+    const stateObj = this._hass.states[this.config.entity];
+    if (!stateObj) return;
+
+    let entityValue;
+    const domain = this.config.entity.split('.')[0];
+
+    if (domain === 'light') {
+      // For lights, get brightness and convert to 0-100 scale
+      const brightness = stateObj.attributes.brightness;
+      if (brightness !== undefined) {
+        entityValue = Math.round((brightness / 255) * 100);
+      }
+    } else if (domain === 'fan') {
+      // For fans, get percentage
+      entityValue = stateObj.attributes.percentage;
+    } else if (domain === 'cover') {
+      // For covers, get current_position
+      entityValue = stateObj.attributes.current_position;
+    } else {
+      // For input_number and number entities, use the state
+      entityValue = parseFloat(stateObj.state);
+    }
+
+    if (entityValue !== undefined && !isNaN(entityValue)) {
+      // Only update if not currently dragging
+      if (!this._draggingSlider) {
+        this.config.value = entityValue;
+        const slider = this.shadowRoot?.getElementById('slider');
+        if (slider) {
+          slider.value = entityValue;
+        }
+        this._updateValueDisplay(entityValue);
+      }
+    }
   }
 
   render() {
@@ -215,6 +259,9 @@ class FoundrySliderCard extends HTMLElement {
       cfg.plate_transparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
     const backgroundColor = cfg.face_color ?? cfg.plate_color;
 
     this.shadowRoot.innerHTML = `
@@ -370,17 +417,25 @@ class FoundrySliderCard extends HTMLElement {
                   <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                 </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
               </filter>
+
+              <clipPath id="plateClip-${uid}">
+                <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" />
+              </clipPath>
+
+              <clipPath id="screenClip-${uid}">
+                <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" />
+              </clipPath>
             </defs>
 
             <!-- Base Plate -->
             <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-                  fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
-                  stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
-                  stroke-width="0.5"
-                  filter="${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
+              fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
+              stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
+              stroke-width="0.5"
+              clip-path="url(#plateClip-${uid})"
+              ${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `filter="url(#aged-${uid})"` : ''} />
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
@@ -392,28 +447,9 @@ class FoundrySliderCard extends HTMLElement {
               rimX,
               rimY,
               rimWidth,
-              rimHeight
+              rimHeight,
+              agedTextureOnFace
             )}
-
-            ${
-              effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent
-                ? `
-              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}"
-                    rx="15" ry="15" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            `
-                : ''
-            }
-
-            ${
-              effectiveAgedTexture === 'glass_only'
-                ? `
-              <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}"
-                    rx="10" ry="10" fill="rgba(255,255,255,0.35)" filter="url(#aged-${uid})"
-                    style="pointer-events:none;" />
-            `
-                : ''
-            }
 
             <!-- Title -->
             ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ''}
@@ -547,7 +583,17 @@ class FoundrySliderCard extends HTMLElement {
     `;
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    x,
+    y,
+    w,
+    h,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
@@ -566,7 +612,7 @@ class FoundrySliderCard extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
+        fill="${bgColor}" stroke="none" clip-path="url(#screenClip-${uid})" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
 
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
 
@@ -638,6 +684,8 @@ class FoundrySliderCard extends HTMLElement {
     const max = cfg.max;
     const step = cfg.step;
     const tickColor = cfg.tick_color;
+    const primaryTickColor = cfg.primary_tick_color ?? tickColor;
+    const secondaryTickColor = cfg.secondary_tick_color ?? tickColor;
 
     const range = max - min;
     const trackHeight = trackBottomY - trackTopY;
@@ -650,7 +698,7 @@ class FoundrySliderCard extends HTMLElement {
       const y = trackBottomY - trackHeight * percent; // Inverted: bottom is min
 
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
-                      stroke="${tickColor}" stroke-width="2" />`;
+                      stroke="${primaryTickColor}" stroke-width="2" />`;
     }
 
     // Minor ticks at each step (if step is reasonable)
@@ -665,7 +713,7 @@ class FoundrySliderCard extends HTMLElement {
         const isMajor = i % Math.ceil(numSteps / 10) === 0;
         if (!isMajor) {
           ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
-                          stroke="${tickColor}" stroke-width="1" />`;
+                          stroke="${secondaryTickColor}" stroke-width="1" />`;
         }
       }
     }
@@ -916,6 +964,7 @@ class FoundrySliderCard extends HTMLElement {
     const v = e.target.value;
     this.config.value = Number(v);
     this._updateValueDisplay(v);
+    this._updateEntity(Number(v));
     fireEvent(this, 'foundry-slider-change', { value: Number(v) });
   }
 
@@ -951,6 +1000,7 @@ class FoundrySliderCard extends HTMLElement {
     slider.value = value;
     if (commit) {
       this.config.value = Number(value);
+      this._updateEntity(Number(value));
       this._updateValueDisplay(value);
       fireEvent(this, 'foundry-slider-change', { value: Number(value) });
     } else {
@@ -979,6 +1029,45 @@ class FoundrySliderCard extends HTMLElement {
         'x',
         (this._trackCenterX - this._knobWidth / 2).toFixed(2)
       );
+    }
+  }
+
+  _updateEntity(value) {
+    if (!this._hass || !this.config.entity) return;
+
+    const entityId = this.config.entity;
+    const domain = entityId.split('.')[0];
+
+    // Call the appropriate service based on entity domain
+    if (domain === 'input_number') {
+      this._hass.callService('input_number', 'set_value', {
+        entity_id: entityId,
+        value: value,
+      });
+    } else if (domain === 'number') {
+      this._hass.callService('number', 'set_value', {
+        entity_id: entityId,
+        value: value,
+      });
+    } else if (domain === 'light') {
+      // For lights, update brightness (0-255 range)
+      const brightness = Math.round((value / 100) * 255);
+      this._hass.callService('light', 'turn_on', {
+        entity_id: entityId,
+        brightness: brightness,
+      });
+    } else if (domain === 'fan') {
+      // For fans, update percentage (0-100 range)
+      this._hass.callService('fan', 'set_percentage', {
+        entity_id: entityId,
+        percentage: value,
+      });
+    } else if (domain === 'cover') {
+      // For covers, set position (0-100 range)
+      this._hass.callService('cover', 'set_cover_position', {
+        entity_id: entityId,
+        position: value,
+      });
     }
   }
 

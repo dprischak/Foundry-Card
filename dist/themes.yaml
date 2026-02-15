@@ -4,6 +4,12 @@ industrial:
   title_color: '#3e2723'
   font_color: '#3e2723'
   font_bg_color: '#f8f8f0'
+  line_color: '#C41E3A'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#5d4e37'
+  grid_major_color: '#3e2723'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#3e2723'
   primary_tick_color: '#3e2723'
@@ -16,6 +22,7 @@ industrial:
   aged_texture_intensity: 50
   face_color: '#929090'
   background_style: 'gradient'
+  knob_color: '#7a5a2a'
 
 racing:
   plate_color: '#929090'
@@ -23,6 +30,12 @@ racing:
   title_color: '#000000'
   font_color: '#59ff00'
   font_bg_color: '#0a0000'
+  line_color: '#C41E3A'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#000000'
+  grid_major_color: '#000000'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#000000'
   primary_tick_color: '#000000'
@@ -35,6 +48,7 @@ racing:
   aged_texture_intensity: 50
   face_color: '#929090'
   background_style: 'gradient'
+  knob_color: '#2e2e2e'
 
 warm:
   plate_color: '#f5e6d3'
@@ -42,6 +56,12 @@ warm:
   title_color: '#5c4033'
   font_color: '#5c4033'
   font_bg_color: '#f5e6d3'
+  line_color: '#cd5c5c'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b5a2b'
+  grid_major_color: '#5c4033'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#5c4033'
   primary_tick_color: '#5c4033'
@@ -54,6 +74,7 @@ warm:
   aged_texture_intensity: 5
   face_color: '#f5e6d3'
   background_style: 'gradient'
+  knob_color: '#b36b2c'
 
 cool:
   plate_color: '#e0f7fa'
@@ -61,6 +82,12 @@ cool:
   title_color: '#006064'
   font_color: '#006064'
   font_bg_color: '#e0f7fa'
+  line_color: '#00acc1'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#4dd0e1'
+  grid_major_color: '#006064'
+  grid_opacity: 0.6
   ring_style: 'silver'
   number_color: '#006064'
   primary_tick_color: '#006064'
@@ -73,6 +100,7 @@ cool:
   aged_texture_intensity: 0
   face_color: '#d1eae5'
   background_style: 'solid'
+  knob_color: '#3b8fa5'
 
 vintage:
   plate_color: '#d4c5a9'
@@ -80,6 +108,12 @@ vintage:
   title_color: '#4a3728'
   font_color: '#4a3728'
   font_bg_color: '#f5e6d3'
+  line_color: '#8b4513'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b7355'
+  grid_major_color: '#4a3728'
+  grid_opacity: 0.6
   ring_style: 'brass'
   number_color: '#4a3728'
   primary_tick_color: '#4a3728'
@@ -92,6 +126,7 @@ vintage:
   aged_texture_intensity: 70
   face_color: '#f5e6d3'
   background_style: 'gradient'
+  knob_color: '#8f6f3f'
 
 midnight:
   plate_color: '#1a1a2e'
@@ -99,6 +134,12 @@ midnight:
   title_color: '#eee'
   font_color: '#00ff41'
   font_bg_color: '#0a0e27'
+  line_color: '#00ff41'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#888'
+  grid_major_color: '#eee'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#eee'
   primary_tick_color: '#eee'
@@ -111,6 +152,7 @@ midnight:
   aged_texture_intensity: 20
   face_color: '#0f3460'
   background_style: 'solid'
+  knob_color: '#00c853'
 
 steampunk:
   plate_color: '#8b4513'
@@ -118,6 +160,12 @@ steampunk:
   title_color: '#f4e4c1'
   font_color: '#f4e4c1'
   font_bg_color: '#3e2723'
+  line_color: '#ff6347'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#cd853f'
+  grid_major_color: '#f4e4c1'
+  grid_opacity: 0.6
   ring_style: 'copper'
   number_color: '#000000'
   primary_tick_color: '#f4e4c1'
@@ -130,6 +178,7 @@ steampunk:
   aged_texture_intensity: 75
   face_color: '#d2691e'
   background_style: 'gradient'
+  knob_color: '#a65b2b'
 
 military:
   plate_color: '#4a5240'
@@ -137,6 +186,12 @@ military:
   title_color: '#d4d4aa'
   font_color: '#d4d4aa'
   font_bg_color: '#3a3a2a'
+  line_color: '#ff6b35'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#6b7062'
+  grid_major_color: '#d4d4aa'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#d4d4aa'
   primary_tick_color: '#d4d4aa'
@@ -149,6 +204,7 @@ military:
   aged_texture_intensity: 40
   face_color: '#5a6352'
   background_style: 'solid'
+  knob_color: '#5a6b3f'
 
 retro:
   plate_color: '#d4a574'
@@ -156,6 +212,12 @@ retro:
   title_color: '#3e2723'
   font_color: '#3e2723'
   font_bg_color: '#f5deb3'
+  line_color: '#ff6347'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#8b7355'
+  grid_major_color: '#3e2723'
+  grid_opacity: 0.6
   ring_style: 'chrome'
   number_color: '#3e2723'
   primary_tick_color: '#3e2723'
@@ -168,6 +230,7 @@ retro:
   aged_texture_intensity: 35
   face_color: '#f4a460'
   background_style: 'gradient'
+  knob_color: '#c27b3a'
 
 arctic:
   plate_color: '#f0f8ff'
@@ -175,6 +238,12 @@ arctic:
   title_color: '#2c3e50'
   font_color: '#2c3e50'
   font_bg_color: '#ffffff'
+  line_color: '#4682b4'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#87ceeb'
+  grid_major_color: '#2c3e50'
+  grid_opacity: 0.6
   ring_style: 'silver'
   number_color: '#2c3e50'
   primary_tick_color: '#2c3e50'
@@ -187,6 +256,7 @@ arctic:
   aged_texture_intensity: 10
   face_color: '#e6f2ff'
   background_style: 'gradient'
+  knob_color: '#6fb7d6'
 
 copper:
   plate_color: '#b87333'
@@ -194,6 +264,12 @@ copper:
   title_color: '#f4e4c1'
   font_color: '#f4e4c1'
   font_bg_color: '#3e2723'
+  line_color: '#40e0d0'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#cd853f'
+  grid_major_color: '#f4e4c1'
+  grid_opacity: 0.6
   ring_style: 'copper'
   number_color: '#000000'
   primary_tick_color: '#f4e4c1'
@@ -206,6 +282,7 @@ copper:
   aged_texture_intensity: 50
   face_color: '#d2691e'
   background_style: 'gradient'
+  knob_color: '#c46a2a'
 
 neon:
   plate_color: '#0a0a0a'
@@ -213,6 +290,12 @@ neon:
   title_color: '#ff00ff'
   font_color: '#00ffff'
   font_bg_color: '#000000'
+  line_color: '#ff00ff'
+  line_width: 2
+  fill_under_line: false
+  grid_minor_color: '#00ffff'
+  grid_major_color: '#ff00ff'
+  grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#ff00ff'
   primary_tick_color: '#ff00ff'
@@ -225,6 +308,7 @@ neon:
   aged_texture_intensity: 0
   face_color: '#1a1a1a'
   background_style: 'solid'
+  knob_color: '#00e5ff'
 
 pink:
   plate_color: '#fea4a4'
@@ -244,3 +328,4 @@ pink:
   aged_texture_intensity: 50
   face_color: '#f5e5e5'
   background_style: 'solid'
+  knob_color: '#ff4fa3'

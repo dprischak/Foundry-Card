@@ -285,6 +285,16 @@ class FoundryThermostatEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
         'plate_color',
@@ -310,15 +320,21 @@ class FoundryThermostatEditor extends HTMLElement {
         'tick_color',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -336,44 +352,51 @@ class FoundryThermostatEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
     delete data.segments; // Do not pass segments to ha-form
 
     // Defaults
-    data.theme = config.theme ?? 'none';
+    data.theme = sourceConfig.theme ?? 'none';
     // Color Conversions
-    data.liquid_color = this._hexToRgb(config.liquid_color ?? '#cc0000') || [
-      204, 0, 0,
-    ];
-    data.plate_color = this._hexToRgb(config.plate_color ?? '#f5f5f5') || [
-      245, 245, 245,
-    ];
-    data.rivet_color = this._hexToRgb(config.rivet_color ?? '#6d5d4b') || [
-      109, 93, 75,
-    ];
-    data.font_bg_color = this._hexToRgb(config.font_bg_color ?? '#ffffff') || [
-      255, 255, 255,
-    ];
+    data.liquid_color = this._hexToRgb(
+      sourceConfig.liquid_color ?? '#cc0000'
+    ) || [204, 0, 0];
+    data.plate_color = this._hexToRgb(
+      sourceConfig.plate_color ?? '#f5f5f5'
+    ) || [245, 245, 245];
+    data.rivet_color = this._hexToRgb(
+      sourceConfig.rivet_color ?? '#6d5d4b'
+    ) || [109, 93, 75];
+    data.font_bg_color = this._hexToRgb(
+      sourceConfig.font_bg_color ?? '#ffffff'
+    ) || [255, 255, 255];
     // Map font_color (or legacy title_font_color) to 'font_color' field
     data.font_color = this._hexToRgb(
-      config.font_color || config.title_font_color || '#3e2723'
+      sourceConfig.font_color || sourceConfig.title_font_color || '#3e2723'
     ) ?? [62, 39, 35];
 
     // Legacy support: title_color is deprecated, we use font_color now
     // If user sets title_color in YAML manually, it will be migrated on save,
     // but for display we prefer font_color.  // Defaults
-    data.ring_style = config.ring_style ?? 'brass';
-    data.min = config.min ?? -40;
-    data.max = config.max ?? 120;
-    data.mercury_width = config.mercury_width ?? 50;
-    data.animation_duration = config.animation_duration ?? 1.5;
-    data.segments_under_mercury = config.segments_under_mercury ?? true;
+    data.ring_style = sourceConfig.ring_style ?? 'brass';
+    data.min = sourceConfig.min ?? -40;
+    data.max = sourceConfig.max ?? 120;
+    data.mercury_width = sourceConfig.mercury_width ?? 50;
+    data.animation_duration = sourceConfig.animation_duration ?? 1.5;
+    data.segments_under_mercury = sourceConfig.segments_under_mercury ?? true;
 
-    data.plate_transparent = config.plate_transparent ?? false;
-    data.glass_effect_enabled = config.glass_effect_enabled ?? true;
-    data.wear_level = config.wear_level ?? 50;
-    data.aged_texture = config.aged_texture ?? 'everywhere';
-    data.aged_texture_intensity = config.aged_texture_intensity ?? 50;
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
+    data.wear_level = sourceConfig.wear_level ?? 50;
+    data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
 
     return data;
   }

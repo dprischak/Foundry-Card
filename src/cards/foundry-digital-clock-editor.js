@@ -119,6 +119,23 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._config = newConfig;
+          this.dispatchEvent(
+            new CustomEvent('config-changed', {
+              detail: { config: this._config },
+              bubbles: true,
+              composed: true,
+            })
+          );
+        }
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
         'plate_color',
@@ -144,15 +161,21 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
         'tick_color',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -169,33 +192,42 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
     data.appearance = {
-      theme: config.theme ?? 'none',
-      ring_style: config.ring_style ?? 'brass',
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [
-        255, 255, 255,
+      theme: sourceConfig.theme ?? 'none',
+      ring_style: sourceConfig.ring_style ?? 'brass',
+      font_bg_color: this._hexToRgb(
+        sourceConfig.font_bg_color ?? '#ffffff'
+      ) ?? [255, 255, 255],
+      font_color: this._hexToRgb(sourceConfig.font_color ?? '#000000') ?? [
+        0, 0, 0,
       ],
-      font_color: this._hexToRgb(config.font_color ?? '#000000') ?? [0, 0, 0],
       title_color: this._hexToRgb(
-        config.title_color || config.title_font_color || '#3e2723'
+        sourceConfig.title_color || sourceConfig.title_font_color || '#3e2723'
       ) ?? [62, 39, 35],
-      rivet_color: this._hexToRgb(config.rivet_color ?? '#6d5d4b') ?? [
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? '#6d5d4b') ?? [
         109, 93, 75,
       ],
-      plate_color: this._hexToRgb(config.plate_color ?? '#f5f5f5') ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? '#f5f5f5') ?? [
         245, 245, 245,
       ],
-      plate_transparent: config.plate_transparent ?? false,
-      wear_level: config.wear_level ?? 50,
-      glass_effect_enabled: config.glass_effect_enabled ?? true,
-      aged_texture: config.aged_texture ?? 'everywhere',
-      aged_texture_intensity: config.aged_texture_intensity ?? 50,
+      plate_transparent: sourceConfig.plate_transparent ?? false,
+      wear_level: sourceConfig.wear_level ?? 50,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled ?? true,
+      aged_texture: sourceConfig.aged_texture ?? 'everywhere',
+      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50,
     };
     data.layout = {
-      title_font_size: config.title_font_size ?? 14,
-      use_24h_format: config.use_24h_format ?? true,
-      show_seconds: config.show_seconds ?? true,
+      title_font_size: sourceConfig.title_font_size ?? 14,
+      use_24h_format: sourceConfig.use_24h_format ?? true,
+      show_seconds: sourceConfig.show_seconds ?? true,
     };
 
     return data;

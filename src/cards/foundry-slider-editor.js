@@ -111,8 +111,19 @@ class FoundrySliderEditor extends HTMLElement {
       this._config.theme !== 'none' &&
       newConfig.theme === this._config.theme
     ) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+
       // List of properties that themes control
       const themeProperties = [
+        'face_color',
         'plate_color',
         'rivet_color',
         'title_color',
@@ -127,17 +138,25 @@ class FoundrySliderEditor extends HTMLElement {
         'slider_color',
         'knob_color',
         'tick_color',
+        'primary_tick_color',
+        'secondary_tick_color',
       ];
 
-      // Check if any of these changed
-      const hasOverride = themeProperties.some(
+      // Check if any of these changed compared to themed values
+      const overriddenProps = themeProperties.filter(
         (prop) =>
-          JSON.stringify(newConfig[prop]) !== JSON.stringify(this._config[prop])
+          JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
       );
 
-      if (hasOverride) {
-        // User manually changed a value. Detach from theme.
-        newConfig.theme = 'none';
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: 'none' };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        // User manually changed a value. Detach from theme, preserve themed values.
+        newConfig = mergedConfig;
       }
     }
 
@@ -173,6 +192,8 @@ class FoundrySliderEditor extends HTMLElement {
       knob_shape: 'square',
       knob_size: 100,
       tick_color: 'rgba(0,0,0,0.22)',
+      primary_tick_color: 'rgba(0,0,0,0.22)',
+      secondary_tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',
       title_color: '#3e2723',
@@ -180,7 +201,7 @@ class FoundrySliderEditor extends HTMLElement {
       value_font_size: 36,
       show_value: true,
       wear_level: 50,
-      aged_texture: 'everywhere',
+      aged_texture: 'glass_only',
       aged_texture_intensity: 50,
     });
   }
@@ -197,52 +218,69 @@ class FoundrySliderEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const data = { ...config };
+    const themeData =
+      config.theme && config.theme !== 'none' && this._themes
+        ? this._themes[config.theme]
+        : null;
+    const sourceConfig = themeData
+      ? applyTheme({ ...config }, themeData)
+      : { ...config };
+    const data = { ...sourceConfig };
     data.appearance = {
-      theme: config.theme ?? 'none',
-      ring_style: config.ring_style ?? 'brass',
+      theme: sourceConfig.theme ?? 'none',
+      ring_style: sourceConfig.ring_style ?? 'brass',
       face_color: this._hexToRgb(
-        config.face_color ??
-          config.background_color ??
-          config.plate_color ??
-          config.slider_background_color ??
+        sourceConfig.face_color ??
+          sourceConfig.background_color ??
+          sourceConfig.plate_color ??
+          sourceConfig.slider_background_color ??
           '#8c7626'
       ) ?? [140, 118, 38],
-      plate_color: this._hexToRgb(config.plate_color ?? '#8c7626') ?? [
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? '#8c7626') ?? [
         140, 118, 38,
       ],
-      title_color: this._hexToRgb(config.title_color ?? '#3e2723') ?? [
+      title_color: this._hexToRgb(sourceConfig.title_color ?? '#3e2723') ?? [
         62, 39, 35,
       ],
-      plate_transparent: config.plate_transparent ?? false,
-      rivet_color: this._hexToRgb(config.rivet_color ?? '#6a5816') ?? [
+      plate_transparent: sourceConfig.plate_transparent ?? false,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
       ],
-      slider_color: this._hexToRgb(config.slider_color ?? '#444444') ?? [
+      slider_color: this._hexToRgb(sourceConfig.slider_color ?? '#444444') ?? [
         68, 68, 68,
       ],
-      tick_color: this._colorToRgb(config.tick_color) ?? [0, 0, 0],
+      tick_color: this._colorToRgb(sourceConfig.tick_color) ?? [0, 0, 0],
+      primary_tick_color: this._colorToRgb(
+        sourceConfig.primary_tick_color ?? sourceConfig.tick_color ?? '#000000'
+      ) ?? [0, 0, 0],
+      secondary_tick_color: this._colorToRgb(
+        sourceConfig.secondary_tick_color ??
+          sourceConfig.tick_color ??
+          '#000000'
+      ) ?? [0, 0, 0],
     };
     data.knob_settings = {
-      knob_shape: config.knob_shape ?? 'square',
-      knob_size: config.knob_size ?? 100,
-      knob_color: this._hexToRgb(config.knob_color ?? '#c9a961') ?? [
+      knob_shape: sourceConfig.knob_shape ?? 'square',
+      knob_size: sourceConfig.knob_size ?? 100,
+      knob_color: this._hexToRgb(sourceConfig.knob_color ?? '#c9a961') ?? [
         201, 169, 97,
       ],
     };
     data.led_settings = {
-      show_value: config.show_value ?? true,
-      font_bg_color: this._hexToRgb(config.font_bg_color ?? '#ffffff') ?? [
-        255, 255, 255,
+      show_value: sourceConfig.show_value ?? true,
+      font_bg_color: this._hexToRgb(
+        sourceConfig.font_bg_color ?? '#ffffff'
+      ) ?? [255, 255, 255],
+      font_color: this._hexToRgb(sourceConfig.font_color ?? '#000000') ?? [
+        0, 0, 0,
       ],
-      font_color: this._hexToRgb(config.font_color ?? '#000000') ?? [0, 0, 0],
-      title_font_size: config.title_font_size ?? 14,
-      value_font_size: config.value_font_size ?? 36,
+      title_font_size: sourceConfig.title_font_size ?? 14,
+      value_font_size: sourceConfig.value_font_size ?? 36,
     };
     data.effects = {
-      wear_level: config.wear_level ?? 50,
-      aged_texture: (config.aged_texture ?? 'everywhere') !== 'none',
-      aged_texture_intensity: config.aged_texture_intensity ?? 50,
+      wear_level: sourceConfig.wear_level ?? 50,
+      aged_texture: sourceConfig.aged_texture ?? 'glass_only',
+      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50,
     };
     return data;
   }
@@ -269,6 +307,8 @@ class FoundrySliderEditor extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.tick_color = this._rgbToHex(config.tick_color);
+      config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
+      config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
     }
 
     // Merge knob settings
@@ -287,7 +327,6 @@ class FoundrySliderEditor extends HTMLElement {
     // Merge effects
     if (formData.effects) {
       Object.assign(config, formData.effects);
-      config.aged_texture = config.aged_texture ? 'everywhere' : 'none';
     }
 
     return config;
@@ -398,7 +437,23 @@ class FoundrySliderEditor extends HTMLElement {
               },
               {
                 name: 'tick_color',
-                label: 'Tick Mark Color',
+                label: 'Tick Color (Fallback)',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'primary_tick_color',
+                label: 'Major Tick Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'secondary_tick_color',
+                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],
@@ -523,7 +578,16 @@ class FoundrySliderEditor extends HTMLElement {
           {
             name: 'aged_texture',
             label: 'Aged Texture',
-            selector: { boolean: {} },
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
           },
           {
             name: 'aged_texture_intensity',
