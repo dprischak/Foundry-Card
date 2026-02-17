@@ -1,8 +1,5 @@
 name: Release Foundry Card
 
-permissions:
-  contents: write
-
 on:
   push:
     tags:
@@ -11,6 +8,9 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
 
     steps:
       - name: Checkout repository
