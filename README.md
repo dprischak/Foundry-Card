@@ -38,6 +38,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Thermostat](#foundry-thermostat)
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
+   - [Foundry Chart Card](#foundry-chart-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
    - [Foundry Slider Card](#foundry-slider-card)
 4. [Custom Themes](#custom-themes)
@@ -127,6 +128,17 @@ A vintage uptime monitor:
 - Metallic dividers and bezels
 - Color-coded status thresholds
 - Detailed history tracking
+
+<a name="foundry-chart-card"></a>
+
+### 📈 Foundry Chart Card
+
+A steampunk-styled line chart for entity history:
+
+- Configurable time range and data-point density
+- Optional min/max scale and filled area
+- Theme-aware styling with grid overlays
+- Footer start/end labels
 
 <a name="foundry-home-thermostat"></a>
 
@@ -835,6 +847,74 @@ color_thresholds:
 ```
 
 <img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/main/media/uptime.png" width="300" alt="Preview"/>
+
+</details>
+
+### Foundry Chart Card
+
+Show entity history in a compact chart:
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default         | Description                                                                 |
+| ------------------------ | ------- | -------- | --------------- | --------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -               | Entity ID to chart                                                          |
+| `title`                  | string  | No       | "Foundry Chart" | Card title                                                                  |
+| `hours_to_show`          | number  | No       | 24              | Number of history hours to include                                          |
+| `bucket_count`           | number  | No       | 50              | Number of data points returned for the chart                                |
+| `bucket_minutes`         | number  | No       | null            | Data point interval in minutes (overrides the bucket count when set)        |
+| `update_interval`        | number  | No       | 60              | Refresh interval in seconds                                                 |
+| `aggregation`            | string  | No       | 'avg'           | Aggregation: 'avg', 'min', or 'max'                                         |
+| `min_value`              | number  | No       | auto            | Minimum value for the chart scale                                           |
+| `max_value`              | number  | No       | auto            | Maximum value for the chart scale                                           |
+| `value_precision`        | number  | No       | 2               | Decimal places for the current value display                                |
+| `show_footer`            | boolean | No       | true            | Show start/end time labels                                                  |
+| `line_color`             | string  | No       | '#d32f2f'       | Line color                                                                  |
+| `line_width`             | number  | No       | 2               | Line width                                                                  |
+| `fill_under_line`        | boolean | No       | false           | Fill the area under the line                                                |
+| `grid_minor_color`       | string  | No       | '#cfead6'       | Minor grid color                                                            |
+| `grid_major_color`       | string  | No       | '#8fc79d'       | Major grid color                                                            |
+| `grid_opacity`           | number  | No       | 0.6             | Grid opacity                                                                |
+| `ring_style`             | string  | No       | 'brass'         | Casing style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', etc. |
+| `plate_color`            | string  | No       | '#f5f5f5'       | Background plate color                                                      |
+| `plate_transparent`      | boolean | No       | false           | Make the plate transparent                                                  |
+| `rivet_color`            | string  | No       | '#6d5d4b'       | Color of rivets                                                             |
+| `font_bg_color`          | string  | No       | '#ffffff'       | Background color of the chart screen                                        |
+| `font_color`             | string  | No       | '#000000'       | Color of labels and current value                                           |
+| `title_color`            | string  | No       | '#3e2723'       | Color of the title text                                                     |
+| `wear_level`             | number  | No       | 50              | Intensity of wear marks (0-100)                                             |
+| `glass_effect_enabled`   | boolean | No       | true            | Enable glass effect overlay                                                 |
+| `aged_texture`           | string  | No       | 'everywhere'    | Aged texture mode: 'none', 'glass_only', 'everywhere'                       |
+| `aged_texture_intensity` | number  | No       | 50              | Intensity of aged texture effect (0-100)                                    |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-chart-card
+entity: sensor.outside_temperature
+title: Outside Temp
+hours_to_show: 24
+bucket_count: 60
+update_interval: 60
+aggregation: avg
+line_color: '#d32f2f'
+line_width: 2
+fill_under_line: true
+grid_minor_color: '#cfead6'
+grid_major_color: '#8fc79d'
+grid_opacity: 0.6
+ring_style: brass
+plate_color: '#f5f5f5'
+rivet_color: '#6d5d4b'
+font_bg_color: '#ffffff'
+font_color: '#000000'
+title_color: '#3e2723'
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
 
 </details>
 

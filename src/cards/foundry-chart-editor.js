@@ -261,7 +261,7 @@ class FoundryChartEditor extends HTMLElement {
           },
           {
             name: 'bucket_count',
-            label: 'Bucket Count',
+            label: 'Number of Data Points',
             selector: { number: { min: 10, max: 200 } },
           },
           {
