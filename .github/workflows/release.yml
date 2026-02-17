@@ -59,7 +59,7 @@ jobs:
 
       # Create release with the source file (no build step needed)
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.4.2
         with:
           files: |
             dist/foundry-card.js
@@ -67,3 +67,4 @@ jobs:
           body_path: RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
