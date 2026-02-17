@@ -40,7 +40,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Uptime Card](#foundry-uptime-card)
    - [Foundry Chart Card](#foundry-chart-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
-   - [Foundry Slider Card](#foundry-slider-card) 
+   - [Foundry Slider Card](#foundry-slider-card)
 4. [Custom Themes](#custom-themes)
 5. [Development](#development)
 6. [Roadmap](#roadmap)
@@ -862,9 +862,9 @@ Show entity history in a compact chart:
 | `title`                  | string  | No       | "Foundry Chart" | Card title                                                                  |
 | `hours_to_show`          | number  | No       | 24              | Number of history hours to include                                          |
 | `bucket_count`           | number  | No       | 50              | Number of data points returned for the chart                                |
-| `bucket_minutes`         | number  | No       | null            | Data point interval in minutes (overrides the bucket count when set)               |
+| `bucket_minutes`         | number  | No       | null            | Data point interval in minutes (overrides the bucket count when set)        |
 | `update_interval`        | number  | No       | 60              | Refresh interval in seconds                                                 |
-| `aggregation`            | string  | No       | 'avg'           | Aggregation: 'avg', 'min', or 'max'                                          |
+| `aggregation`            | string  | No       | 'avg'           | Aggregation: 'avg', 'min', or 'max'                                         |
 | `min_value`              | number  | No       | auto            | Minimum value for the chart scale                                           |
 | `max_value`              | number  | No       | auto            | Maximum value for the chart scale                                           |
 | `value_precision`        | number  | No       | 2               | Decimal places for the current value display                                |
