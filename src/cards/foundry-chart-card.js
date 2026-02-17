@@ -460,7 +460,7 @@ class FoundryChartCard extends HTMLElement {
 
               ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
 
-              <text id="chart-title" x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
+              <text id="chart-title" x="${plateWidth / 2}" y="24" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
               <text id="chart-value" x="${rimX + rimWidth - 24}" y="${rimY + 26}" font-size="13" font-family="ds-digitaldot" text-anchor="end" fill="${config.font_color}" style="letter-spacing:1px;">--</text>
 
