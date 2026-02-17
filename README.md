@@ -22,7 +22,7 @@
 A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
 <p></p>
-<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card.gif" style="border-radius: 8px"></a>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v2.gif" style="border-radius: 8px"></a>
 
 **New in v26.2.3:** theme support! You can now easily switch between predefined themes in the editor for all cards.
 
