@@ -18,6 +18,15 @@
 - **Theme Support:** Full theme support with all the standard industrial ring styles and visual effects.
 - **Visual Effects:** Includes wear levels, and aged texture effects for authentic vintage appearance.
 
+#### 📈 Foundry Chart Card
+
+**A vintage line chart for entity history.**
+
+- **History Sampling:** Configurable time range and bucket sizing for smooth or detailed trends.
+- **Aggregation Options:** Supports average, min, max, and last-value aggregation modes.
+- **Grid Styling:** Separate major/minor grid colors with adjustable opacity.
+- **Line Styling:** Custom line color, width, and optional fill under the line.
+
 ### Improvements
 
 - **Issue #31:** Fixed Readme link to the latest release
