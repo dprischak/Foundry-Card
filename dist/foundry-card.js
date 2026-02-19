@@ -253,8 +253,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function (style) {
-      map2[style].forEach(function (alias) {
+    Object.keys(map2).forEach(function(style) {
+      map2[style].forEach(function(alias) {
         result[String(alias)] = style;
       });
     });
@@ -263,7 +263,7 @@ function compileStyleAliases(map2) {
 }
 function Type$1(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function (name) {
+  Object.keys(options).forEach(function(name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -271,10 +271,10 @@ function Type$1(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function () {
+  this.resolve = options["resolve"] || function() {
     return true;
   };
-  this.construct = options["construct"] || function (data) {
+  this.construct = options["construct"] || function(data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -291,9 +291,9 @@ function Type$1(tag, options) {
 var type = Type$1;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function (currentType) {
+  schema2[name].forEach(function(currentType) {
     var newIndex = result.length;
-    result.forEach(function (previousType, previousIndex) {
+    result.forEach(function(previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -344,7 +344,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function (type$1) {
+  implicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -355,7 +355,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function (type$1) {
+  explicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -371,19 +371,19 @@ Schema$1.prototype.extend = function extend2(definition) {
 var schema = Schema$1;
 var str = new type("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : "";
   }
 });
 var seq = new type("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : [];
   }
 });
 var map = new type("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : {};
   }
 });
@@ -411,19 +411,19 @@ var _null = new type("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function () {
+    canonical: function() {
       return "~";
     },
-    lowercase: function () {
+    lowercase: function() {
       return "null";
     },
-    uppercase: function () {
+    uppercase: function() {
       return "NULL";
     },
-    camelcase: function () {
+    camelcase: function() {
       return "Null";
     },
-    empty: function () {
+    empty: function() {
       return "";
     }
   },
@@ -446,13 +446,13 @@ var bool = new type("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function (object) {
+    lowercase: function(object) {
       return object ? "true" : "false";
     },
-    uppercase: function (object) {
+    uppercase: function(object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function (object) {
+    camelcase: function(object) {
       return object ? "True" : "False";
     }
   },
@@ -549,17 +549,17 @@ var int = new type("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function (obj) {
+    binary: function(obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function (obj) {
+    octal: function(obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function (obj) {
+    decimal: function(obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function (obj) {
+    hexadecimal: function(obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -578,8 +578,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-    // Probably should update regexp & check speed
-    data[data.length - 1] === "_") {
+  // Probably should update regexp & check speed
+  data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -2257,7 +2257,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -2283,7 +2283,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = (function () {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2335,7 +2335,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = (function () {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -2659,7 +2659,7 @@ var dumper = {
   dump: dump_1
 };
 function renamed(from, to) {
-  return function () {
+  return function() {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -5310,8 +5310,8 @@ function ensureLedFont() {
   document.head.appendChild(style);
 }
 
-// src/cards/foundry-thermostat-card.js
-var FoundryThermostatCard = class extends HTMLElement {
+// src/cards/foundry-thermometer-card.js
+var FoundryThermometerCard = class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -5405,20 +5405,19 @@ var FoundryThermostatCard = class extends HTMLElement {
   render() {
     const config = this.config;
     const uid = this._uniqueId;
-    const fontColor = config.font_color || config.title_font_color || "#3e2723";
+    const numberColor = config.number_color || "#3e2723";
+    const fontColor = numberColor;
     const title = config.title || "Temperature";
     const ringStyle = config.ring_style;
     const rimData = this.getRimStyleData(ringStyle, uid);
-    const plateColor = config.plate_color;
-    const plateTransparent = config.plate_transparent;
     const rivetColor = config.rivet_color;
-    const fontBgColor = config.font_bg_color || "#ffffff";
+    const backgroundStyle = config.background_style || "gradient";
+    const faceColor = config.face_color || "#f8f8f0";
+    let faceFill = backgroundStyle === "solid" ? faceColor : `url(#thermometerFace-${uid})`;
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
-    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
-    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     let liquidColor = "#cc0000";
     if (config.liquid_color) {
       if (Array.isArray(config.liquid_color)) {
@@ -5485,8 +5484,8 @@ var FoundryThermostatCard = class extends HTMLElement {
             fill: ${fontColor};
         }
         .rivet {
-          fill: ${rivetColor};
-          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+            fill: ${rivetColor};
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
         }
         .screw-detail {
           stroke: #4a4034;
@@ -5526,16 +5525,20 @@ var FoundryThermostatCard = class extends HTMLElement {
                  <stop offset="60%" style="stop-color:${liquidColor}" />
                  <stop offset="100%" style="stop-color:${this.darkenColor(liquidColor, 40)}" />
               </linearGradient>
+
+              <linearGradient id="thermometerFace-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#dfdfdf;stop-opacity:1" />
+                  <stop offset="20%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="80%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
+              </linearGradient>
             </defs>
 
-              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-                    fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
-                    filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
+            ${this.renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config)}
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
-            ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+            ${this.renderSquareRim(ringStyle, uid, faceFill, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
 
             <g transform="translate(${rimX}, ${rimY})">
                 
@@ -5550,16 +5553,16 @@ var FoundryThermostatCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
-                        <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
+                        <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -5574,8 +5577,22 @@ var FoundryThermostatCard = class extends HTMLElement {
       </ha-card>
     `;
     this._attachActionListeners();
-    this.drawScale(fontColor);
+    this.drawScale();
     this.drawSegments();
+  }
+  renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config) {
+    const plateColor = config.plate_color;
+    const plateTransparent = config.plate_transparent;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const fill = plateTransparent ? "none" : plateColor;
+    const filter = effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))";
+    return `
+      <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
+            fill="${fill}" 
+            stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
+            filter="${filter}" />
+    `;
   }
   renderRivets(w, h, x, y) {
     const offset = 15;
@@ -5653,8 +5670,13 @@ var FoundryThermostatCard = class extends HTMLElement {
       this.config.segments_under_mercury = true;
     this.config.plate_color = this.config.plate_color || "#8c7626";
     this.config.rivet_color = this.config.rivet_color || "#6a5816";
+    this.config.face_color = this.config.face_color || "#f8f8f0";
+    this.config.background_style = this.config.background_style || "gradient";
     this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.title_color = this.config.title_color || this.config.title_font_color || "#3e2723";
+    this.config.number_color = this.config.number_color || this.config.font_color || this.config.title_color || "#3e2723";
+    this.config.tick_color = this.config.tick_color || "#333";
+    this.config.primary_tick_color = this.config.primary_tick_color || this.config.tick_color;
+    this.config.secondary_tick_color = this.config.secondary_tick_color || this.config.tick_color;
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
     this.render();
@@ -5687,10 +5709,12 @@ var FoundryThermostatCard = class extends HTMLElement {
     const clampedPct = Math.max(0, Math.min(1, pct));
     return yBottom - clampedPct * (yBottom - yTop);
   }
-  drawScale(color) {
+  drawScale() {
     const group = this.shadowRoot.getElementById("scale-group");
     if (!group) return;
-    const tickColor = color || "#333";
+    const primaryColor = this.config.primary_tick_color || this.config.tick_color || this.config.number_color || "#333";
+    const secondaryColor = this.config.secondary_tick_color || this.config.tick_color || this.config.number_color || "#333";
+    const numberColor = this.config.number_color || "#3e2723";
     const min = this.config.min !== void 0 ? this.config.min : -40;
     const max = this.config.max !== void 0 ? this.config.max : 120;
     const range = max - min;
@@ -5699,18 +5723,24 @@ var FoundryThermostatCard = class extends HTMLElement {
     else if (range <= 50) step = 5;
     else if (range <= 100) step = 10;
     const subStep = step / 2;
-    let svgContent = "";
-    for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
-      const y = this._valueToY(v);
-      svgContent += `<line x1="32" y1="${y}" x2="58" y2="${y}" stroke="${tickColor}" stroke-width="1.5" />`;
-      svgContent += `<text x="29" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="${tickColor}" font-weight="bold">${v}</text>`;
-    }
+    const ticks = [];
     for (let v = Math.ceil(min / subStep) * subStep; v <= max; v += subStep) {
-      if (v % step === 0) continue;
-      const y = this._valueToY(v);
-      svgContent += `<line x1="38" y1="${y}" x2="58" y2="${y}" stroke="${tickColor}" stroke-width="1" />`;
+      ticks.push({
+        value: v,
+        y: this._valueToY(v),
+        isMajor: v % step === 0
+      });
     }
-    group.innerHTML = svgContent;
+    const majorPath = ticks.filter((t) => t.isMajor).map((t) => `M 28.5 ${t.y} L 65.5 ${t.y}`).join(" ");
+    const minorPath = ticks.filter((t) => !t.isMajor).map((t) => `M 32.5 ${t.y} L 61.5 ${t.y}`).join(" ");
+    const numbers = ticks.filter((t) => t.isMajor).map(
+      (t) => `<text x="28" y="${t.y + 4}" text-anchor="end" class="scale-number" style="fill:${numberColor}; font-size: 11px; font-weight:bold; font-family: 'Georgia', serif;">${t.value}</text>`
+    ).join("");
+    group.innerHTML = `
+      <path d="${majorPath}" stroke="${primaryColor}" stroke-width="1.5" fill="none" />
+      <path d="${minorPath}" stroke="${secondaryColor}" stroke-width="1" fill="none" />
+      ${numbers}
+    `;
   }
   drawSegments() {
     const segments = this.config.segments || [];
@@ -5719,7 +5749,7 @@ var FoundryThermostatCard = class extends HTMLElement {
     const behindMercury = this.config.segments_under_mercury === true;
     const xPos = behindMercury ? 47.5 : 72;
     const width = behindMercury ? 20 : 10;
-    const opacity = behindMercury ? 0.35 : 0.8;
+    const opacity = behindMercury ? 0.6 : 0.8;
     let svgContent = "";
     segments.forEach((seg) => {
       const from = seg.from !== void 0 ? seg.from : 0;
@@ -5749,7 +5779,7 @@ var FoundryThermostatCard = class extends HTMLElement {
     }
   }
   static getConfigElement() {
-    return document.createElement("foundry-thermostat-editor");
+    return document.createElement("foundry-thermometer-editor");
   }
   static getStubConfig() {
     return {
@@ -5774,19 +5804,19 @@ var FoundryThermostatCard = class extends HTMLElement {
     };
   }
 };
-if (!customElements.get("foundry-thermostat-card")) {
-  customElements.define("foundry-thermostat-card", FoundryThermostatCard);
+if (!customElements.get("foundry-thermometer-card")) {
+  customElements.define("foundry-thermometer-card", FoundryThermometerCard);
 }
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "foundry-thermostat-card",
-  name: "Foundry Thermostat Card",
+  type: "foundry-thermometer-card",
+  name: "Foundry Thermometer Card",
   preview: true,
-  description: "A vintage industrial style thermostat card"
+  description: "A vintage industrial style thermometer card"
 });
 
-// src/cards/foundry-thermostat-editor.js
-var FoundryThermostatEditor = class extends HTMLElement {
+// src/cards/foundry-thermometer-editor.js
+var FoundryThermometerEditor = class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -5814,9 +5844,10 @@ var FoundryThermostatEditor = class extends HTMLElement {
       this._form1 = null;
       this._form2 = null;
       this._segmentsContainer = null;
-      if (!this._advancedMode) {
-        this.render();
-      }
+      this._form1 = null;
+      this._form2 = null;
+      this._segmentsContainer = null;
+      this.render();
     } catch (e) {
       console.error("Error loading themes:", e);
     }
@@ -6036,24 +6067,17 @@ var FoundryThermostatEditor = class extends HTMLElement {
         "plate_color",
         "rivet_color",
         "ring_style",
-        "title_color",
-        "font_color",
-        "font_bg_color",
         "number_color",
         "primary_tick_color",
         "secondary_tick_color",
         "background_style",
         "face_color",
         "liquid_color",
-        "needle_color",
         "plate_transparent",
         "glass_effect_enabled",
         "wear_level",
         "aged_texture",
-        "aged_texture_intensity",
-        "slider_color",
-        "knob_color",
-        "tick_color"
+        "aged_texture_intensity"
       ];
       const overriddenProps = themeProperties.filter(
         (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
@@ -6082,7 +6106,7 @@ var FoundryThermostatEditor = class extends HTMLElement {
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     delete data.segments;
-    data.theme = sourceConfig.theme ?? "none";
+    data.theme = config.theme && config.theme !== "none" ? config.theme : "none";
     data.liquid_color = this._hexToRgb(
       sourceConfig.liquid_color ?? "#cc0000"
     ) || [204, 0, 0];
@@ -6095,15 +6119,27 @@ var FoundryThermostatEditor = class extends HTMLElement {
     data.font_bg_color = this._hexToRgb(
       sourceConfig.font_bg_color ?? "#ffffff"
     ) || [255, 255, 255];
-    data.font_color = this._hexToRgb(
-      sourceConfig.font_color || sourceConfig.title_font_color || "#3e2723"
+    data.number_color = this._hexToRgb(
+      sourceConfig.number_color || sourceConfig.font_color || sourceConfig.title_color || "#3e2723"
     ) ?? [62, 39, 35];
+    data.primary_tick_color = this._hexToRgb(
+      sourceConfig.primary_tick_color || sourceConfig.tick_color || "#000000"
+    ) ?? [0, 0, 0];
+    data.secondary_tick_color = this._hexToRgb(
+      sourceConfig.secondary_tick_color || sourceConfig.tick_color || "#000000"
+    ) ?? [0, 0, 0];
     data.ring_style = sourceConfig.ring_style ?? "brass";
     data.min = sourceConfig.min ?? -40;
     data.max = sourceConfig.max ?? 120;
     data.mercury_width = sourceConfig.mercury_width ?? 50;
     data.animation_duration = sourceConfig.animation_duration ?? 1.5;
     data.segments_under_mercury = sourceConfig.segments_under_mercury ?? true;
+    data.face_color = this._hexToRgb(sourceConfig.face_color ?? "#f8f8f0") || [
+      248,
+      248,
+      240
+    ];
+    data.background_style = sourceConfig.background_style ?? "gradient";
     data.plate_transparent = sourceConfig.plate_transparent ?? false;
     data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
     data.wear_level = sourceConfig.wear_level ?? 50;
@@ -6127,8 +6163,15 @@ var FoundryThermostatEditor = class extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
     if (config.font_bg_color)
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color)
-      config.font_color = this._rgbToHex(config.font_color);
+    if (config.number_color)
+      config.number_color = this._rgbToHex(config.number_color);
+    delete config.font_color;
+    if (config.primary_tick_color)
+      config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
+    if (config.secondary_tick_color)
+      config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
+    if (config.face_color)
+      config.face_color = this._rgbToHex(config.face_color);
     delete config.title_color;
     return config;
   }
@@ -6138,14 +6181,7 @@ var FoundryThermostatEditor = class extends HTMLElement {
       {
         type: "grid",
         name: "",
-        schema: [
-          { name: "title", selector: { text: {} } },
-          {
-            name: "font_color",
-            label: "Title Color",
-            selector: { color_rgb: {} }
-          }
-        ]
+        schema: [{ name: "title", selector: { text: {} } }]
       },
       { name: "unit", selector: { text: {} } },
       {
@@ -6205,6 +6241,7 @@ var FoundryThermostatEditor = class extends HTMLElement {
                 options: [
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
@@ -6235,8 +6272,24 @@ var FoundryThermostatEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
-                name: "font_bg_color",
-                label: "Tube Background",
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Major Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Minor Tick Color",
                 selector: { color_rgb: {} }
               }
             ]
@@ -6250,6 +6303,24 @@ var FoundryThermostatEditor = class extends HTMLElement {
             name: "glass_effect_enabled",
             label: "Glass Effect",
             selector: { boolean: {} }
+          },
+          {
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Gradient" },
+                  { value: "solid", label: "Solid" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
           },
           {
             name: "wear_level",
@@ -6313,8 +6384,8 @@ var FoundryThermostatEditor = class extends HTMLElement {
     return schema2.name;
   }
 };
-if (!customElements.get("foundry-thermostat-editor")) {
-  customElements.define("foundry-thermostat-editor", FoundryThermostatEditor);
+if (!customElements.get("foundry-thermometer-editor")) {
+  customElements.define("foundry-thermometer-editor", FoundryThermometerEditor);
 }
 
 // src/cards/foundry-homethermostat-card.js

@@ -35,7 +35,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Analog Clock](#foundry-analog-clock)
    - [Foundry Digital Clock](#foundry-digital-clock)
    - [Foundry Button Card](#foundry-button-card)
-   - [Foundry Thermostat](#foundry-thermostat)
+   - [Foundry Thermometer](#foundry-thermometer)
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
    - [Foundry Chart Card](#foundry-chart-card)
@@ -96,9 +96,9 @@ A tactile industrial push-button:
 - Everything Customizable
 - Jinja2 templating support
 
-<a name="foundry-thermostat"></a>
+<a name="foundry-thermometer"></a>
 
-### 🌡️ Foundry Thermostat
+### 🌡️ Foundry Thermometer
 
 An industrial liquid thermometer card:
 
@@ -662,41 +662,43 @@ tap_action:
 
 </details>
 
-### Foundry Thermostat
+### Foundry Thermometer
 
 An industrial liquid-in-glass thermometer:
 
 #### Configuration Options
 
-| Option                   | Type         | Required | Default                 | Description                                                                                 |
-| ------------------------ | ------------ | -------- | ----------------------- | ------------------------------------------------------------------------------------------- |
-| `entity`                 | string       | **Yes**  | -                       | Temperature entity to monitor                                                               |
-| `title`                  | string       | No       | "Temperature"           | Card title                                                                                  |
-| `font_color`             | string       | No       | "#3e2723"               | Color of the title and scale text                                                           |
-| `unit`                   | string       | No       | -                       | Unit of measurement string to display                                                       |
-| `min`                    | number       | No       | -40                     | Minimum temperature value                                                                   |
-| `max`                    | number       | No       | 120                     | Maximum temperature value                                                                   |
-| `ring_style`             | string       | No       | 'brass'                 | Casing style: 'brass', 'silver', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
-| `liquid_color`           | string/array | No       | '#cc0000'               | Color of the liquid (mercury)                                                               |
-| `mercury_width`          | number       | No       | 50                      | Width of liquid column (percentage of tube)                                                 |
-| `segments_under_mercury` | boolean      | No       | true                    | Render colored segments behind the liquid tube                                              |
-| `segments`               | array        | No       | []                      | Color zones (from/to/color)                                                                 |
-| `animation_duration`     | number       | No       | 1.5                     | Animation speed in seconds                                                                  |
-| `plate_color`            | string       | No       | '#8c7626'               | Background plate color                                                                      |
-| `plate_transparent`      | boolean      | No       | false                   | Make the plate transparent                                                                  |
-| `rivet_color`            | string       | No       | '#6a5816'               | Color of rivets                                                                             |
-| `font_bg_color`          | string       | No       | '#ffffff'               | Background color of the tube scale area                                                     |
-| `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                             |
-| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                 |
-| `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                       |
-| `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                    |
-| `tap_action`             | object       | No       | `{action: 'more-info'}` | Action to perform on tap                                                                    |
+| Option                   | Type         | Required | Default                 | Description                                                                                           |
+| ------------------------ | ------------ | -------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `entity`                 | string       | **Yes**  | -                       | Temperature entity to monitor                                                                         |
+| `title`                  | string       | No       | "Temperature"           | Card title                                                                                            |
+| `font_color`             | string       | No       | "#3e2723"               | Color of the title and scale text                                                                     |
+| `unit`                   | string       | No       | -                       | Unit of measurement string to display                                                                 |
+| `min`                    | number       | No       | -40                     | Minimum temperature value                                                                             |
+| `max`                    | number       | No       | 120                     | Maximum temperature value                                                                             |
+| `ring_style`             | string       | No       | 'brass'                 | Casing style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none' |
+| `liquid_color`           | string/array | No       | '#cc0000'               | Color of the liquid (mercury)                                                                         |
+| `mercury_width`          | number       | No       | 50                      | Width of liquid column (percentage of tube)                                                           |
+| `segments_under_mercury` | boolean      | No       | true                    | Render colored segments behind the liquid tube                                                        |
+| `segments`               | array        | No       | []                      | Color zones (from/to/color)                                                                           |
+| `animation_duration`     | number       | No       | 1.5                     | Animation speed in seconds                                                                            |
+| `plate_color`            | string       | No       | '#8c7626'               | Background plate color                                                                                |
+| `plate_transparent`      | boolean      | No       | false                   | Make the plate transparent                                                                            |
+| `rivet_color`            | string       | No       | '#6a5816'               | Color of rivets                                                                                       |
+| `font_bg_color`          | string       | No       | '#ffffff'               | Background color of the tube scale area                                                               |
+| `primary_tick_color`     | string       | No       | '#333333'               | Color of major ticks                                                                                  |
+| `secondary_tick_color`   | string       | No       | '#333333'               | Color of minor ticks                                                                                  |
+| `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                                       |
+| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                           |
+| `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                                 |
+| `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                              |
+| `tap_action`             | object       | No       | `{action: 'more-info'}` | Action to perform on tap                                                                              |
 
 <details>
   <summary>Click to see examples</summary>
 
 ```yaml
-type: custom:foundry-thermostat-card
+type: custom:foundry-thermometer-card
 entity: sensor.outside_temperature
 min: 0
 max: 100
@@ -708,7 +710,9 @@ animation_duration: 1.5
 plate_color: '#8c7626'
 rivet_color: '#ffffff'
 font_bg_color: '#fcfcfc'
-title_font_color: '#000000'
+font_color: '#000000'
+primary_tick_color: '#000000'
+secondary_tick_color: '#444444'
 segments:
   - from: 0
     to: 33
@@ -877,11 +881,12 @@ Show entity history in a compact chart:
 | `grid_opacity`           | number  | No       | 0.6             | Grid opacity                                                                |
 | `ring_style`             | string  | No       | 'brass'         | Casing style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', etc. |
 | `plate_color`            | string  | No       | '#f5f5f5'       | Background plate color                                                      |
+| `background_style`       | string  | No       | 'gradient'      | 'gradient' or 'solid'. Controls the background fill of the plate.           |
+| `face_color`             | string  | No       | '#f8f8f0'       | Color of the face when `background_style` is `solid`.                       |
 | `plate_transparent`      | boolean | No       | false           | Make the plate transparent                                                  |
 | `rivet_color`            | string  | No       | '#6d5d4b'       | Color of rivets                                                             |
 | `font_bg_color`          | string  | No       | '#ffffff'       | Background color of the chart screen                                        |
-| `font_color`             | string  | No       | '#000000'       | Color of labels and current value                                           |
-| `title_color`            | string  | No       | '#3e2723'       | Color of the title text                                                     |
+| `number_color`           | string  | No       | '#3e2723'       | Color of the Title, Unit, and Scale numbers.                                |
 | `wear_level`             | number  | No       | 50              | Intensity of wear marks (0-100)                                             |
 | `glass_effect_enabled`   | boolean | No       | true            | Enable glass effect overlay                                                 |
 | `aged_texture`           | string  | No       | 'everywhere'    | Aged texture mode: 'none', 'glass_only', 'everywhere'                       |
