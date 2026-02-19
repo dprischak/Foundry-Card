@@ -88,11 +88,54 @@ class FoundryEntitiesCard extends HTMLElement {
       // Update State
       const stateEl = this.shadowRoot.getElementById(`state-${index}`);
       if (stateEl) {
-        const stateStr = stateObj ? stateObj.state : 'N/A';
-        const unit =
-          stateObj && stateObj.attributes.unit_of_measurement
-            ? stateObj.attributes.unit_of_measurement
-            : '';
+        let stateStr = 'N/A';
+        let unit = '';
+
+        if (stateObj) {
+          if (stateObj.attributes.device_class === 'timestamp') {
+            // 1. Local Date Time Formatting
+            const date = new Date(stateObj.state);
+            if (!isNaN(date.getTime())) {
+              stateStr = date.toLocaleString();
+            } else {
+              stateStr = stateObj.state;
+            }
+          } else if (
+            stateObj.attributes.finishes_at ||
+            stateObj.attributes.remaining
+          ) {
+            // 2. Remaining Time / Time Based Formatting
+            // Check for finishes_at (timers)
+            if (stateObj.attributes.finishes_at) {
+              const finishesAt = new Date(stateObj.attributes.finishes_at);
+              const remainingMs = finishesAt - now;
+              if (remainingMs > 0) {
+                const totalSeconds = Math.floor(remainingMs / 1000);
+                const hrs = Math.floor(totalSeconds / 3600);
+                const mins = Math.floor((totalSeconds % 3600) / 60);
+                const secs = totalSeconds % 60;
+                // HH:MM:SS or MM:SS
+                if (hrs > 0) {
+                  stateStr = `${hrs}:${mins.toString().padStart(2, '0')}:${secs
+                    .toString()
+                    .padStart(2, '0')}`;
+                } else {
+                  stateStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+              } else {
+                stateStr = '0:00';
+              }
+            } else {
+              // Fallback or other time based?
+              stateStr = stateObj.state;
+            }
+          } else {
+            // Standard state display
+            stateStr = stateObj.state;
+            unit = stateObj.attributes.unit_of_measurement || '';
+          }
+        }
+
         stateEl.textContent = `${stateStr}${unit ? ' ' + unit : ''}`;
       }
 
@@ -107,7 +150,8 @@ class FoundryEntitiesCard extends HTMLElement {
             secondaryEl.textContent = entityId;
           } else if (secondaryType === 'state') {
             const unit = stateObj.attributes.unit_of_measurement || '';
-            secondaryEl.textContent = `${stateObj.state}${unit ? ' ' + unit : ''}`;
+            secondaryEl.textContent = `${stateObj.state}${unit ? ' ' + unit : ''
+              }`;
           } else if (
             secondaryType === 'last-updated' ||
             secondaryType === 'last-changed'
@@ -132,6 +176,32 @@ class FoundryEntitiesCard extends HTMLElement {
         }
       }
     });
+
+    // Request next frame if we have active timers to update appropriately?
+    // For now rely on HA state updates or parent re-renders, but since we calculate remaining time relative to NOW,
+    // we strictly need a loop.
+    // However, without a loop, it only updates when ANY entity changes in HA (triggering set hass).
+    // Adding a loop might be overkill for this card's current architecture, but let's see.
+    // If we want smooth countdowns, we need a timer.
+    // I will add a simple requestAnimationFrame or setInterval if I detect an active timer.
+    const hasActiveTimer = this.config.entities.some((e) => {
+      const eid = typeof e === 'string' ? e : e.entity;
+      const s = this._hass.states[eid];
+      return (
+        s &&
+        s.attributes.finishes_at &&
+        new Date(s.attributes.finishes_at) > now
+      );
+    });
+
+    if (hasActiveTimer) {
+      if (!this._timerInterval) {
+        this._timerInterval = setInterval(() => this._updateValues(), 1000);
+      }
+    } else if (this._timerInterval) {
+      clearInterval(this._timerInterval);
+      this._timerInterval = null;
+    }
   }
 
   render() {
