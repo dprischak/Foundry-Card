@@ -11482,8 +11482,41 @@ var FoundryEntitiesCard = class extends HTMLElement {
       const stateObj = this._hass.states[entityId];
       const stateEl = this.shadowRoot.getElementById(`state-${index}`);
       if (stateEl) {
-        const stateStr = stateObj ? stateObj.state : "N/A";
-        const unit = stateObj && stateObj.attributes.unit_of_measurement ? stateObj.attributes.unit_of_measurement : "";
+        let stateStr = "N/A";
+        let unit = "";
+        if (stateObj) {
+          if (stateObj.attributes.device_class === "timestamp") {
+            const date = new Date(stateObj.state);
+            if (!isNaN(date.getTime())) {
+              stateStr = date.toLocaleString();
+            } else {
+              stateStr = stateObj.state;
+            }
+          } else if (stateObj.attributes.finishes_at || stateObj.attributes.remaining) {
+            if (stateObj.attributes.finishes_at) {
+              const finishesAt = new Date(stateObj.attributes.finishes_at);
+              const remainingMs = finishesAt - now;
+              if (remainingMs > 0) {
+                const totalSeconds = Math.floor(remainingMs / 1e3);
+                const hrs = Math.floor(totalSeconds / 3600);
+                const mins = Math.floor(totalSeconds % 3600 / 60);
+                const secs = totalSeconds % 60;
+                if (hrs > 0) {
+                  stateStr = `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+                } else {
+                  stateStr = `${mins}:${secs.toString().padStart(2, "0")}`;
+                }
+              } else {
+                stateStr = "0:00";
+              }
+            } else {
+              stateStr = stateObj.state;
+            }
+          } else {
+            stateStr = stateObj.state;
+            unit = stateObj.attributes.unit_of_measurement || "";
+          }
+        }
         stateEl.textContent = `${stateStr}${unit ? " " + unit : ""}`;
       }
       const secondaryEl = this.shadowRoot.getElementById(`secondary-${index}`);
@@ -11512,6 +11545,19 @@ var FoundryEntitiesCard = class extends HTMLElement {
         }
       }
     });
+    const hasActiveTimer = this.config.entities.some((e) => {
+      const eid = typeof e === "string" ? e : e.entity;
+      const s = this._hass.states[eid];
+      return s && s.attributes.finishes_at && new Date(s.attributes.finishes_at) > now;
+    });
+    if (hasActiveTimer) {
+      if (!this._timerInterval) {
+        this._timerInterval = setInterval(() => this._updateValues(), 1e3);
+      }
+    } else if (this._timerInterval) {
+      clearInterval(this._timerInterval);
+      this._timerInterval = null;
+    }
   }
   render() {
     const config = this.config;
@@ -11940,6 +11986,43 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                     font-weight: bold;
                     margin-bottom: 8px;
                 }
+                .entity-row-container {
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 8px;
+                  background: var(--secondary-background-color, rgba(0,0,0,0.03));
+                  padding: 8px;
+                  border-radius: 4px;
+                  margin-bottom: 8px;
+                }
+                .move-buttons {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                  margin-top: 4px;
+                }
+                .move-btn {
+                  background: transparent;
+                  border: 1px solid var(--primary-color);
+                  color: var(--primary-color);
+                  border-radius: 4px;
+                  cursor: pointer;
+                  padding: 2px 8px;
+                  font-size: 12px;
+                }
+                .move-btn:hover {
+                  background: var(--primary-color);
+                  color: var(--text-primary-color);
+                }
+                .entity-form {
+                  flex-grow: 1;
+                }
+                .empty-entities {
+                  padding: 16px;
+                  text-align: center;
+                  font-style: italic;
+                  opacity: 0.7;
+                }
             `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
@@ -11971,22 +12054,173 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     this._root.appendChild(btn);
     const header = document.createElement("div");
     header.className = "header";
-    header.textContent = "Edit Entity Details";
+    header.textContent = "Edit Entity Details & Order";
     this._root.appendChild(header);
-    this._advancedForm = document.createElement("ha-form");
-    this._advancedForm.computeLabel = this._computeLabel;
-    this._advancedForm.addEventListener(
-      "value-changed",
-      (ev) => this._handleFormChangedAdvanced(ev)
-    );
-    this._root.appendChild(this._advancedForm);
+    const entities = this._config.entities || [];
+    if (entities.length === 0) {
+      const msg = document.createElement("div");
+      msg.className = "empty-entities";
+      msg.textContent = "No entities selected. Go back to add entities.";
+      this._root.appendChild(msg);
+      return;
+    }
+    entities.forEach((entity, index) => {
+      const row = document.createElement("div");
+      row.className = "entity-row-container";
+      const btnContainer = document.createElement("div");
+      btnContainer.className = "move-buttons";
+      const upBtn = document.createElement("button");
+      upBtn.className = "move-btn";
+      upBtn.textContent = "\u2191";
+      upBtn.disabled = index === 0;
+      upBtn.onclick = () => this._moveEntity(index, -1);
+      if (index === 0) upBtn.style.opacity = "0.3";
+      const downBtn = document.createElement("button");
+      downBtn.className = "move-btn";
+      downBtn.textContent = "\u2193";
+      downBtn.disabled = index === entities.length - 1;
+      downBtn.onclick = () => this._moveEntity(index, 1);
+      if (index === entities.length - 1) downBtn.style.opacity = "0.3";
+      btnContainer.appendChild(upBtn);
+      btnContainer.appendChild(downBtn);
+      row.appendChild(btnContainer);
+      const formContainer = document.createElement("div");
+      formContainer.className = "entity-form";
+      const form = document.createElement("ha-form");
+      form.hass = this._hass;
+      form.computeLabel = this._computeLabel;
+      const entName = typeof entity === "string" ? entity : entity.entity;
+      const schema2 = [
+        {
+          name: "",
+          type: "expandable",
+          title: `${entName}`,
+          expanded: true,
+          // Keep open for easier editing
+          schema: [
+            { name: "name", label: "Name Override", selector: { text: {} } },
+            {
+              name: "secondary_info",
+              label: "Secondary Info",
+              selector: {
+                select: {
+                  mode: "dropdown",
+                  options: [
+                    { value: "none", label: "None" },
+                    { value: "entity-id", label: "Entity ID" },
+                    { value: "state", label: "State" },
+                    { value: "last-updated", label: "Last Updated" },
+                    { value: "last-changed", label: "Last Changed" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ];
+      const data = {
+        name: typeof entity === "object" ? entity.name : "",
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+      };
+      form.schema = schema2;
+      form.data = data;
+      form.addEventListener(
+        "value-changed",
+        (ev) => this._handleSingleEntityChange(index, ev.detail.value)
+      );
+      formContainer.appendChild(form);
+      row.appendChild(formContainer);
+      this._root.appendChild(row);
+    });
   }
   _updateAdvancedUI() {
-    if (this._advancedForm) {
-      this._advancedForm.hass = this._hass;
-      this._advancedForm.data = this._configToFormAdvanced(this._config);
-      this._advancedForm.schema = this._getSchemaAdvanced();
+    const entities = this._config.entities || [];
+    const rows = this._root.querySelectorAll(".entity-row-container");
+    if (entities.length !== rows.length) {
+      this._root.innerHTML = "";
+      this._buildAdvancedUI();
+      return;
     }
+    rows.forEach((row, index) => {
+      const entity = entities[index];
+      const form = row.querySelector("ha-form");
+      if (!form) return;
+      const entName = typeof entity === "string" ? entity : entity.entity;
+      const schema2 = [
+        {
+          name: "",
+          type: "expandable",
+          title: `${entName}`,
+          expanded: true,
+          schema: [
+            { name: "name", label: "Name Override", selector: { text: {} } },
+            {
+              name: "secondary_info",
+              label: "Secondary Info",
+              selector: {
+                select: {
+                  mode: "dropdown",
+                  options: [
+                    { value: "none", label: "None" },
+                    { value: "entity-id", label: "Entity ID" },
+                    { value: "state", label: "State" },
+                    { value: "last-updated", label: "Last Updated" },
+                    { value: "last-changed", label: "Last Changed" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ];
+      const data = {
+        name: typeof entity === "object" ? entity.name : "",
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+      };
+      form.schema = schema2;
+      form.data = data;
+      const buttons = row.querySelectorAll(".move-btn");
+      if (buttons.length === 2) {
+        const upBtn = buttons[0];
+        const downBtn = buttons[1];
+        upBtn.disabled = index === 0;
+        upBtn.style.opacity = index === 0 ? "0.3" : "1";
+        downBtn.disabled = index === entities.length - 1;
+        downBtn.style.opacity = index === entities.length - 1 ? "0.3" : "1";
+      }
+    });
+  }
+  _moveEntity(index, direction) {
+    const newIndex = index + direction;
+    const entities = [...this._config.entities || []];
+    if (newIndex < 0 || newIndex >= entities.length) return;
+    [entities[index], entities[newIndex]] = [
+      entities[newIndex],
+      entities[index]
+    ];
+    const newConfig = { ...this._config, entities };
+    this._config = newConfig;
+    fireEvent3(this, "config-changed", { config: this._config });
+    this.render();
+  }
+  _handleSingleEntityChange(index, value) {
+    const entities = [...this._config.entities || []];
+    const currentEntity = entities[index];
+    const currentEntityId = typeof currentEntity === "string" ? currentEntity : currentEntity.entity;
+    const newName = value.name;
+    const newInfo = value.secondary_info;
+    if ((!newName || newName === "") && (!newInfo || newInfo === "none")) {
+      entities[index] = currentEntityId;
+    } else {
+      entities[index] = {
+        entity: currentEntityId,
+        name: newName,
+        secondary_info: newInfo
+      };
+    }
+    const newConfig = { ...this._config, entities };
+    this._config = newConfig;
+    fireEvent3(this, "config-changed", { config: this._config });
   }
   _buildStandardUI() {
     this._entitiesForm = document.createElement("ha-form");
@@ -11998,7 +12232,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     this._root.appendChild(this._entitiesForm);
     this._toggleBtn = document.createElement("button");
     this._toggleBtn.className = "toggle-button";
-    this._toggleBtn.textContent = "Edit Entity Details / Overrides \u2192";
+    this._toggleBtn.textContent = "Edit Entity Details / Order \u2192";
     this._toggleBtn.onclick = () => {
       this._advancedMode = true;
       this.render();
@@ -12087,11 +12321,6 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       fireEvent3(this, "config-changed", { config: this._config });
     }
   }
-  _handleFormChangedAdvanced(ev) {
-    const newConfig = this._formToConfigAdvanced(ev.detail.value);
-    this._config = newConfig;
-    fireEvent3(this, "config-changed", { config: this._config });
-  }
   _configToForm(config) {
     const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
@@ -12132,17 +12361,6 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     return data;
   }
-  _configToFormAdvanced(config) {
-    const data = {};
-    if (Array.isArray(config.entities)) {
-      config.entities.forEach((e, i) => {
-        const entityObj = typeof e === "string" ? { entity: e } : e;
-        data[`name_${i}`] = entityObj.name || "";
-        data[`info_${i}`] = entityObj.secondary_info || "none";
-      });
-    }
-    return data;
-  }
   _formToConfig(formData) {
     const existingEntities = this._config.entities || [];
     let mergedEntities = existingEntities;
@@ -12169,25 +12387,6 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
     if (config.plate_color)
       config.plate_color = this._rgbToHex(config.plate_color);
-    return config;
-  }
-  _formToConfigAdvanced(formData) {
-    const config = { ...this._config };
-    if (Array.isArray(config.entities)) {
-      config.entities = config.entities.map((e, i) => {
-        const currentEntityId = typeof e === "string" ? e : e.entity;
-        const newName = formData[`name_${i}`];
-        const newInfo = formData[`info_${i}`];
-        if ((!newName || newName === "") && (!newInfo || newInfo === "none")) {
-          return currentEntityId;
-        }
-        return {
-          entity: currentEntityId,
-          name: newName,
-          secondary_info: newInfo
-        };
-      });
-    }
     return config;
   }
   _getSchemaTop() {
@@ -12323,45 +12522,6 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         ]
       }
     ];
-  }
-  _getSchemaAdvanced() {
-    const entities = this._config.entities || [];
-    const schema2 = [];
-    entities.forEach((e, i) => {
-      const entId = typeof e === "string" ? e : e.entity;
-      schema2.push({
-        name: "",
-        type: "expandable",
-        title: `${entId}`,
-        schema: [
-          { name: `name_${i}`, label: "Name Override", selector: { text: {} } },
-          {
-            name: `info_${i}`,
-            label: "Secondary Info",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: "none", label: "None" },
-                  { value: "entity-id", label: "Entity ID" },
-                  { value: "state", label: "State" },
-                  { value: "last-updated", label: "Last Updated" },
-                  { value: "last-changed", label: "Last Changed" }
-                ]
-              }
-            }
-          }
-        ]
-      });
-    });
-    if (schema2.length === 0) {
-      schema2.push({
-        name: "",
-        type: "constant",
-        value: "No entities selected. Go back to add entities."
-      });
-    }
-    return schema2;
   }
   _hexToRgb(hex) {
     if (typeof hex !== "string") return null;
