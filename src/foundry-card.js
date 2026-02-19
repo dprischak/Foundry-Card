@@ -19,7 +19,7 @@ import './cards/foundry-uptime-editor.js';
 import './cards/foundry-chart-card.js';
 import './cards/foundry-chart-editor.js';
 
-const FOUNDRY_CARDS_VERSION = '26.2.2';
+const FOUNDRY_CARDS_VERSION = '26.2.3';
 
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
