@@ -362,7 +362,8 @@ class FoundryThermometerEditor extends HTMLElement {
 
     // Defaults
     // Explicitly check config.theme first to preserve selection even if theme data isn't loaded yet
-    data.theme = config.theme && config.theme !== 'none' ? config.theme : 'none';
+    data.theme =
+      config.theme && config.theme !== 'none' ? config.theme : 'none';
     // Color Conversions
     data.liquid_color = this._hexToRgb(
       sourceConfig.liquid_color ?? '#cc0000'
@@ -380,9 +381,9 @@ class FoundryThermometerEditor extends HTMLElement {
     // Map number_color (prioritizing number_color, falling back to font_color/title_color for migration)
     data.number_color = this._hexToRgb(
       sourceConfig.number_color ||
-      sourceConfig.font_color ||
-      sourceConfig.title_color ||
-      '#3e2723'
+        sourceConfig.font_color ||
+        sourceConfig.title_color ||
+        '#3e2723'
     ) ?? [62, 39, 35];
 
     // Tick colors
