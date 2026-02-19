@@ -1,5 +1,12 @@
 ## v26.2.3
 
+### 🛠️ Improvements
+
+- **Issue #NA** - Entities - Allow for moving entities up or down in the list in the editor.
+
+### 🐛 Defect Fixes
+
+- **Issue #50:** Entities - Fixed Date and Time to not be UTC but local time.
 
 ## v26.2.2
 
