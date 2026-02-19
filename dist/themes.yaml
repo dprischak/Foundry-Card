@@ -33,8 +33,8 @@ racing:
   line_color: '#C41E3A'
   line_width: 2
   fill_under_line: false
-  grid_minor_color: '#000000'
-  grid_major_color: '#000000'
+  grid_minor_color: '#59ff00'
+  grid_major_color: '#59ff00'
   grid_opacity: 0.6
   ring_style: 'black'
   number_color: '#000000'
