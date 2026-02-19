@@ -237,12 +237,15 @@ class FoundryEntitiesEditor extends HTMLElement {
       // Data for this single entity
       const data = {
         name: typeof entity === 'object' ? entity.name : '',
-        secondary_info: typeof entity === 'object' ? entity.secondary_info : 'none'
+        secondary_info:
+          typeof entity === 'object' ? entity.secondary_info : 'none',
       };
 
       form.schema = schema;
       form.data = data;
-      form.addEventListener('value-changed', (ev) => this._handleSingleEntityChange(index, ev.detail.value));
+      form.addEventListener('value-changed', (ev) =>
+        this._handleSingleEntityChange(index, ev.detail.value)
+      );
 
       formContainer.appendChild(form);
       row.appendChild(formContainer);
@@ -300,14 +303,15 @@ class FoundryEntitiesEditor extends HTMLElement {
       // Update Data
       const data = {
         name: typeof entity === 'object' ? entity.name : '',
-        secondary_info: typeof entity === 'object' ? entity.secondary_info : 'none'
+        secondary_info:
+          typeof entity === 'object' ? entity.secondary_info : 'none',
       };
 
       form.schema = schema;
       form.data = data;
-      // Note: We do NOT update event listeners. 
+      // Note: We do NOT update event listeners.
       // The listener created in build is `(ev) => this._handleSingleEntityChange(index, ...)`
-      // This closure captures `index`. 
+      // This closure captures `index`.
       // Since DOM Node at `index` always corresponds to `entities[index]`, this is correct.
 
       // Update Buttons
@@ -332,7 +336,10 @@ class FoundryEntitiesEditor extends HTMLElement {
     if (newIndex < 0 || newIndex >= entities.length) return;
 
     // Swap
-    [entities[index], entities[newIndex]] = [entities[newIndex], entities[index]];
+    [entities[index], entities[newIndex]] = [
+      entities[newIndex],
+      entities[index],
+    ];
 
     const newConfig = { ...this._config, entities };
     this._config = newConfig;
@@ -343,7 +350,8 @@ class FoundryEntitiesEditor extends HTMLElement {
   _handleSingleEntityChange(index, value) {
     const entities = [...(this._config.entities || [])];
     const currentEntity = entities[index];
-    const currentEntityId = typeof currentEntity === 'string' ? currentEntity : currentEntity.entity;
+    const currentEntityId =
+      typeof currentEntity === 'string' ? currentEntity : currentEntity.entity;
 
     // Check if we need to convert string to object or update object
     const newName = value.name;
@@ -356,7 +364,7 @@ class FoundryEntitiesEditor extends HTMLElement {
       entities[index] = {
         entity: currentEntityId,
         name: newName,
-        secondary_info: newInfo
+        secondary_info: newInfo,
       };
     }
 

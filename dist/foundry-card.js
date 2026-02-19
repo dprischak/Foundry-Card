@@ -12053,7 +12053,10 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       };
       form.schema = schema2;
       form.data = data;
-      form.addEventListener("value-changed", (ev) => this._handleSingleEntityChange(index, ev.detail.value));
+      form.addEventListener(
+        "value-changed",
+        (ev) => this._handleSingleEntityChange(index, ev.detail.value)
+      );
       formContainer.appendChild(form);
       row.appendChild(formContainer);
       this._root.appendChild(row);
@@ -12120,7 +12123,10 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const newIndex = index + direction;
     const entities = [...this._config.entities || []];
     if (newIndex < 0 || newIndex >= entities.length) return;
-    [entities[index], entities[newIndex]] = [entities[newIndex], entities[index]];
+    [entities[index], entities[newIndex]] = [
+      entities[newIndex],
+      entities[index]
+    ];
     const newConfig = { ...this._config, entities };
     this._config = newConfig;
     fireEvent3(this, "config-changed", { config: this._config });

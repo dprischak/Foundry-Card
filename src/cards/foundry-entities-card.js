@@ -150,8 +150,9 @@ class FoundryEntitiesCard extends HTMLElement {
             secondaryEl.textContent = entityId;
           } else if (secondaryType === 'state') {
             const unit = stateObj.attributes.unit_of_measurement || '';
-            secondaryEl.textContent = `${stateObj.state}${unit ? ' ' + unit : ''
-              }`;
+            secondaryEl.textContent = `${stateObj.state}${
+              unit ? ' ' + unit : ''
+            }`;
           } else if (
             secondaryType === 'last-updated' ||
             secondaryType === 'last-changed'
