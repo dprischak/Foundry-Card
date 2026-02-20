@@ -884,6 +884,8 @@ Show entity history in a compact chart:
 | `value_precision`        | number  | No       | 2               | Decimal places for the current value display                                |
 | `show_footer`            | boolean | No       | true            | Show start/end time labels                                                  |
 | `show_inspect_value`     | boolean | No       | true            | During inspect, replace the current value with the inspected Y value        |
+| `show_x_axis_minmax`     | boolean | No       | false           | Show X-axis min/max time labels under the chart                             |
+| `show_y_axis_minmax`     | boolean | No       | false           | Show Y-axis min/max value labels on the chart axis                          |
 | `line_color`             | string  | No       | '#d32f2f'       | Line color                                                                  |
 | `line_width`             | number  | No       | 2               | Line width                                                                  |
 | `fill_under_line`        | boolean | No       | false           | Fill the area under the line                                                |
@@ -915,6 +917,8 @@ bucket_count: 60
 update_interval: 60
 aggregation: avg
 show_inspect_value: true
+show_x_axis_minmax: false
+show_y_axis_minmax: false
 line_color: '#d32f2f'
 line_width: 2
 fill_under_line: true

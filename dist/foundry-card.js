@@ -14416,6 +14416,8 @@ var FoundryChartCard = class extends HTMLElement {
     this.config.aggregation = this.config.aggregation || "avg";
     this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
     this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
+    this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
+    this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title || "Foundry Chart";
     this.config.title_font_size = this.config.title_font_size || 14;
@@ -14466,7 +14468,9 @@ var FoundryChartCard = class extends HTMLElement {
       grid_opacity: 0.6,
       value_precision: 2,
       aggregation: "avg",
-      show_inspect_value: true
+      show_inspect_value: true,
+      show_x_axis_minmax: false,
+      show_y_axis_minmax: false
     };
   }
   set hass(hass) {
@@ -14760,6 +14764,36 @@ var FoundryChartCard = class extends HTMLElement {
     this._chartValueUnit = unit;
     this._renderChartValueText(currentDisplayValue, unit);
     this._renderInspectLine();
+    const xAxisMinEl = this.shadowRoot.getElementById("x-axis-min");
+    const xAxisMaxEl = this.shadowRoot.getElementById("x-axis-max");
+    const yAxisMinEl = this.shadowRoot.getElementById("y-axis-min");
+    const yAxisMaxEl = this.shadowRoot.getElementById("y-axis-max");
+    if (xAxisMinEl && xAxisMaxEl) {
+      if (this.config.show_x_axis_minmax) {
+        xAxisMinEl.textContent = this._formatAxisTime(startTime);
+        xAxisMaxEl.textContent = this._formatAxisTime(now);
+        xAxisMinEl.setAttribute("fill", this.config.font_color);
+        xAxisMaxEl.setAttribute("fill", this.config.font_color);
+        xAxisMinEl.setAttribute("visibility", "visible");
+        xAxisMaxEl.setAttribute("visibility", "visible");
+      } else {
+        xAxisMinEl.setAttribute("visibility", "hidden");
+        xAxisMaxEl.setAttribute("visibility", "hidden");
+      }
+    }
+    if (yAxisMinEl && yAxisMaxEl) {
+      if (this.config.show_y_axis_minmax) {
+        yAxisMinEl.textContent = this._formatValue(minValue, unit);
+        yAxisMaxEl.textContent = this._formatValue(maxValue, unit);
+        yAxisMinEl.setAttribute("fill", this.config.font_color);
+        yAxisMaxEl.setAttribute("fill", this.config.font_color);
+        yAxisMinEl.setAttribute("visibility", "visible");
+        yAxisMaxEl.setAttribute("visibility", "visible");
+      } else {
+        yAxisMinEl.setAttribute("visibility", "hidden");
+        yAxisMaxEl.setAttribute("visibility", "hidden");
+      }
+    }
     const emptyEl = this.shadowRoot.getElementById("chart-empty");
     const lineEl = this.shadowRoot.getElementById("chart-line");
     const areaEl = this.shadowRoot.getElementById("chart-area");
@@ -14811,7 +14845,7 @@ var FoundryChartCard = class extends HTMLElement {
         }
       }
     }
-    if (this.config.show_footer) {
+    if (this.config.show_footer && !this.config.show_x_axis_minmax) {
       const startEl = this.shadowRoot.getElementById("footer-start");
       const endEl = this.shadowRoot.getElementById("footer-end");
       if (startEl && endEl) {
@@ -14825,6 +14859,12 @@ var FoundryChartCard = class extends HTMLElement {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  }
+  _formatAxisTime(date) {
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
   }
   render() {
     if (this._rendered) return;
@@ -14854,6 +14894,7 @@ var FoundryChartCard = class extends HTMLElement {
     const rimHeight = bottomRivetY - rimGap - rimY;
     const chartWidth = 200;
     const chartHeight = 60;
+    const axisLabelFontSize = 10;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const chartX = rimX + (rimWidth - chartWidth) / 2;
     const chartY = rimY + 32;
@@ -14941,10 +14982,14 @@ var FoundryChartCard = class extends HTMLElement {
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" />
                     <rect id="chart-interaction-layer" x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="transparent" style="touch-action: none;" />
+                  <text id="x-axis-min" x="${chartGeometry.plotX}" y="${chartHeight + 10}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="x-axis-max" x="${chartGeometry.plotX + chartGeometry.plotWidth}" y="${chartHeight + 10}" text-anchor="end" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-min" x="3" y="${chartGeometry.plotBottom - 2}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-max" x="3" y="${chartGeometry.plotY + 8}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
                   <text id="chart-empty" x="${chartWidth / 2}" y="${chartHeight / 2 + 4}" text-anchor="middle" font-size="12" fill="${config.font_color}" class="label-font" visibility="hidden">No data</text>
               </g>
 
-              ${config.show_footer ? `
+              ${config.show_footer && !config.show_x_axis_minmax ? `
                     <text id="footer-start" x="${rimX + 24}" y="${rimY + rimHeight - 16}" text-anchor="start" font-size="12" fill="${config.font_color}" class="label-font">...</text>
                     <text id="footer-end" x="${rimX + rimWidth - 24}" y="${rimY + rimHeight - 16}" text-anchor="end" font-size="12" fill="${config.font_color}" class="label-font">Now</text>
               ` : ""}
@@ -15323,6 +15368,16 @@ var FoundryChartEditor = class extends HTMLElement {
           {
             name: "show_inspect_value",
             label: "Show Inspect Y Value",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_x_axis_minmax",
+            label: "Show X Axis Min/Max",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_y_axis_minmax",
+            label: "Show Y Axis Min/Max",
             selector: { boolean: {} }
           }
         ]

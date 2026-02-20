@@ -314,6 +314,16 @@ class FoundryChartEditor extends HTMLElement {
             label: 'Show Inspect Y Value',
             selector: { boolean: {} },
           },
+          {
+            name: 'show_x_axis_minmax',
+            label: 'Show X Axis Min/Max',
+            selector: { boolean: {} },
+          },
+          {
+            name: 'show_y_axis_minmax',
+            label: 'Show Y Axis Min/Max',
+            selector: { boolean: {} },
+          },
         ],
       },
       {
