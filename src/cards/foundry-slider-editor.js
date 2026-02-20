@@ -126,10 +126,11 @@ class FoundrySliderEditor extends HTMLElement {
         'face_color',
         'plate_color',
         'rivet_color',
-        'title_color',
+        'number_color',
         'font_color',
         'font_bg_color',
         'ring_style',
+        'background_style',
         'plate_transparent',
         'glass_effect_enabled',
         'wear_level',
@@ -137,7 +138,6 @@ class FoundrySliderEditor extends HTMLElement {
         'aged_texture_intensity',
         'slider_color',
         'knob_color',
-        'tick_color',
         'primary_tick_color',
         'secondary_tick_color',
       ];
@@ -183,6 +183,7 @@ class FoundrySliderEditor extends HTMLElement {
       step: 1,
       value: 50,
       ring_style: 'brass',
+      background_style: 'gradient',
       face_color: '#8c7626',
       plate_color: '#8c7626',
       plate_transparent: false,
@@ -191,12 +192,11 @@ class FoundrySliderEditor extends HTMLElement {
       knob_color: '#c9a961',
       knob_shape: 'square',
       knob_size: 100,
-      tick_color: 'rgba(0,0,0,0.22)',
       primary_tick_color: 'rgba(0,0,0,0.22)',
       secondary_tick_color: 'rgba(0,0,0,0.22)',
       font_bg_color: '#ffffff',
       font_color: '#000000',
-      title_color: '#3e2723',
+      number_color: '#3e2723',
       title_font_size: 14,
       value_font_size: 36,
       show_value: true,
@@ -229,6 +229,7 @@ class FoundrySliderEditor extends HTMLElement {
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
       ring_style: sourceConfig.ring_style ?? 'brass',
+      background_style: sourceConfig.background_style ?? 'gradient',
       face_color: this._hexToRgb(
         sourceConfig.face_color ??
           sourceConfig.background_color ??
@@ -239,9 +240,9 @@ class FoundrySliderEditor extends HTMLElement {
       plate_color: this._hexToRgb(sourceConfig.plate_color ?? '#8c7626') ?? [
         140, 118, 38,
       ],
-      title_color: this._hexToRgb(sourceConfig.title_color ?? '#3e2723') ?? [
-        62, 39, 35,
-      ],
+      number_color: this._hexToRgb(
+        sourceConfig.number_color ?? sourceConfig.title_color ?? '#3e2723'
+      ) ?? [62, 39, 35],
       plate_transparent: sourceConfig.plate_transparent ?? false,
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
@@ -249,14 +250,11 @@ class FoundrySliderEditor extends HTMLElement {
       slider_color: this._hexToRgb(sourceConfig.slider_color ?? '#444444') ?? [
         68, 68, 68,
       ],
-      tick_color: this._colorToRgb(sourceConfig.tick_color) ?? [0, 0, 0],
       primary_tick_color: this._colorToRgb(
-        sourceConfig.primary_tick_color ?? sourceConfig.tick_color ?? '#000000'
+        sourceConfig.primary_tick_color ?? '#000000'
       ) ?? [0, 0, 0],
       secondary_tick_color: this._colorToRgb(
-        sourceConfig.secondary_tick_color ??
-          sourceConfig.tick_color ??
-          '#000000'
+        sourceConfig.secondary_tick_color ?? '#000000'
       ) ?? [0, 0, 0],
     };
     data.knob_settings = {
@@ -303,10 +301,10 @@ class FoundrySliderEditor extends HTMLElement {
       config.face_color = this._rgbToHex(config.face_color);
       delete config.background_color;
       config.plate_color = this._rgbToHex(config.plate_color);
-      config.title_color = this._rgbToHex(config.title_color);
+      config.number_color = this._rgbToHex(config.number_color);
+      delete config.title_color;
       config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
-      config.tick_color = this._rgbToHex(config.tick_color);
       config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
       config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
     }
@@ -389,12 +387,25 @@ class FoundrySliderEditor extends HTMLElement {
             },
           },
           {
+            name: 'background_style',
+            label: 'Background Style',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'gradient', label: 'Gradient' },
+                  { value: 'solid', label: 'Solid Color' },
+                ],
+              },
+            },
+          },
+          {
             type: 'grid',
             name: '',
             schema: [
               {
                 name: 'face_color',
-                label: 'Face Color',
+                label: 'Face Color (Solid Mode)',
                 selector: { color_rgb: {} },
               },
               {
@@ -409,16 +420,10 @@ class FoundrySliderEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'title_color',
-                label: 'Title Color',
+                name: 'number_color',
+                label: 'Number Color',
                 selector: { color_rgb: {} },
               },
-            ],
-          },
-          {
-            type: 'grid',
-            name: '',
-            schema: [
               {
                 name: 'rivet_color',
                 label: 'Rivet Color',
@@ -433,11 +438,6 @@ class FoundrySliderEditor extends HTMLElement {
               {
                 name: 'slider_color',
                 label: 'Track Color',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'tick_color',
-                label: 'Tick Color (Fallback)',
                 selector: { color_rgb: {} },
               },
             ],
@@ -518,12 +518,12 @@ class FoundrySliderEditor extends HTMLElement {
             schema: [
               {
                 name: 'font_bg_color',
-                label: 'LED Background',
+                label: 'Screen Background',
                 selector: { color_rgb: {} },
               },
               {
                 name: 'font_color',
-                label: 'LED Text Color',
+                label: 'Digital Font Color',
                 selector: { color_rgb: {} },
               },
             ],

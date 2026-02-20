@@ -24,6 +24,11 @@
 
 ### 🐛 Defect Fixes
 
+- **Issue #61:** Slider - LED screen background is now a solid flat fill using `font_bg_color` (same as Entities card), removing the dark-ring radial gradient effect. Editor labels updated to "Screen Background" and "Digital Font Color" to match the Entities card.
+- Fixed minor tick marks visibility on Slider card (increased limit to 250 steps)
+- Removed unused `tick_color` (fallback) configuration from Slider card
+- **Issue #58:** Slider - Title text now uses `number_color` config key (consistent with Gauge/Analog Clock cards). `title_color` has been removed from the editor. Existing YAML configs with `title_color` are automatically migrated.
+- **Issue #57:** Slider - Added `background_style` option (`gradient` / `solid`). In gradient mode the screen face uses a subtle linear gradient. In solid mode the `face_color` is applied as a flat fill. The editor now labels this field "Face Color (Solid Mode)".
 - **Issue #62:** Renamed Thermostat card to Thermometer card for better clarity.
 - **Issue #64:** Thermometer - Added `background_style` and `face_color` options to Thermometer card (matches Gauge card style).
 - **Issue** Consolidated Thermometer colors: `number_color` now controls Title, Unit, and Scale numbers. `title_color` and `font_color` are deprecated. Editor updated to show only "Number Color".

@@ -994,7 +994,8 @@ A vertical slider control with vintage industrial aesthetics.
 | `step`                   | number  | No       | 1                  | Slider step increment                                                                       |
 | `value`                  | number  | No       | 50                 | Initial/current slider value                                                                |
 | `ring_style`             | string  | No       | 'brass'            | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red' |
-| `face_color`             | string  | No       | '#8c7626'          | Background face color                                                                       |
+| `background_style`       | string  | No       | 'gradient'         | Screen face fill: `'gradient'` (default) or `'solid'`. Solid uses `face_color`.             |
+| `face_color`             | string  | No       | '#8c7626'          | Screen face color when `background_style` is `solid`                                        |
 | `plate_color`            | string  | No       | '#8c7626'          | Background plate color                                                                      |
 | `plate_transparent`      | boolean | No       | false              | Make the plate transparent                                                                  |
 | `rivet_color`            | string  | No       | '#6a5816'          | Color of decorative rivets                                                                  |
@@ -1002,12 +1003,11 @@ A vertical slider control with vintage industrial aesthetics.
 | `knob_color`             | string  | No       | '#c9a961'          | Color of the slider knob (derived from ring_style)                                          |
 | `knob_shape`             | string  | No       | 'square'           | Knob shape: 'circular', 'square', 'rectangular'                                             |
 | `knob_size`              | number  | No       | 100                | Knob size percentage (0-100)                                                                |
-| `tick_color`             | string  | No       | 'rgba(0,0,0,0.22)' | Color of tick marks                                                                         |
-| `primary_tick_color`     | string  | No       | 'rgba(0,0,0,0.22)' | Color of major tick marks (falls back to `tick_color`)                                      |
-| `secondary_tick_color`   | string  | No       | 'rgba(0,0,0,0.22)' | Color of minor tick marks (falls back to `tick_color`)                                      |
-| `font_bg_color`          | string  | No       | '#ffffff'          | Background color of LED display                                                             |
-| `font_color`             | string  | No       | '#000000'          | Color of LED display digits                                                                 |
-| `title_color`            | string  | No       | '#3e2723'          | Color of the title text                                                                     |
+| `primary_tick_color`     | string  | No       | 'rgba(0,0,0,0.22)' | Color of major tick marks                                                                   |
+| `secondary_tick_color`   | string  | No       | 'rgba(0,0,0,0.22)' | Color of minor tick marks                                                                   |
+| `font_bg_color`          | string  | No       | '#ffffff'          | Screen Background — background color of the LED display (same as Entities card)             |
+| `font_color`             | string  | No       | '#000000'          | Digital Font Color — color of LED display digits (same as Entities card)                    |
+| `number_color`           | string  | No       | '#3e2723'          | Color of the title text (replaces `title_color`)                                            |
 | `title_font_size`        | number  | No       | 14                 | Font size for the title                                                                     |
 | `value_font_size`        | number  | No       | 36                 | Font size for the value display                                                             |
 | `show_value`             | boolean | No       | true               | Show the digital value display                                                              |
@@ -1026,6 +1026,7 @@ max: 100
 step: 1
 value: 50
 ring_style: brass
+background_style: gradient
 face_color: '#8c7626'
 plate_color: '#8c7626'
 plate_transparent: false
@@ -1033,12 +1034,11 @@ rivet_color: '#6a5816'
 slider_color: '#444444'
 knob_shape: square
 knob_size: 100
-tick_color: 'rgba(0,0,0,0.22)'
 primary_tick_color: 'rgba(0,0,0,0.22)'
 secondary_tick_color: 'rgba(0,0,0,0.22)'
 font_bg_color: '#ffffff'
 font_color: '#000000'
-title_color: '#3e2723'
+number_color: '#3e2723'
 title_font_size: 14
 value_font_size: 36
 show_value: true
