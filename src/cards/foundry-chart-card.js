@@ -8,6 +8,10 @@ class FoundryChartCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this._inspectActive = false;
     this._inspectBucketIndex = null;
+    this._activeInspectPointerId = null;
+    this._lastInspectPointerType = null;
+    this._inspectGestureMoved = false;
+    this._suppressMoreInfoClickUntil = 0;
     this._chartBuckets = [];
     this._chartBucketCount = 0;
     this._chartGeometry = null;
@@ -41,6 +45,10 @@ class FoundryChartCard extends HTMLElement {
     this.config.aggregation = this.config.aggregation || 'avg';
     this.config.show_footer =
       this.config.show_footer !== undefined ? this.config.show_footer : true;
+    this.config.show_inspect_value =
+      this.config.show_inspect_value !== undefined
+        ? this.config.show_inspect_value
+        : true;
 
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.title = this.config.title || 'Foundry Chart';
@@ -107,6 +115,7 @@ class FoundryChartCard extends HTMLElement {
       grid_opacity: 0.6,
       value_precision: 2,
       aggregation: 'avg',
+      show_inspect_value: true,
     };
   }
 
@@ -206,6 +215,7 @@ class FoundryChartCard extends HTMLElement {
     let text = this._formatValue(currentValue, unit);
     if (
       this._inspectActive &&
+      this.config.show_inspect_value &&
       Number.isInteger(this._inspectBucketIndex) &&
       this._inspectBucketIndex >= 0 &&
       this._inspectBucketIndex < this._chartBuckets.length
@@ -218,6 +228,47 @@ class FoundryChartCard extends HTMLElement {
     valueEl.setAttribute('fill', this.config.font_color);
   }
 
+  _getInspectLineX() {
+    if (
+      !this._chartGeometry ||
+      !Number.isInteger(this._inspectBucketIndex) ||
+      this._inspectBucketIndex < 0 ||
+      this._inspectBucketIndex >= this._chartBucketCount
+    ) {
+      return null;
+    }
+
+    if (this._chartBucketCount <= 1) {
+      return this._chartGeometry.plotX;
+    }
+
+    const step = this._chartGeometry.plotWidth / (this._chartBucketCount - 1);
+    return this._chartGeometry.plotX + this._inspectBucketIndex * step;
+  }
+
+  _renderInspectLine() {
+    const inspectLineEl = this.shadowRoot.getElementById('chart-inspect-line');
+    if (!inspectLineEl) return;
+
+    if (!this._inspectActive || !this.config.show_inspect_value) {
+      inspectLineEl.setAttribute('visibility', 'hidden');
+      return;
+    }
+
+    const x = this._getInspectLineX();
+    if (x === null) {
+      inspectLineEl.setAttribute('visibility', 'hidden');
+      return;
+    }
+
+    inspectLineEl.setAttribute('x1', x);
+    inspectLineEl.setAttribute('x2', x);
+    inspectLineEl.setAttribute('y1', this._chartGeometry.plotY);
+    inspectLineEl.setAttribute('y2', this._chartGeometry.plotBottom);
+    inspectLineEl.setAttribute('stroke', this.config.line_color);
+    inspectLineEl.setAttribute('visibility', 'visible');
+  }
+
   _setInspectState(active, bucketIndex = null) {
     this._inspectActive = active;
     this._inspectBucketIndex =
@@ -226,6 +277,7 @@ class FoundryChartCard extends HTMLElement {
     const { value, unit } = this._getCurrentEntityValue();
     this._chartValueUnit = unit;
     this._renderChartValueText(value, unit);
+    this._renderInspectLine();
   }
 
   _updateInspectFromPointerEvent(event, layerEl) {
@@ -258,14 +310,68 @@ class FoundryChartCard extends HTMLElement {
     const layerEl = this.shadowRoot.getElementById('chart-interaction-layer');
     if (!layerEl) return;
 
+    const clearActivePointer = () => {
+      this._activeInspectPointerId = null;
+      this._lastInspectPointerType = null;
+      this._inspectGestureMoved = false;
+    };
+
     layerEl.addEventListener('pointermove', (event) => {
       const isMouseHover = event.pointerType === 'mouse' && event.buttons === 0;
-      if (!isMouseHover) return;
+      if (isMouseHover) {
+        this._updateInspectFromPointerEvent(event, layerEl);
+        return;
+      }
+
+      if (this._activeInspectPointerId === event.pointerId) {
+        this._inspectGestureMoved = true;
+        this._updateInspectFromPointerEvent(event, layerEl);
+      }
+    });
+
+    layerEl.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+
+      this._activeInspectPointerId = event.pointerId;
+      this._lastInspectPointerType = event.pointerType;
+      this._inspectGestureMoved = false;
+
+      if (layerEl.setPointerCapture) {
+        layerEl.setPointerCapture(event.pointerId);
+      }
+
       this._updateInspectFromPointerEvent(event, layerEl);
     });
 
-    layerEl.addEventListener('pointerleave', () => {
+    const handlePointerEnd = (event) => {
+      if (this._activeInspectPointerId !== event.pointerId) return;
+
+      if (layerEl.releasePointerCapture) {
+        try {
+          layerEl.releasePointerCapture(event.pointerId);
+        } catch (_e) {
+          this._activeInspectPointerId = null;
+        }
+      }
+
+      if (
+        this._lastInspectPointerType !== 'mouse' &&
+        this._inspectGestureMoved
+      ) {
+        this._suppressMoreInfoClickUntil = Date.now() + 350;
+      }
+
+      clearActivePointer();
       this._setInspectState(false);
+    };
+
+    layerEl.addEventListener('pointerup', handlePointerEnd);
+    layerEl.addEventListener('pointercancel', handlePointerEnd);
+
+    layerEl.addEventListener('pointerleave', (event) => {
+      if (event.pointerType === 'mouse') {
+        this._setInspectState(false);
+      }
     });
   }
 
@@ -394,6 +500,7 @@ class FoundryChartCard extends HTMLElement {
     const { value: currentDisplayValue, unit } = this._getCurrentEntityValue();
     this._chartValueUnit = unit;
     this._renderChartValueText(currentDisplayValue, unit);
+    this._renderInspectLine();
 
     const emptyEl = this.shadowRoot.getElementById('chart-empty');
     const lineEl = this.shadowRoot.getElementById('chart-line');
@@ -591,6 +698,7 @@ class FoundryChartCard extends HTMLElement {
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
                       <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.line_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
                   </g>
 
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
@@ -619,6 +727,7 @@ class FoundryChartCard extends HTMLElement {
     if (cardEl) {
       cardEl.style.cursor = 'pointer';
       cardEl.onclick = () => {
+        if (Date.now() < this._suppressMoreInfoClickUntil) return;
         if (this.config.entity) {
           fireEvent(this, 'hass-more-info', { entityId: this.config.entity });
         }

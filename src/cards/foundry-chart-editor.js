@@ -181,6 +181,7 @@ class FoundryChartEditor extends HTMLElement {
       : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? 'none';
+    data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
 
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
@@ -306,6 +307,11 @@ class FoundryChartEditor extends HTMLElement {
           {
             name: 'show_footer',
             label: 'Show Footer',
+            selector: { boolean: {} },
+          },
+          {
+            name: 'show_inspect_value',
+            label: 'Show Inspect Y Value',
             selector: { boolean: {} },
           },
         ],

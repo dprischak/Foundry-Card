@@ -883,6 +883,7 @@ Show entity history in a compact chart:
 | `max_value`              | number  | No       | auto            | Maximum value for the chart scale                                           |
 | `value_precision`        | number  | No       | 2               | Decimal places for the current value display                                |
 | `show_footer`            | boolean | No       | true            | Show start/end time labels                                                  |
+| `show_inspect_value`     | boolean | No       | true            | During inspect, replace the current value with the inspected Y value        |
 | `line_color`             | string  | No       | '#d32f2f'       | Line color                                                                  |
 | `line_width`             | number  | No       | 2               | Line width                                                                  |
 | `fill_under_line`        | boolean | No       | false           | Fill the area under the line                                                |
@@ -913,6 +914,7 @@ hours_to_show: 24
 bucket_count: 60
 update_interval: 60
 aggregation: avg
+show_inspect_value: true
 line_color: '#d32f2f'
 line_width: 2
 fill_under_line: true

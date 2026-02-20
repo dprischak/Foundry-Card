@@ -14383,6 +14383,10 @@ var FoundryChartCard = class extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._inspectActive = false;
     this._inspectBucketIndex = null;
+    this._activeInspectPointerId = null;
+    this._lastInspectPointerType = null;
+    this._inspectGestureMoved = false;
+    this._suppressMoreInfoClickUntil = 0;
     this._chartBuckets = [];
     this._chartBucketCount = 0;
     this._chartGeometry = null;
@@ -14411,6 +14415,7 @@ var FoundryChartCard = class extends HTMLElement {
     this.config.bucket_minutes = this.config.bucket_minutes || null;
     this.config.aggregation = this.config.aggregation || "avg";
     this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
+    this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title || "Foundry Chart";
     this.config.title_font_size = this.config.title_font_size || 14;
@@ -14460,7 +14465,8 @@ var FoundryChartCard = class extends HTMLElement {
       grid_major_color: "#8fc79d",
       grid_opacity: 0.6,
       value_precision: 2,
-      aggregation: "avg"
+      aggregation: "avg",
+      show_inspect_value: true
     };
   }
   set hass(hass) {
@@ -14539,12 +14545,41 @@ var FoundryChartCard = class extends HTMLElement {
     const valueEl = this.shadowRoot.getElementById("chart-value");
     if (!valueEl) return;
     let text = this._formatValue(currentValue, unit);
-    if (this._inspectActive && Number.isInteger(this._inspectBucketIndex) && this._inspectBucketIndex >= 0 && this._inspectBucketIndex < this._chartBuckets.length) {
+    if (this._inspectActive && this.config.show_inspect_value && Number.isInteger(this._inspectBucketIndex) && this._inspectBucketIndex >= 0 && this._inspectBucketIndex < this._chartBuckets.length) {
       const bucketValue = this._chartBuckets[this._inspectBucketIndex]?.value;
       text = this._formatValue(bucketValue, unit);
     }
     valueEl.textContent = text;
     valueEl.setAttribute("fill", this.config.font_color);
+  }
+  _getInspectLineX() {
+    if (!this._chartGeometry || !Number.isInteger(this._inspectBucketIndex) || this._inspectBucketIndex < 0 || this._inspectBucketIndex >= this._chartBucketCount) {
+      return null;
+    }
+    if (this._chartBucketCount <= 1) {
+      return this._chartGeometry.plotX;
+    }
+    const step = this._chartGeometry.plotWidth / (this._chartBucketCount - 1);
+    return this._chartGeometry.plotX + this._inspectBucketIndex * step;
+  }
+  _renderInspectLine() {
+    const inspectLineEl = this.shadowRoot.getElementById("chart-inspect-line");
+    if (!inspectLineEl) return;
+    if (!this._inspectActive || !this.config.show_inspect_value) {
+      inspectLineEl.setAttribute("visibility", "hidden");
+      return;
+    }
+    const x = this._getInspectLineX();
+    if (x === null) {
+      inspectLineEl.setAttribute("visibility", "hidden");
+      return;
+    }
+    inspectLineEl.setAttribute("x1", x);
+    inspectLineEl.setAttribute("x2", x);
+    inspectLineEl.setAttribute("y1", this._chartGeometry.plotY);
+    inspectLineEl.setAttribute("y2", this._chartGeometry.plotBottom);
+    inspectLineEl.setAttribute("stroke", this.config.line_color);
+    inspectLineEl.setAttribute("visibility", "visible");
   }
   _setInspectState(active, bucketIndex = null) {
     this._inspectActive = active;
@@ -14552,6 +14587,7 @@ var FoundryChartCard = class extends HTMLElement {
     const { value, unit } = this._getCurrentEntityValue();
     this._chartValueUnit = unit;
     this._renderChartValueText(value, unit);
+    this._renderInspectLine();
   }
   _updateInspectFromPointerEvent(event, layerEl) {
     if (!layerEl || !this._chartGeometry || this._chartBucketCount < 1) return;
@@ -14573,13 +14609,53 @@ var FoundryChartCard = class extends HTMLElement {
   _bindChartInteractions() {
     const layerEl = this.shadowRoot.getElementById("chart-interaction-layer");
     if (!layerEl) return;
+    const clearActivePointer = () => {
+      this._activeInspectPointerId = null;
+      this._lastInspectPointerType = null;
+      this._inspectGestureMoved = false;
+    };
     layerEl.addEventListener("pointermove", (event) => {
       const isMouseHover = event.pointerType === "mouse" && event.buttons === 0;
-      if (!isMouseHover) return;
+      if (isMouseHover) {
+        this._updateInspectFromPointerEvent(event, layerEl);
+        return;
+      }
+      if (this._activeInspectPointerId === event.pointerId) {
+        this._inspectGestureMoved = true;
+        this._updateInspectFromPointerEvent(event, layerEl);
+      }
+    });
+    layerEl.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      this._activeInspectPointerId = event.pointerId;
+      this._lastInspectPointerType = event.pointerType;
+      this._inspectGestureMoved = false;
+      if (layerEl.setPointerCapture) {
+        layerEl.setPointerCapture(event.pointerId);
+      }
       this._updateInspectFromPointerEvent(event, layerEl);
     });
-    layerEl.addEventListener("pointerleave", () => {
+    const handlePointerEnd = (event) => {
+      if (this._activeInspectPointerId !== event.pointerId) return;
+      if (layerEl.releasePointerCapture) {
+        try {
+          layerEl.releasePointerCapture(event.pointerId);
+        } catch (_e) {
+          this._activeInspectPointerId = null;
+        }
+      }
+      if (this._lastInspectPointerType !== "mouse" && this._inspectGestureMoved) {
+        this._suppressMoreInfoClickUntil = Date.now() + 350;
+      }
+      clearActivePointer();
       this._setInspectState(false);
+    };
+    layerEl.addEventListener("pointerup", handlePointerEnd);
+    layerEl.addEventListener("pointercancel", handlePointerEnd);
+    layerEl.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse") {
+        this._setInspectState(false);
+      }
     });
   }
   _updateValues() {
@@ -14683,6 +14759,7 @@ var FoundryChartCard = class extends HTMLElement {
     const { value: currentDisplayValue, unit } = this._getCurrentEntityValue();
     this._chartValueUnit = unit;
     this._renderChartValueText(currentDisplayValue, unit);
+    this._renderInspectLine();
     const emptyEl = this.shadowRoot.getElementById("chart-empty");
     const lineEl = this.shadowRoot.getElementById("chart-line");
     const areaEl = this.shadowRoot.getElementById("chart-area");
@@ -14858,6 +14935,7 @@ var FoundryChartCard = class extends HTMLElement {
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
                       <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.line_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
                   </g>
 
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
@@ -14881,6 +14959,7 @@ var FoundryChartCard = class extends HTMLElement {
     if (cardEl) {
       cardEl.style.cursor = "pointer";
       cardEl.onclick = () => {
+        if (Date.now() < this._suppressMoreInfoClickUntil) return;
         if (this.config.entity) {
           fireEvent(this, "hass-more-info", { entityId: this.config.entity });
         }
@@ -15124,6 +15203,7 @@ var FoundryChartEditor = class extends HTMLElement {
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -15238,6 +15318,11 @@ var FoundryChartEditor = class extends HTMLElement {
           {
             name: "show_footer",
             label: "Show Footer",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_inspect_value",
+            label: "Show Inspect Y Value",
             selector: { boolean: {} }
           }
         ]
