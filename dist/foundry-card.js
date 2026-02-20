@@ -14495,6 +14495,27 @@ var FoundryChartCard = class extends HTMLElement {
     this.render();
     this._updateValues();
   }
+  _getChartGeometry(chartWidth, chartHeight) {
+    const parsedLineWidth = Number.parseFloat(this.config.line_width);
+    const lineWidth = Number.isFinite(parsedLineWidth) && parsedLineWidth > 0 ? parsedLineWidth : 2;
+    const borderStrokeWidth = 1;
+    const safetyPadding = 0.5;
+    const desiredInset = lineWidth / 2 + borderStrokeWidth / 2 + safetyPadding;
+    const maxInset = Math.max(1, Math.min(chartWidth, chartHeight) / 2 - 0.5);
+    const inset = Math.min(desiredInset, maxInset);
+    const plotWidth = Math.max(1, chartWidth - inset * 2);
+    const plotHeight = Math.max(1, chartHeight - inset * 2);
+    return {
+      lineWidth,
+      plotX: inset,
+      plotY: inset,
+      plotWidth,
+      plotHeight,
+      plotBottom: inset + plotHeight,
+      plotRx: Math.max(0, 8 - inset),
+      plotRy: Math.max(0, 8 - inset)
+    };
+  }
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._history) return;
@@ -14505,6 +14526,8 @@ var FoundryChartCard = class extends HTMLElement {
     const endTs = now.getTime();
     const totalDuration = endTs - startTs;
     const chartWidth = 200;
+    const chartHeight = 60;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const bucketCount = Math.max(
       10,
       this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.bucket_count || 50
@@ -14607,15 +14630,15 @@ var FoundryChartCard = class extends HTMLElement {
       if (areaEl) areaEl.setAttribute("d", "");
     } else {
       if (emptyEl) emptyEl.setAttribute("visibility", "hidden");
-      const chartHeight = 60;
-      const step = chartWidth / (bucketCount - 1);
+      const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
+      const step = plotWidth / (bucketCount - 1);
       const points = buckets.map((bucket, index) => {
-        const x = index * step;
+        const x = plotX + index * step;
         if (bucket.value === null || bucket.value === void 0) {
           return { x, y: null };
         }
         const pct = (bucket.value - minValue) / (maxValue - minValue);
-        const y = chartHeight - pct * chartHeight;
+        const y = plotY + (1 - pct) * plotHeight;
         return { x, y };
       });
       const pathParts = [];
@@ -14639,7 +14662,7 @@ var FoundryChartCard = class extends HTMLElement {
           const first = points.find((p) => p.y !== null);
           const last = [...points].reverse().find((p) => p.y !== null);
           if (first && last) {
-            const areaPath = `${linePath} L ${last.x} ${chartHeight} L ${first.x} ${chartHeight} Z`;
+            const areaPath = `${linePath} L ${last.x} ${plotBottom} L ${first.x} ${plotBottom} Z`;
             areaEl.setAttribute("d", areaPath);
           } else {
             areaEl.setAttribute("d", "");
@@ -14692,6 +14715,7 @@ var FoundryChartCard = class extends HTMLElement {
     const rimHeight = bottomRivetY - rimGap - rimY;
     const chartWidth = 200;
     const chartHeight = 60;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const chartX = rimX + (rimWidth - chartWidth) / 2;
     const chartY = rimY + 32;
     this.shadowRoot.innerHTML = `
@@ -14766,12 +14790,12 @@ var FoundryChartCard = class extends HTMLElement {
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#gridMajor-${uid})" />
 
                   <clipPath id="chartClip-${uid}">
-                      <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" />
+                      <rect x="${chartGeometry.plotX}" y="${chartGeometry.plotY}" width="${chartGeometry.plotWidth}" height="${chartGeometry.plotHeight}" rx="${chartGeometry.plotRx}" ry="${chartGeometry.plotRy}" />
                   </clipPath>
 
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
-                      <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${config.line_width}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
                   </g>
 
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
