@@ -50,16 +50,17 @@ class FoundrySliderCard extends HTMLElement {
 
     // Slider-specific colors
     this.config.slider_color = this.config.slider_color || '#444444';
-    this.config.tick_color = this.config.tick_color || 'rgba(0,0,0,0.22)';
     this.config.primary_tick_color =
-      this.config.primary_tick_color ?? this.config.tick_color;
+      this.config.primary_tick_color ?? 'rgba(0,0,0,0.22)';
     this.config.secondary_tick_color =
-      this.config.secondary_tick_color ?? this.config.tick_color;
+      this.config.secondary_tick_color ?? 'rgba(0,0,0,0.22)';
 
     // Display Settings
     this.config.show_value =
       this.config.show_value !== undefined ? this.config.show_value : true;
-    this.config.title_color = this.config.title_color || '#3e2723';
+    this.config.number_color =
+      this.config.number_color || this.config.title_color || '#3e2723';
+    this.config.background_style = this.config.background_style || 'gradient';
     this.config.title_font_size =
       this.config.title_font_size !== undefined
         ? this.config.title_font_size
@@ -262,7 +263,10 @@ class FoundrySliderCard extends HTMLElement {
     const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
     const agedTextureOnFace =
       agedTextureEnabled || effectiveAgedTexture === 'everywhere';
-    const backgroundColor = cfg.face_color ?? cfg.plate_color;
+    const backgroundColor =
+      cfg.background_style === 'solid'
+        ? (cfg.face_color ?? cfg.plate_color)
+        : `url(#faceGrad-${uid})`;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -386,10 +390,12 @@ class FoundrySliderCard extends HTMLElement {
         <div class="card" id="actionRoot">
           <svg class="slider-svg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <!-- Radial gradient for LED display background -->
-              <radialGradient id="ledBg-${uid}" cx="50%" cy="50%">
-                <stop offset="0%" style="stop-color:${cfg.font_bg_color};stop-opacity:1" />
-                <stop offset="100%" style="stop-color:${this.adjustColor(cfg.font_bg_color, -20)};stop-opacity:1" />
+
+              <!-- Face gradient (used when background_style is gradient) — matches gauge/clock/thermometer -->
+              <radialGradient id="faceGrad-${uid}" cx="50%" cy="50%">
+                <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:1" />
+                <stop offset="85%"  style="stop-color:#f8f8f0;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
               </radialGradient>
 
               ${this.renderGradients(uid)}
@@ -452,7 +458,7 @@ class FoundrySliderCard extends HTMLElement {
             )}
 
             <!-- Title -->
-            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.title_color}">${title}</text>` : ''}
+            ${title ? `<text x="${screenCenterX}" y="${screenY + 22}" class="title" style="fill: ${cfg.number_color}">${title}</text>` : ''}
 
             <!-- Slider Track -->
             <rect x="${trackX}" y="${trackTopY}" width="${trackWidth}" height="${trackHeight}"
@@ -680,14 +686,9 @@ class FoundrySliderCard extends HTMLElement {
     majorLength,
     minorLength
   ) {
-    const min = cfg.min;
-    const max = cfg.max;
-    const step = cfg.step;
-    const tickColor = cfg.tick_color;
-    const primaryTickColor = cfg.primary_tick_color ?? tickColor;
-    const secondaryTickColor = cfg.secondary_tick_color ?? tickColor;
+    const primaryTickColor = cfg.primary_tick_color || 'rgba(0,0,0,0.22)';
+    const secondaryTickColor = cfg.secondary_tick_color || 'rgba(0,0,0,0.22)';
 
-    const range = max - min;
     const trackHeight = trackBottomY - trackTopY;
 
     let ticks = '';
@@ -699,20 +700,13 @@ class FoundrySliderCard extends HTMLElement {
 
       ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + majorLength}" y2="${y}" 
                       stroke="${primaryTickColor}" stroke-width="2" />`;
-    }
 
-    // Minor ticks at each step (if step is reasonable)
-    const numSteps = range / step;
-    if (numSteps > 0 && numSteps <= 100) {
-      for (let i = 0; i <= numSteps; i++) {
-        const value = min + i * step;
-        const percent = (value - min) / range;
-        const y = trackBottomY - trackHeight * percent;
-
-        // Skip if this coincides with a major tick
-        const isMajor = i % Math.ceil(numSteps / 10) === 0;
-        if (!isMajor) {
-          ticks += `<line x1="${tickStartX}" y1="${y}" x2="${tickStartX + minorLength}" y2="${y}" 
+      // Minor ticks: 4 ticks dividing each 10% segment into 2% intervals
+      if (i < 10) {
+        for (let j = 1; j < 5; j++) {
+          const minorPercent = (i + j / 5) / 10;
+          const minorY = trackBottomY - trackHeight * minorPercent;
+          ticks += `<line x1="${tickStartX}" y1="${minorY}" x2="${tickStartX + minorLength}" y2="${minorY}" 
                           stroke="${secondaryTickColor}" stroke-width="1" />`;
         }
       }
@@ -728,7 +722,7 @@ class FoundrySliderCard extends HTMLElement {
       <!-- LED Display Background -->
       <rect x="${x}" y="${y}" width="${width}" height="${height}" 
             rx="${borderRadius}" ry="${borderRadius}"
-            fill="url(#ledBg-${uid})"
+            fill="${cfg.font_bg_color}"
             stroke="rgba(0,0,0,0.5)"
             stroke-width="1" />
       
