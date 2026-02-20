@@ -263,7 +263,6 @@ unit: '°C'
 | `glass_effect_enabled`       | boolean | No       | true                    | Enable glass effect overlay                                     |
 | `aged_texture`               | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'        |
 | `aged_texture_intensity`     | number  | No       | 50                      | Intensity of aged texture effect (0-100, higher = more visible) |
-| `title_color`                | string  | No       | '#3e2723'               | Color of the title text                                         |
 | `background_style`           | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'               |
 | `face_color`                 | string  | No       | '#f8f8f0'               | Color of the gauge face (if solid) or base for gradient         |
 | `number_color`               | string  | No       | '#3e2723'               | Color of value numbers                                          |
@@ -504,7 +503,6 @@ Add a vintage analog clock to your dashboard:
 | `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                           |
 | `background_style`       | string  | No       | 'gradient'              | Background style: 'gradient' (default) or 'solid'                                                   |
 | `face_color`             | string  | No       | '#f8f8f0'               | Color of clock face (if solid) or base for gradient                                                 |
-| `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                                             |
 | `number_color`           | string  | No       | '#3e2723'               | Color of numbers                                                                                    |
 | `primary_tick_color`     | string  | No       | '#3e2723'               | Color of major hash marks                                                                           |
 | `secondary_tick_color`   | string  | No       | '#5d4e37'               | Color of minor hash marks                                                                           |

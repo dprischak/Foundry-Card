@@ -191,7 +191,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
         'plate_color',
         'rivet_color',
         'ring_style',
-        'title_color',
         'font_color',
         'font_bg_color',
         'number_color',
@@ -285,9 +284,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     };
 
     data.style_fonts_ticks = {
-      title_color: this._hexToRgb(
-        sourceConfig.title_color || sourceConfig.title_font_color || '#3e2723'
-      ) ?? [62, 39, 35],
       number_color: this._hexToRgb(sourceConfig.number_color ?? '#3e2723') ?? [
         62, 39, 35,
       ],
@@ -324,10 +320,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
       plate_color: this._config?.plate_color ?? '#8c7626',
       face_color: this._config?.face_color ?? '#f8f8f0',
 
-      title_color:
-        this._config?.title_color ??
-        this._config?.title_font_color ??
-        '#3e2723',
       number_color: this._config?.number_color ?? '#3e2723',
       primary_tick_color: this._config?.primary_tick_color ?? '#3e2723',
       secondary_tick_color: this._config?.secondary_tick_color ?? '#5d4e37',
@@ -360,10 +352,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     const fc = this._rgbToHex(config.face_color);
     if (fc) config.face_color = fc;
     else config.face_color = defaults.face_color;
-
-    const tfc = this._rgbToHex(config.title_color);
-    if (tfc) config.title_color = tfc;
-    else config.title_color = defaults.title_color;
 
     const nc = this._rgbToHex(config.number_color);
     if (nc) config.number_color = nc;
@@ -641,17 +629,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
         type: 'expandable',
         title: 'Fonts & Ticks',
         schema: [
-          {
-            type: 'grid',
-            name: '',
-            schema: [
-              {
-                name: 'title_color',
-                label: 'Title Color',
-                selector: { color_rgb: {} },
-              },
-            ],
-          },
           {
             type: 'grid',
             name: '',
