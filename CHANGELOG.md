@@ -24,6 +24,7 @@
 
 ### 🐛 Defect Fixes
 
+- **Issue #72:** Thermometer - Update to be same size and default as the slider
 - **Issue #73:** Analog Clock and Guage - Make corners rounded.
 - **Issue #NA:** Chart - Added `show_inspect_value` option in Chart Settings (visual editor) to control whether hover/drag inspection replaces the top-right value with the inspected Y value.
 - **Issue #NA:** Chart - `show_inspect_value` now also controls the vertical inspect bar and defaults to on for existing cards in the visual editor.
