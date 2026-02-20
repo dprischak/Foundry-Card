@@ -3286,8 +3286,12 @@ var FoundryGaugeCard = class extends HTMLElement {
                 <clipPath id="gaugeFaceClip-${uid}">
                   <circle cx="100" cy="100" r="85"/>
                 </clipPath>
+                
+                <clipPath id="plateClip-${uid}">
+                  <rect x="0" y="0" width="200" height="200" rx="20" ry="20" />
+                </clipPath>
               </defs>
-              <rect x="0" y="0" width="200" height="200" fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
+              <rect x="0" y="0" width="200" height="200" rx="20" ry="20" fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" clip-path="url(#plateClip-${uid})" ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Gauge face -->
@@ -5424,29 +5428,30 @@ var FoundryThermometerCard = class extends HTMLElement {
       return color;
     };
     const plateWidth = 145;
-    const plateHeight = 340;
+    const plateHeight = 390;
     const plateX = 5;
     const plateY = 5;
     const rimWidth = 115;
-    const rimHeight = 310;
+    const rimHeight = 360;
     const rimX = 20;
     const rimY = 20;
     const width = 155;
-    const height = 350;
+    const height = 400;
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; }
+        :host { display: block; width: 100%; height: 100%; }
         ha-card { 
           background: transparent; 
           box-shadow: none; 
           width: 100%;
+          height: 100%;
           display: flex;
           justify-content: center;
         }
         .card { 
           position: relative; 
-          width: ${width}px; 
-          height: ${height}px; 
+          width: 100%; 
+          height: 100%; 
           cursor: pointer;
         }
         .thermostat-svg {
@@ -5762,6 +5767,17 @@ var FoundryThermometerCard = class extends HTMLElement {
   static getConfigElement() {
     return document.createElement("foundry-thermometer-editor");
   }
+  static get supportsCardResize() {
+    return true;
+  }
+  getGridOptions() {
+    return {
+      columns: 6,
+      rows: 6,
+      min_columns: 3,
+      min_rows: 3
+    };
+  }
   static getStubConfig() {
     return {
       entity: "sensor.temperature",
@@ -5777,6 +5793,10 @@ var FoundryThermometerCard = class extends HTMLElement {
       rivet_color: "#6a5816",
       font_bg_color: "#ffffff",
       font_color: "#3e2723",
+      grid_options: {
+        columns: 6,
+        rows: 6
+      },
       segments: [
         { from: 0, to: 33, color: "#4CAF50" },
         { from: 33, to: 66, color: "#FFC107" },
@@ -7866,9 +7886,13 @@ var FoundryAnalogClockCard = class extends HTMLElement {
                 <clipPath id="clockFaceClip-${uid}">
                   <circle cx="100" cy="100" r="85"/>
                 </clipPath>
+                
+                <clipPath id="plateClip-${uid}">
+                  <rect x="0" y="0" width="200" height="200" rx="20" ry="20" />
+                </clipPath>
               </defs>
               
-              <rect x="0" y="0" width="200" height="200" fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
+              <rect x="0" y="0" width="200" height="200" rx="20" ry="20" fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" clip-path="url(#plateClip-${uid})" ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Clock face -->

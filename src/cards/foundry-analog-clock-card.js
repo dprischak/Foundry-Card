@@ -312,9 +312,13 @@ class FoundryAnalogClockCard extends HTMLElement {
                 <clipPath id="clockFaceClip-${uid}">
                   <circle cx="100" cy="100" r="85"/>
                 </clipPath>
+                
+                <clipPath id="plateClip-${uid}">
+                  <rect x="0" y="0" width="200" height="200" rx="20" ry="20" />
+                </clipPath>
               </defs>
               
-              <rect x="0" y="0" width="200" height="200" fill="${plateTransparent ? 'rgba(240, 235, 225, 0.15)' : plateColor}" ${effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})"` : ''} />
+              <rect x="0" y="0" width="200" height="200" rx="20" ry="20" fill="${plateTransparent ? 'rgba(240, 235, 225, 0.15)' : plateColor}" clip-path="url(#plateClip-${uid})" ${effectiveAgedTexture === 'everywhere' ? `filter="url(#aged-${uid})"` : ''} />
               ${this.renderRim(ringStyle, uid)}
               
               <!-- Clock face -->
