@@ -6,6 +6,16 @@ class FoundryChartCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._inspectActive = false;
+    this._inspectBucketIndex = null;
+    this._activeInspectPointerId = null;
+    this._lastInspectPointerType = null;
+    this._inspectGestureMoved = false;
+    this._suppressMoreInfoClickUntil = 0;
+    this._chartBuckets = [];
+    this._chartBucketCount = 0;
+    this._chartGeometry = null;
+    this._chartValueUnit = '';
   }
 
   setConfig(config) {
@@ -35,6 +45,18 @@ class FoundryChartCard extends HTMLElement {
     this.config.aggregation = this.config.aggregation || 'avg';
     this.config.show_footer =
       this.config.show_footer !== undefined ? this.config.show_footer : true;
+    this.config.show_inspect_value =
+      this.config.show_inspect_value !== undefined
+        ? this.config.show_inspect_value
+        : true;
+    this.config.show_x_axis_minmax =
+      this.config.show_x_axis_minmax !== undefined
+        ? this.config.show_x_axis_minmax
+        : false;
+    this.config.show_y_axis_minmax =
+      this.config.show_y_axis_minmax !== undefined
+        ? this.config.show_y_axis_minmax
+        : false;
 
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.title = this.config.title || 'Foundry Chart';
@@ -101,6 +123,9 @@ class FoundryChartCard extends HTMLElement {
       grid_opacity: 0.6,
       value_precision: 2,
       aggregation: 'avg',
+      show_inspect_value: true,
+      show_x_axis_minmax: false,
+      show_y_axis_minmax: false,
     };
   }
 
@@ -151,6 +176,215 @@ class FoundryChartCard extends HTMLElement {
     this._updateValues();
   }
 
+  _getChartGeometry(chartWidth, chartHeight) {
+    const parsedLineWidth = Number.parseFloat(this.config.line_width);
+    const lineWidth =
+      Number.isFinite(parsedLineWidth) && parsedLineWidth > 0
+        ? parsedLineWidth
+        : 2;
+
+    const borderStrokeWidth = 1;
+    const safetyPadding = 0.5;
+    const desiredInset = lineWidth / 2 + borderStrokeWidth / 2 + safetyPadding;
+    const maxInset = Math.max(1, Math.min(chartWidth, chartHeight) / 2 - 0.5);
+    const inset = Math.min(desiredInset, maxInset);
+    const plotWidth = Math.max(1, chartWidth - inset * 2);
+    const plotHeight = Math.max(1, chartHeight - inset * 2);
+
+    return {
+      lineWidth,
+      plotX: inset,
+      plotY: inset,
+      plotWidth,
+      plotHeight,
+      plotBottom: inset + plotHeight,
+      plotRx: Math.max(0, 8 - inset),
+      plotRy: Math.max(0, 8 - inset),
+    };
+  }
+
+  _getCurrentEntityValue() {
+    const currentState = this._hass?.states?.[this.config.entity];
+    const unit = currentState?.attributes?.unit_of_measurement || '';
+    const parsed = Number.parseFloat(currentState?.state);
+    const value = Number.isFinite(parsed) ? parsed : null;
+    return { value, unit };
+  }
+
+  _formatValue(value, unit = '') {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return '--';
+    }
+    return `${value.toFixed(this.config.value_precision)}${unit}`;
+  }
+
+  _renderChartValueText(currentValue, unit) {
+    const valueEl = this.shadowRoot.getElementById('chart-value');
+    if (!valueEl) return;
+
+    let text = this._formatValue(currentValue, unit);
+    if (
+      this._inspectActive &&
+      this.config.show_inspect_value &&
+      Number.isInteger(this._inspectBucketIndex) &&
+      this._inspectBucketIndex >= 0 &&
+      this._inspectBucketIndex < this._chartBuckets.length
+    ) {
+      const bucketValue = this._chartBuckets[this._inspectBucketIndex]?.value;
+      text = this._formatValue(bucketValue, unit);
+    }
+
+    valueEl.textContent = text;
+    valueEl.setAttribute('fill', this.config.font_color);
+  }
+
+  _getInspectLineX() {
+    if (
+      !this._chartGeometry ||
+      !Number.isInteger(this._inspectBucketIndex) ||
+      this._inspectBucketIndex < 0 ||
+      this._inspectBucketIndex >= this._chartBucketCount
+    ) {
+      return null;
+    }
+
+    if (this._chartBucketCount <= 1) {
+      return this._chartGeometry.plotX;
+    }
+
+    const step = this._chartGeometry.plotWidth / (this._chartBucketCount - 1);
+    return this._chartGeometry.plotX + this._inspectBucketIndex * step;
+  }
+
+  _renderInspectLine() {
+    const inspectLineEl = this.shadowRoot.getElementById('chart-inspect-line');
+    if (!inspectLineEl) return;
+
+    if (!this._inspectActive || !this.config.show_inspect_value) {
+      inspectLineEl.setAttribute('visibility', 'hidden');
+      return;
+    }
+
+    const x = this._getInspectLineX();
+    if (x === null) {
+      inspectLineEl.setAttribute('visibility', 'hidden');
+      return;
+    }
+
+    inspectLineEl.setAttribute('x1', x);
+    inspectLineEl.setAttribute('x2', x);
+    inspectLineEl.setAttribute('y1', this._chartGeometry.plotY);
+    inspectLineEl.setAttribute('y2', this._chartGeometry.plotBottom);
+    inspectLineEl.setAttribute('stroke', this.config.line_color);
+    inspectLineEl.setAttribute('visibility', 'visible');
+  }
+
+  _setInspectState(active, bucketIndex = null) {
+    this._inspectActive = active;
+    this._inspectBucketIndex =
+      Number.isInteger(bucketIndex) && bucketIndex >= 0 ? bucketIndex : null;
+
+    const { value, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(value, unit);
+    this._renderInspectLine();
+  }
+
+  _updateInspectFromPointerEvent(event, layerEl) {
+    if (!layerEl || !this._chartGeometry || this._chartBucketCount < 1) return;
+
+    const bounds = layerEl.getBoundingClientRect();
+    if (!bounds.width) return;
+
+    const clampedX = Math.min(
+      Math.max(event.clientX - bounds.left, 0),
+      bounds.width
+    );
+    const chartX = (clampedX / bounds.width) * 200;
+    const plotStart = this._chartGeometry.plotX;
+    const plotEnd = this._chartGeometry.plotX + this._chartGeometry.plotWidth;
+    const clampedPlotX = Math.min(Math.max(chartX, plotStart), plotEnd);
+
+    const index =
+      this._chartBucketCount <= 1
+        ? 0
+        : Math.round(
+            ((clampedPlotX - plotStart) / this._chartGeometry.plotWidth) *
+              (this._chartBucketCount - 1)
+          );
+
+    this._setInspectState(true, index);
+  }
+
+  _bindChartInteractions() {
+    const layerEl = this.shadowRoot.getElementById('chart-interaction-layer');
+    if (!layerEl) return;
+
+    const clearActivePointer = () => {
+      this._activeInspectPointerId = null;
+      this._lastInspectPointerType = null;
+      this._inspectGestureMoved = false;
+    };
+
+    layerEl.addEventListener('pointermove', (event) => {
+      const isMouseHover = event.pointerType === 'mouse' && event.buttons === 0;
+      if (isMouseHover) {
+        this._updateInspectFromPointerEvent(event, layerEl);
+        return;
+      }
+
+      if (this._activeInspectPointerId === event.pointerId) {
+        this._inspectGestureMoved = true;
+        this._updateInspectFromPointerEvent(event, layerEl);
+      }
+    });
+
+    layerEl.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+
+      this._activeInspectPointerId = event.pointerId;
+      this._lastInspectPointerType = event.pointerType;
+      this._inspectGestureMoved = false;
+
+      if (layerEl.setPointerCapture) {
+        layerEl.setPointerCapture(event.pointerId);
+      }
+
+      this._updateInspectFromPointerEvent(event, layerEl);
+    });
+
+    const handlePointerEnd = (event) => {
+      if (this._activeInspectPointerId !== event.pointerId) return;
+
+      if (layerEl.releasePointerCapture) {
+        try {
+          layerEl.releasePointerCapture(event.pointerId);
+        } catch (_e) {
+          this._activeInspectPointerId = null;
+        }
+      }
+
+      if (
+        this._lastInspectPointerType !== 'mouse' &&
+        this._inspectGestureMoved
+      ) {
+        this._suppressMoreInfoClickUntil = Date.now() + 350;
+      }
+
+      clearActivePointer();
+      this._setInspectState(false);
+    };
+
+    layerEl.addEventListener('pointerup', handlePointerEnd);
+    layerEl.addEventListener('pointercancel', handlePointerEnd);
+
+    layerEl.addEventListener('pointerleave', (event) => {
+      if (event.pointerType === 'mouse') {
+        this._setInspectState(false);
+      }
+    });
+  }
+
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._history) return;
@@ -163,6 +397,8 @@ class FoundryChartCard extends HTMLElement {
     const totalDuration = endTs - startTs;
 
     const chartWidth = 200;
+    const chartHeight = 60;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const bucketCount = Math.max(
       10,
       this.config.bucket_minutes
@@ -267,18 +503,46 @@ class FoundryChartCard extends HTMLElement {
       maxValue += 1;
     }
 
-    const valueEl = this.shadowRoot.getElementById('chart-value');
-    if (valueEl) {
-      const currentState = this._hass.states[this.config.entity];
-      const unit = currentState?.attributes?.unit_of_measurement || '';
-      const parsed = parseFloat(currentState?.state);
-      const value = Number.isFinite(parsed) ? parsed : null;
-      const text =
-        value === null
-          ? '--'
-          : `${value.toFixed(this.config.value_precision)}${unit}`;
-      valueEl.textContent = text;
-      valueEl.setAttribute('fill', this.config.font_color);
+    this._chartBuckets = buckets;
+    this._chartBucketCount = bucketCount;
+    this._chartGeometry = chartGeometry;
+
+    const { value: currentDisplayValue, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(currentDisplayValue, unit);
+    this._renderInspectLine();
+
+    const xAxisMinEl = this.shadowRoot.getElementById('x-axis-min');
+    const xAxisMaxEl = this.shadowRoot.getElementById('x-axis-max');
+    const yAxisMinEl = this.shadowRoot.getElementById('y-axis-min');
+    const yAxisMaxEl = this.shadowRoot.getElementById('y-axis-max');
+
+    if (xAxisMinEl && xAxisMaxEl) {
+      if (this.config.show_x_axis_minmax) {
+        xAxisMinEl.textContent = this._formatAxisTime(startTime);
+        xAxisMaxEl.textContent = this._formatAxisTime(now);
+        xAxisMinEl.setAttribute('fill', this.config.font_color);
+        xAxisMaxEl.setAttribute('fill', this.config.font_color);
+        xAxisMinEl.setAttribute('visibility', 'visible');
+        xAxisMaxEl.setAttribute('visibility', 'visible');
+      } else {
+        xAxisMinEl.setAttribute('visibility', 'hidden');
+        xAxisMaxEl.setAttribute('visibility', 'hidden');
+      }
+    }
+
+    if (yAxisMinEl && yAxisMaxEl) {
+      if (this.config.show_y_axis_minmax) {
+        yAxisMinEl.textContent = this._formatValue(minValue, unit);
+        yAxisMaxEl.textContent = this._formatValue(maxValue, unit);
+        yAxisMinEl.setAttribute('fill', this.config.font_color);
+        yAxisMaxEl.setAttribute('fill', this.config.font_color);
+        yAxisMinEl.setAttribute('visibility', 'visible');
+        yAxisMaxEl.setAttribute('visibility', 'visible');
+      } else {
+        yAxisMinEl.setAttribute('visibility', 'hidden');
+        yAxisMaxEl.setAttribute('visibility', 'hidden');
+      }
     }
 
     const emptyEl = this.shadowRoot.getElementById('chart-empty');
@@ -291,16 +555,16 @@ class FoundryChartCard extends HTMLElement {
       if (areaEl) areaEl.setAttribute('d', '');
     } else {
       if (emptyEl) emptyEl.setAttribute('visibility', 'hidden');
-      const chartHeight = 60;
-      const step = chartWidth / (bucketCount - 1);
+      const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
+      const step = plotWidth / (bucketCount - 1);
 
       const points = buckets.map((bucket, index) => {
-        const x = index * step;
+        const x = plotX + index * step;
         if (bucket.value === null || bucket.value === undefined) {
           return { x, y: null };
         }
         const pct = (bucket.value - minValue) / (maxValue - minValue);
-        const y = chartHeight - pct * chartHeight;
+        const y = plotY + (1 - pct) * plotHeight;
         return { x, y };
       });
 
@@ -327,7 +591,7 @@ class FoundryChartCard extends HTMLElement {
           const first = points.find((p) => p.y !== null);
           const last = [...points].reverse().find((p) => p.y !== null);
           if (first && last) {
-            const areaPath = `${linePath} L ${last.x} ${chartHeight} L ${first.x} ${chartHeight} Z`;
+            const areaPath = `${linePath} L ${last.x} ${plotBottom} L ${first.x} ${plotBottom} Z`;
             areaEl.setAttribute('d', areaPath);
           } else {
             areaEl.setAttribute('d', '');
@@ -338,7 +602,7 @@ class FoundryChartCard extends HTMLElement {
       }
     }
 
-    if (this.config.show_footer) {
+    if (this.config.show_footer && !this.config.show_x_axis_minmax) {
       const startEl = this.shadowRoot.getElementById('footer-start');
       const endEl = this.shadowRoot.getElementById('footer-end');
       if (startEl && endEl) {
@@ -353,6 +617,13 @@ class FoundryChartCard extends HTMLElement {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  _formatAxisTime(date) {
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   render() {
@@ -395,6 +666,8 @@ class FoundryChartCard extends HTMLElement {
 
     const chartWidth = 200;
     const chartHeight = 60;
+    const axisLabelFontSize = 10;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const chartX = rimX + (rimWidth - chartWidth) / 2;
     const chartY = rimY + 32;
 
@@ -470,21 +743,27 @@ class FoundryChartCard extends HTMLElement {
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#gridMajor-${uid})" />
 
                   <clipPath id="chartClip-${uid}">
-                      <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" />
+                      <rect x="${chartGeometry.plotX}" y="${chartGeometry.plotY}" width="${chartGeometry.plotWidth}" height="${chartGeometry.plotHeight}" rx="${chartGeometry.plotRx}" ry="${chartGeometry.plotRy}" />
                   </clipPath>
 
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
-                      <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${config.line_width}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.line_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
                   </g>
 
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" />
+                    <rect id="chart-interaction-layer" x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="transparent" style="touch-action: none;" />
+                  <text id="x-axis-min" x="${chartGeometry.plotX}" y="${chartHeight + 10}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="x-axis-max" x="${chartGeometry.plotX + chartGeometry.plotWidth}" y="${chartHeight + 10}" text-anchor="end" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-min" x="3" y="${chartGeometry.plotBottom - 2}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-max" x="3" y="${chartGeometry.plotY + 8}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
                   <text id="chart-empty" x="${chartWidth / 2}" y="${chartHeight / 2 + 4}" text-anchor="middle" font-size="12" fill="${config.font_color}" class="label-font" visibility="hidden">No data</text>
               </g>
 
               ${
-                config.show_footer
+                config.show_footer && !config.show_x_axis_minmax
                   ? `
                     <text id="footer-start" x="${rimX + 24}" y="${rimY + rimHeight - 16}" text-anchor="start" font-size="12" fill="${config.font_color}" class="label-font">...</text>
                     <text id="footer-end" x="${rimX + rimWidth - 24}" y="${rimY + rimHeight - 16}" text-anchor="end" font-size="12" fill="${config.font_color}" class="label-font">Now</text>
@@ -503,11 +782,14 @@ class FoundryChartCard extends HTMLElement {
     if (cardEl) {
       cardEl.style.cursor = 'pointer';
       cardEl.onclick = () => {
+        if (Date.now() < this._suppressMoreInfoClickUntil) return;
         if (this.config.entity) {
           fireEvent(this, 'hass-more-info', { entityId: this.config.entity });
         }
       };
     }
+
+    this._bindChartInteractions();
   }
 
   renderRivets(w, h, x, y) {
