@@ -1,12 +1,28 @@
 ## v26.2.3
 
+<<<<<<< HEAD
+### 🚀 Breaking Changes
+
+- **Renaming:** The `Foundry Thermostat` card has been renamed to **Foundry Thermometer** card.
+  - New type: `custom:foundry-thermometer-card`
+  - Old type: `custom:foundry-thermostat-card` (removed)
+  - Please update your dashboards to use the new card type.
+
 ### 🛠️ Improvements
 
 - **Issue #NA** - Entities - Allow for moving entities up or down in the list in the editor.
 
 ### 🐛 Defect Fixes
 
+- **Issue #62:** Renamed Thermostat card to Thermometer card for better clarity.
+- **Issue #64:** Thermometer - Added `background_style` and `face_color` options to Thermometer card (matches Gauge card style).
+- **Issue** Consolidated Thermometer colors: `number_color` now controls Title, Unit, and Scale numbers. `title_color` and `font_color` are deprecated. Editor updated to show only "Number Color".
+- **Issue #60:** Thermometer - Added missing "Chrome" ring style to the editor.
+- **Issue #59:** Thermometer - Fixed theme loading in the editor where themes would not populate in the dropdown.
+- **Issue #56:** Thermometer - Increased visibility of color segments when placed behind the mercury tube.
+- **Issue #55:** Thermometer - Fixed major/minor tick alignment and coloring to respect theme settings.
 - **Issue #50:** Entities - Fixed Date and Time to not be UTC but local time.
+
 
 ## v26.2.2
 

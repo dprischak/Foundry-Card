@@ -1,6 +1,6 @@
 import { loadThemes, applyTheme } from './themes.js';
 
-class FoundryThermostatEditor extends HTMLElement {
+class FoundryThermometerEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -15,6 +15,7 @@ class FoundryThermostatEditor extends HTMLElement {
       segments: Array.isArray(config.segments) ? config.segments : [],
     };
     this.render();
+    // Always attempt to load themes if not loaded, and force re-render when they load
     if (!this._themesLoaded) {
       this._loadThemes();
     }
@@ -24,7 +25,7 @@ class FoundryThermostatEditor extends HTMLElement {
     try {
       this._themes = await loadThemes();
       this._themesLoaded = true;
-      // Force complete re-creation by clearing root
+      // Force complete re-creation by clearing root, similar to slider/entities implementation
       if (this._root && this._root.parentNode) {
         this._root.parentNode.removeChild(this._root);
       }
@@ -32,9 +33,12 @@ class FoundryThermostatEditor extends HTMLElement {
       this._form1 = null;
       this._form2 = null;
       this._segmentsContainer = null;
-      if (!this._advancedMode) {
-        this.render();
-      }
+      this._form1 = null;
+      this._form2 = null;
+      this._segmentsContainer = null;
+
+      // Force render to update schema with new themes
+      this.render();
     } catch (e) {
       console.error('Error loading themes:', e);
     }
@@ -296,28 +300,22 @@ class FoundryThermostatEditor extends HTMLElement {
       const themedConfig = applyTheme({ ...this._config }, themeData);
 
       // List of properties that themes control
+      // List of properties that themes control for Thermometer
       const themeProperties = [
         'plate_color',
         'rivet_color',
         'ring_style',
-        'title_color',
-        'font_color',
-        'font_bg_color',
         'number_color',
         'primary_tick_color',
         'secondary_tick_color',
         'background_style',
         'face_color',
         'liquid_color',
-        'needle_color',
         'plate_transparent',
         'glass_effect_enabled',
         'wear_level',
         'aged_texture',
         'aged_texture_intensity',
-        'slider_color',
-        'knob_color',
-        'tick_color',
       ];
 
       // Check if any of these changed compared to themed values
@@ -363,7 +361,9 @@ class FoundryThermostatEditor extends HTMLElement {
     delete data.segments; // Do not pass segments to ha-form
 
     // Defaults
-    data.theme = sourceConfig.theme ?? 'none';
+    // Explicitly check config.theme first to preserve selection even if theme data isn't loaded yet
+    data.theme =
+      config.theme && config.theme !== 'none' ? config.theme : 'none';
     // Color Conversions
     data.liquid_color = this._hexToRgb(
       sourceConfig.liquid_color ?? '#cc0000'
@@ -377,10 +377,22 @@ class FoundryThermostatEditor extends HTMLElement {
     data.font_bg_color = this._hexToRgb(
       sourceConfig.font_bg_color ?? '#ffffff'
     ) || [255, 255, 255];
-    // Map font_color (or legacy title_font_color) to 'font_color' field
-    data.font_color = this._hexToRgb(
-      sourceConfig.font_color || sourceConfig.title_font_color || '#3e2723'
+
+    // Map number_color (prioritizing number_color, falling back to font_color/title_color for migration)
+    data.number_color = this._hexToRgb(
+      sourceConfig.number_color ||
+        sourceConfig.font_color ||
+        sourceConfig.title_color ||
+        '#3e2723'
     ) ?? [62, 39, 35];
+
+    // Tick colors
+    data.primary_tick_color = this._hexToRgb(
+      sourceConfig.primary_tick_color || sourceConfig.tick_color || '#000000'
+    ) ?? [0, 0, 0];
+    data.secondary_tick_color = this._hexToRgb(
+      sourceConfig.secondary_tick_color || sourceConfig.tick_color || '#000000'
+    ) ?? [0, 0, 0];
 
     // Legacy support: title_color is deprecated, we use font_color now
     // If user sets title_color in YAML manually, it will be migrated on save,
@@ -392,6 +404,10 @@ class FoundryThermostatEditor extends HTMLElement {
     data.animation_duration = sourceConfig.animation_duration ?? 1.5;
     data.segments_under_mercury = sourceConfig.segments_under_mercury ?? true;
 
+    data.face_color = this._hexToRgb(sourceConfig.face_color ?? '#f8f8f0') || [
+      248, 248, 240,
+    ];
+    data.background_style = sourceConfig.background_style ?? 'gradient';
     data.plate_transparent = sourceConfig.plate_transparent ?? false;
     data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
     data.wear_level = sourceConfig.wear_level ?? 50;
@@ -421,8 +437,17 @@ class FoundryThermostatEditor extends HTMLElement {
       config.rivet_color = this._rgbToHex(config.rivet_color);
     if (config.font_bg_color)
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
-    if (config.font_color)
-      config.font_color = this._rgbToHex(config.font_color);
+    if (config.number_color)
+      config.number_color = this._rgbToHex(config.number_color);
+
+    // Remove legacy font_color if present, we rely on number_color now
+    delete config.font_color;
+    if (config.primary_tick_color)
+      config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
+    if (config.secondary_tick_color)
+      config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
+    if (config.face_color)
+      config.face_color = this._rgbToHex(config.face_color);
 
     // Ensure we don't save legacy fields generated by the schema form if they exist
     delete config.title_color;
@@ -436,14 +461,7 @@ class FoundryThermostatEditor extends HTMLElement {
       {
         type: 'grid',
         name: '',
-        schema: [
-          { name: 'title', selector: { text: {} } },
-          {
-            name: 'font_color',
-            label: 'Title Color',
-            selector: { color_rgb: {} },
-          },
-        ],
+        schema: [{ name: 'title', selector: { text: {} } }],
       },
 
       { name: 'unit', selector: { text: {} } },
@@ -505,6 +523,7 @@ class FoundryThermostatEditor extends HTMLElement {
                 options: [
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
+                  { value: 'chrome', label: 'Chrome' },
                   { value: 'copper', label: 'Copper' },
                   { value: 'black', label: 'Black' },
                   { value: 'white', label: 'White' },
@@ -529,14 +548,31 @@ class FoundryThermostatEditor extends HTMLElement {
                 label: 'Plate Color',
                 selector: { color_rgb: {} },
               },
+
               {
                 name: 'rivet_color',
                 label: 'Rivet Color',
                 selector: { color_rgb: {} },
               },
               {
-                name: 'font_bg_color',
-                label: 'Tube Background',
+                name: 'number_color',
+                label: 'Number Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'primary_tick_color',
+                label: 'Major Tick Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'secondary_tick_color',
+                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],
@@ -550,6 +586,24 @@ class FoundryThermostatEditor extends HTMLElement {
             name: 'glass_effect_enabled',
             label: 'Glass Effect',
             selector: { boolean: {} },
+          },
+          {
+            name: 'background_style',
+            label: 'Background Style',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'gradient', label: 'Gradient' },
+                  { value: 'solid', label: 'Solid' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'face_color',
+            label: 'Face Color (Solid Mode)',
+            selector: { color_rgb: {} },
           },
           {
             name: 'wear_level',
@@ -617,6 +671,6 @@ class FoundryThermostatEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get('foundry-thermostat-editor')) {
-  customElements.define('foundry-thermostat-editor', FoundryThermostatEditor);
+if (!customElements.get('foundry-thermometer-editor')) {
+  customElements.define('foundry-thermometer-editor', FoundryThermometerEditor);
 }

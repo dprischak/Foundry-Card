@@ -2,7 +2,7 @@ import { fireEvent } from './utils.js';
 import { ensureLedFont } from './fonts.js';
 import { loadThemes, applyTheme } from './themes.js';
 
-class FoundryThermostatCard extends HTMLElement {
+class FoundryThermometerCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -101,19 +101,25 @@ class FoundryThermostatCard extends HTMLElement {
   render() {
     const config = this.config;
     const uid = this._uniqueId;
-    // Normalize font color (used for title) priority: font_color > title_font_color > default
-    const fontColor = config.font_color || config.title_font_color || '#3e2723';
-    // config.title_color removed/migrated to font_color usage
+    const numberColor = config.number_color || '#3e2723';
+    // Use numberColor for title and unit as well
+    const fontColor = numberColor;
+
+    // config.title_color / font_color removed/migrated to number_color usage
     const title = config.title || 'Temperature';
 
     const ringStyle = config.ring_style;
     const rimData = this.getRimStyleData(ringStyle, uid);
 
     // Config Colors
-    const plateColor = config.plate_color;
-    const plateTransparent = config.plate_transparent;
+    // plateTransparent derived in renderBackground
     const rivetColor = config.rivet_color;
-    const fontBgColor = config.font_bg_color || '#ffffff';
+
+    // Face Background logic
+    const backgroundStyle = config.background_style || 'gradient';
+    const faceColor = config.face_color || '#f8f8f0';
+    let faceFill =
+      backgroundStyle === 'solid' ? faceColor : `url(#thermometerFace-${uid})`;
 
     // Appearance
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
@@ -121,17 +127,13 @@ class FoundryThermostatCard extends HTMLElement {
       config.glass_effect_enabled !== undefined
         ? config.glass_effect_enabled
         : true;
-    const agedTexture =
-      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+
+    // agedTexture is unused here, only intensity needed for filter definition
     const agedTextureIntensity =
       config.aged_texture_intensity !== undefined
         ? config.aged_texture_intensity
         : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
-    const effectiveAgedTexture =
-      plateTransparent && agedTexture === 'everywhere'
-        ? 'glass_only'
-        : agedTexture;
 
     // Handle liquid_color being either array (standard) or string (hex/rgb from editor sometimes)
     let liquidColor = '#cc0000';
@@ -215,8 +217,8 @@ class FoundryThermostatCard extends HTMLElement {
             fill: ${fontColor};
         }
         .rivet {
-          fill: ${rivetColor};
-          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+            fill: ${rivetColor};
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
         }
         .screw-detail {
           stroke: #4a4034;
@@ -256,16 +258,20 @@ class FoundryThermostatCard extends HTMLElement {
                  <stop offset="60%" style="stop-color:${liquidColor}" />
                  <stop offset="100%" style="stop-color:${this.darkenColor(liquidColor, 40)}" />
               </linearGradient>
+
+              <linearGradient id="thermometerFace-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#dfdfdf;stop-opacity:1" />
+                  <stop offset="20%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="80%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
+              </linearGradient>
             </defs>
 
-              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-                    fill="${plateTransparent ? 'none' : plateColor}" 
-                    stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
-                    filter="${effectiveAgedTexture === 'everywhere' && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
+            ${this.renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config)}
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
-            ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+            ${this.renderSquareRim(ringStyle, uid, faceFill, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
 
             <g transform="translate(${rimX}, ${rimY})">
                 
@@ -289,7 +295,7 @@ class FoundryThermostatCard extends HTMLElement {
                   const widthPx = (tubeWidth * pct) / 100;
                   const xPx = tubeX + (tubeWidth - widthPx) / 2;
                   return `
-                        <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
+                        <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
                 })()}
@@ -308,8 +314,36 @@ class FoundryThermostatCard extends HTMLElement {
     `;
 
     this._attachActionListeners();
-    this.drawScale(fontColor);
+    this.drawScale();
     this.drawSegments();
+  }
+
+  renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config) {
+    const plateColor = config.plate_color;
+    const plateTransparent = config.plate_transparent;
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
+
+    const effectiveAgedTexture =
+      plateTransparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
+
+    // Background fill logic
+    // Plate color is the background of the card body
+    const fill = plateTransparent ? 'none' : plateColor;
+
+    const filter =
+      effectiveAgedTexture === 'everywhere' && !plateTransparent
+        ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))`
+        : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))';
+
+    return `
+      <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
+            fill="${fill}" 
+            stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
+            filter="${filter}" />
+    `;
   }
 
   renderRivets(w, h, x, y) {
@@ -402,9 +436,25 @@ class FoundryThermostatCard extends HTMLElement {
 
     this.config.plate_color = this.config.plate_color || '#8c7626';
     this.config.rivet_color = this.config.rivet_color || '#6a5816';
+    this.config.face_color = this.config.face_color || '#f8f8f0';
+    this.config.background_style = this.config.background_style || 'gradient';
     this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.title_color =
-      this.config.title_color || this.config.title_font_color || '#3e2723';
+
+    // Consolidate colors to number_color
+    // If legacy font_color/title_color exists but number_color doesn't, migrate it?
+    // Or just prefer number_color.
+    this.config.number_color =
+      this.config.number_color ||
+      this.config.font_color ||
+      this.config.title_color ||
+      '#3e2723';
+
+    // Default tick colors if not set
+    this.config.tick_color = this.config.tick_color || '#333';
+    this.config.primary_tick_color =
+      this.config.primary_tick_color || this.config.tick_color;
+    this.config.secondary_tick_color =
+      this.config.secondary_tick_color || this.config.tick_color;
 
     this._uniqueId = Math.random().toString(36).substr(2, 9);
     ensureLedFont();
@@ -446,11 +496,27 @@ class FoundryThermostatCard extends HTMLElement {
     return yBottom - clampedPct * (yBottom - yTop);
   }
 
-  drawScale(color) {
+  drawScale() {
     const group = this.shadowRoot.getElementById('scale-group');
     if (!group) return;
 
-    const tickColor = color || '#333';
+    // Use specific tick colors or fall back to fontColor passed in (which is usually title/font color)
+    // Use specific tick colors or fall back to number_color (which is the main text color now)
+    // strict logic: primary/secondary > tick_color > number_color > default
+    const primaryColor =
+      this.config.primary_tick_color ||
+      this.config.tick_color ||
+      this.config.number_color ||
+      '#333';
+    const secondaryColor =
+      this.config.secondary_tick_color ||
+      this.config.tick_color ||
+      this.config.number_color ||
+      '#333';
+
+    // Numbers always use number_color
+    const numberColor = this.config.number_color || '#3e2723';
+
     const min = this.config.min !== undefined ? this.config.min : -40;
     const max = this.config.max !== undefined ? this.config.max : 120;
 
@@ -462,22 +528,45 @@ class FoundryThermostatCard extends HTMLElement {
 
     const subStep = step / 2;
 
-    let svgContent = '';
-
-    for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
-      const y = this._valueToY(v);
-      svgContent += `<line x1="32" y1="${y}" x2="58" y2="${y}" stroke="${tickColor}" stroke-width="1.5" />`;
-      // Adjust text position slightly
-      svgContent += `<text x="29" y="${y + 3.5}" text-anchor="end" font-family="Arial" font-size="10" fill="${tickColor}" font-weight="bold">${v}</text>`;
-    }
-
+    const ticks = [];
     for (let v = Math.ceil(min / subStep) * subStep; v <= max; v += subStep) {
-      if (v % step === 0) continue;
-      const y = this._valueToY(v);
-      svgContent += `<line x1="38" y1="${y}" x2="58" y2="${y}" stroke="${tickColor}" stroke-width="1" />`;
+      ticks.push({
+        value: v,
+        y: this._valueToY(v),
+        isMajor: v % step === 0,
+      });
     }
 
-    group.innerHTML = svgContent;
+    // Tube is width 20, centered at 57.5 (x=47.5 to 67.5)
+    // We want ticks to extend past the tube.
+    // Major ticks: Width 30 (extends 5px past each side of tube)
+    // Minor ticks: Width 24 (extends 2px past each side of tube)
+
+    // Major ticks
+    const majorPath = ticks
+      .filter((t) => t.isMajor)
+      .map((t) => `M 28.5 ${t.y} L 65.5 ${t.y}`) // x from 57.5-15 to 57.5+15
+      .join(' ');
+
+    // Minor ticks
+    const minorPath = ticks
+      .filter((t) => !t.isMajor)
+      .map((t) => `M 32.5 ${t.y} L 61.5 ${t.y}`) // x from 57.5-12 to 57.5+12
+      .join(' ');
+
+    const numbers = ticks
+      .filter((t) => t.isMajor)
+      .map(
+        (t) =>
+          `<text x="28" y="${t.y + 4}" text-anchor="end" class="scale-number" style="fill:${numberColor}; font-size: 11px; font-weight:bold; font-family: 'Georgia', serif;">${t.value}</text>`
+      )
+      .join('');
+
+    group.innerHTML = `
+      <path d="${majorPath}" stroke="${primaryColor}" stroke-width="1.5" fill="none" />
+      <path d="${minorPath}" stroke="${secondaryColor}" stroke-width="1" fill="none" />
+      ${numbers}
+    `;
   }
 
   drawSegments() {
@@ -489,7 +578,8 @@ class FoundryThermostatCard extends HTMLElement {
 
     const xPos = behindMercury ? 47.5 : 72;
     const width = behindMercury ? 20 : 10;
-    const opacity = behindMercury ? 0.35 : 0.8;
+    // Increased opacity for behindMercury from 0.35 to 0.6
+    const opacity = behindMercury ? 0.6 : 0.8;
 
     let svgContent = '';
 
@@ -534,7 +624,7 @@ class FoundryThermostatCard extends HTMLElement {
     }
   }
   static getConfigElement() {
-    return document.createElement('foundry-thermostat-editor');
+    return document.createElement('foundry-thermometer-editor');
   }
 
   static getStubConfig() {
@@ -561,14 +651,14 @@ class FoundryThermostatCard extends HTMLElement {
   }
 }
 
-if (!customElements.get('foundry-thermostat-card')) {
-  customElements.define('foundry-thermostat-card', FoundryThermostatCard);
+if (!customElements.get('foundry-thermometer-card')) {
+  customElements.define('foundry-thermometer-card', FoundryThermometerCard);
 }
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'foundry-thermostat-card',
-  name: 'Foundry Thermostat Card',
+  type: 'foundry-thermometer-card',
+  name: 'Foundry Thermometer Card',
   preview: true,
-  description: 'A vintage industrial style thermostat card',
+  description: 'A vintage industrial style thermometer card',
 });
