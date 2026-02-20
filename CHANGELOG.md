@@ -1,6 +1,5 @@
 ## v26.2.3
 
-<<<<<<< HEAD
 ### 🚀 Breaking Changes
 
 - **Renaming:** The `Foundry Thermostat` card has been renamed to **Foundry Thermometer** card.
@@ -22,6 +21,7 @@
 - **Issue #56:** Thermometer - Increased visibility of color segments when placed behind the mercury tube.
 - **Issue #55:** Thermometer - Fixed major/minor tick alignment and coloring to respect theme settings.
 - **Issue #50:** Entities - Fixed Date and Time to not be UTC but local time.
+- **Issue #65:** Gauge and Analog Clock - Removed Title Color as the title is based on number color.
 
 
 ## v26.2.2
