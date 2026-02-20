@@ -15506,7 +15506,16 @@ var FoundryChartEditor = class extends HTMLElement {
         </div>
       `;
     });
+    const blendWidth = Number(this._config.segment_blend_width) || 0;
     html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    html += `
+      <div class="segment-row" style="margin-top: 12px;">
+        <div class="input-group">
+          <label>Segment Blend Width</label>
+          <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+      </div>
+    `;
     this._segmentsContainer.innerHTML = html;
     this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
       input.addEventListener("change", (event) => {
@@ -15528,6 +15537,15 @@ var FoundryChartEditor = class extends HTMLElement {
     const addButton = this._segmentsContainer.querySelector("#add-btn");
     if (addButton) {
       addButton.addEventListener("click", () => this._addSegment());
+    }
+    const blendWidthInput = this._segmentsContainer.querySelector(
+      "#segment-blend-width"
+    );
+    if (blendWidthInput) {
+      blendWidthInput.addEventListener("change", (event) => {
+        const blendWidth2 = Math.max(0, Number(event.target.value) || 0);
+        this._updateConfig({ segment_blend_width: blendWidth2 });
+      });
     }
   }
   _updateSegment(index, key, value) {
@@ -15687,11 +15705,6 @@ var FoundryChartEditor = class extends HTMLElement {
             name: "show_y_axis_minmax",
             label: "Show Y Axis Min/Max",
             selector: { boolean: {} }
-          },
-          {
-            name: "segment_blend_width",
-            label: "Segment Blend Width",
-            selector: { number: { min: 0, max: 100, step: 0.1 } }
           }
         ]
       },
