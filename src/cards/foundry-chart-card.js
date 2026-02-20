@@ -6,6 +6,12 @@ class FoundryChartCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._inspectActive = false;
+    this._inspectBucketIndex = null;
+    this._chartBuckets = [];
+    this._chartBucketCount = 0;
+    this._chartGeometry = null;
+    this._chartValueUnit = '';
   }
 
   setConfig(config) {
@@ -178,6 +184,91 @@ class FoundryChartCard extends HTMLElement {
     };
   }
 
+  _getCurrentEntityValue() {
+    const currentState = this._hass?.states?.[this.config.entity];
+    const unit = currentState?.attributes?.unit_of_measurement || '';
+    const parsed = Number.parseFloat(currentState?.state);
+    const value = Number.isFinite(parsed) ? parsed : null;
+    return { value, unit };
+  }
+
+  _formatValue(value, unit = '') {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return '--';
+    }
+    return `${value.toFixed(this.config.value_precision)}${unit}`;
+  }
+
+  _renderChartValueText(currentValue, unit) {
+    const valueEl = this.shadowRoot.getElementById('chart-value');
+    if (!valueEl) return;
+
+    let text = this._formatValue(currentValue, unit);
+    if (
+      this._inspectActive &&
+      Number.isInteger(this._inspectBucketIndex) &&
+      this._inspectBucketIndex >= 0 &&
+      this._inspectBucketIndex < this._chartBuckets.length
+    ) {
+      const bucketValue = this._chartBuckets[this._inspectBucketIndex]?.value;
+      text = this._formatValue(bucketValue, unit);
+    }
+
+    valueEl.textContent = text;
+    valueEl.setAttribute('fill', this.config.font_color);
+  }
+
+  _setInspectState(active, bucketIndex = null) {
+    this._inspectActive = active;
+    this._inspectBucketIndex =
+      Number.isInteger(bucketIndex) && bucketIndex >= 0 ? bucketIndex : null;
+
+    const { value, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(value, unit);
+  }
+
+  _updateInspectFromPointerEvent(event, layerEl) {
+    if (!layerEl || !this._chartGeometry || this._chartBucketCount < 1) return;
+
+    const bounds = layerEl.getBoundingClientRect();
+    if (!bounds.width) return;
+
+    const clampedX = Math.min(
+      Math.max(event.clientX - bounds.left, 0),
+      bounds.width
+    );
+    const chartX = (clampedX / bounds.width) * 200;
+    const plotStart = this._chartGeometry.plotX;
+    const plotEnd = this._chartGeometry.plotX + this._chartGeometry.plotWidth;
+    const clampedPlotX = Math.min(Math.max(chartX, plotStart), plotEnd);
+
+    const index =
+      this._chartBucketCount <= 1
+        ? 0
+        : Math.round(
+            ((clampedPlotX - plotStart) / this._chartGeometry.plotWidth) *
+              (this._chartBucketCount - 1)
+          );
+
+    this._setInspectState(true, index);
+  }
+
+  _bindChartInteractions() {
+    const layerEl = this.shadowRoot.getElementById('chart-interaction-layer');
+    if (!layerEl) return;
+
+    layerEl.addEventListener('pointermove', (event) => {
+      const isMouseHover = event.pointerType === 'mouse' && event.buttons === 0;
+      if (!isMouseHover) return;
+      this._updateInspectFromPointerEvent(event, layerEl);
+    });
+
+    layerEl.addEventListener('pointerleave', () => {
+      this._setInspectState(false);
+    });
+  }
+
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._history) return;
@@ -296,19 +387,13 @@ class FoundryChartCard extends HTMLElement {
       maxValue += 1;
     }
 
-    const valueEl = this.shadowRoot.getElementById('chart-value');
-    if (valueEl) {
-      const currentState = this._hass.states[this.config.entity];
-      const unit = currentState?.attributes?.unit_of_measurement || '';
-      const parsed = parseFloat(currentState?.state);
-      const value = Number.isFinite(parsed) ? parsed : null;
-      const text =
-        value === null
-          ? '--'
-          : `${value.toFixed(this.config.value_precision)}${unit}`;
-      valueEl.textContent = text;
-      valueEl.setAttribute('fill', this.config.font_color);
-    }
+    this._chartBuckets = buckets;
+    this._chartBucketCount = bucketCount;
+    this._chartGeometry = chartGeometry;
+
+    const { value: currentDisplayValue, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(currentDisplayValue, unit);
 
     const emptyEl = this.shadowRoot.getElementById('chart-empty');
     const lineEl = this.shadowRoot.getElementById('chart-line');
@@ -510,6 +595,7 @@ class FoundryChartCard extends HTMLElement {
 
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
                   <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" />
+                    <rect id="chart-interaction-layer" x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="transparent" style="touch-action: none;" />
                   <text id="chart-empty" x="${chartWidth / 2}" y="${chartHeight / 2 + 4}" text-anchor="middle" font-size="12" fill="${config.font_color}" class="label-font" visibility="hidden">No data</text>
               </g>
 
@@ -538,6 +624,8 @@ class FoundryChartCard extends HTMLElement {
         }
       };
     }
+
+    this._bindChartInteractions();
   }
 
   renderRivets(w, h, x, y) {
