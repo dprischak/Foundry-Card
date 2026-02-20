@@ -15300,6 +15300,421 @@ if (!customElements.get("foundry-chart-editor")) {
   customElements.define("foundry-chart-editor", FoundryChartEditor);
 }
 
+// src/cards/foundry-title-card.js
+var FoundryTitleCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+  setConfig(config) {
+    this.config = { ...config };
+    if (this.config.theme && this.config.theme !== "none") {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+          this.render();
+        }
+      });
+    }
+    this.config.title = this.config.title !== void 0 ? this.config.title : "Title";
+    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 18;
+    this.config.title_color = this.config.title_color || "#3e2723";
+    this.config.plate_color = this.config.plate_color || "#f5f5f5";
+    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+    this._uniqueId = Math.random().toString(36).substr(2, 9);
+    this.render();
+  }
+  set hass(_hass) {
+  }
+  render() {
+    const config = this.config;
+    const title = config.title || "";
+    const uid = this._uniqueId;
+    const titleFontSize = config.title_font_size;
+    const titleColor = config.title_color;
+    const rivetColor = config.rivet_color;
+    const plateColor = config.plate_color;
+    const plateTransparent = config.plate_transparent;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const applyAgedToPlate = !plateTransparent && agedTexture === "everywhere";
+    const titleFontFamily = "Georgia, serif";
+    const plateWidth = 250;
+    const plateHeight = 50;
+    const plateX = 5;
+    const plateY = 5;
+    const viewBoxHeight = plateHeight + 20;
+    const viewBoxWidth = 260;
+    const titleY = plateY + plateHeight / 2 + titleFontSize * 0.35;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+        }
+        ha-card {
+          container-type: inline-size;
+          background: transparent;
+        }
+        .card {
+          position: relative;
+          cursor: default;
+        }
+        .container {
+          position: relative;
+          width: 100%;
+          max-width: 520px;
+          margin: 0 auto;
+        }
+        .vector-svg {
+          width: 100%;
+          height: auto;
+          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+        }
+        .rivet {
+          fill: ${rivetColor};
+          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+        }
+        .screw-detail {
+          stroke: #4a4034;
+          stroke-width: 0.5;
+          fill: none;
+        }
+      </style>
+      <ha-card role="img" aria-label="${title}" tabindex="0">
+        <div class="card">
+          <div class="container" role="presentation">
+            <svg class="vector-svg" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feComponentTransfer result="grainTexture">
+                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  </feComponentTransfer>
+                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
+                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                </filter>
+              </defs>
+
+              <!-- Plate -->
+              <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="14" ry="14"
+                    fill="${plateTransparent ? "none" : plateColor}"
+                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
+                    filter="${applyAgedToPlate ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}"/>
+
+              <!-- Rivets \u2014 top-left and top-right only -->
+              ${this.renderRivets(plateWidth, plateX, plateY, plateHeight)}
+
+              <!-- Title -->
+              ${title ? `<text x="${viewBoxWidth / 2}" y="${titleY}" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="pointer-events: none;">${title}</text>` : ""}
+
+            </svg>
+          </div>
+        </div>
+      </ha-card>
+    `;
+  }
+  renderRivets(plateWidth, plateX, plateY, plateHeight) {
+    const offset = 13;
+    const rivets = [
+      { cx: plateX + offset, cy: plateY + plateHeight / 2 },
+      { cx: plateX + plateWidth - offset, cy: plateY + plateHeight / 2 }
+    ];
+    return rivets.map(
+      (r) => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `
+    ).join("");
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-title-editor");
+  }
+  static getStubConfig() {
+    return {
+      title: "Title Card",
+      title_font_size: 18,
+      title_color: "#3e2723",
+      plate_color: "#8c7626",
+      rivet_color: "#6a5816",
+      plate_transparent: false,
+      aged_texture: "everywhere",
+      aged_texture_intensity: 50,
+      theme: "industrial"
+    };
+  }
+};
+if (!customElements.get("foundry-title-card")) {
+  customElements.define("foundry-title-card", FoundryTitleCard);
+}
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-title-card",
+  name: "Foundry Title",
+  preview: true,
+  description: "A decorative metallic title plate with two rivets."
+});
+
+// src/cards/foundry-title-editor.js
+var fireEvent7 = (node, type2, detail, options) => {
+  options = options || {};
+  detail = detail === null || detail === void 0 ? {} : detail;
+  const event = new Event(type2, {
+    bubbles: options.bubbles === void 0 ? true : options.bubbles,
+    cancelable: Boolean(options.cancelable),
+    composed: options.composed === void 0 ? true : options.composed
+  });
+  event.detail = detail;
+  node.dispatchEvent(event);
+  return event;
+};
+var FoundryTitleEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._themes = {};
+    this._themesLoaded = false;
+  }
+  setConfig(config) {
+    this._config = { ...config };
+    this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      this._form = null;
+      this._renderedMode = null;
+      this.render();
+    } catch (e) {
+      console.error("Error loading themes:", e);
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    this.render();
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      this._root.className = "card-config";
+      const style = document.createElement("style");
+      style.textContent = `
+        .card-config { display: flex; flex-direction: column; gap: 16px; }
+      `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+    }
+    if (!this._form) {
+      this._root.innerHTML = "";
+      this._form = document.createElement("ha-form");
+      this._form.computeLabel = this._computeLabel;
+      this._form.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
+      this._root.appendChild(this._form);
+    }
+    this._form.hass = this._hass;
+    this._form.data = this._configToForm(this._config);
+    this._form.schema = this._getSchema();
+  }
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (themeData) {
+        const themedConfig = applyTheme({ ...this._config }, themeData);
+        const themeProperties = [
+          "plate_color",
+          "rivet_color",
+          "title_color",
+          "plate_transparent",
+          "aged_texture",
+          "aged_texture_intensity"
+        ];
+        const overriddenProps = themeProperties.filter(
+          (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
+        );
+        if (overriddenProps.length > 0) {
+          const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+          for (const prop of themeProperties) {
+            if (!overriddenProps.includes(prop)) {
+              mergedConfig[prop] = themedConfig[prop];
+            }
+          }
+          newConfig = mergedConfig;
+        }
+      }
+    }
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._config = newConfig;
+      fireEvent7(this, "config-changed", { config: this._config });
+    }
+  }
+  _configToForm(config) {
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.theme = sourceConfig.theme ?? "none";
+    data.title = sourceConfig.title ?? "Title";
+    data.title_font_size = sourceConfig.title_font_size ?? 18;
+    data.title_color = this._hexToRgb(
+      sourceConfig.title_color ?? "#3e2723"
+    ) ?? [62, 39, 35];
+    data.plate_color = this._hexToRgb(
+      sourceConfig.plate_color ?? "#f5f5f5"
+    ) ?? [245, 245, 245];
+    data.rivet_color = this._hexToRgb(
+      sourceConfig.rivet_color ?? "#6d5d4b"
+    ) ?? [109, 93, 75];
+    data.plate_transparent = sourceConfig.plate_transparent ?? false;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    return data;
+  }
+  _formToConfig(formData) {
+    const config = { ...this._config, ...formData };
+    if (config.title_color)
+      config.title_color = this._rgbToHex(config.title_color);
+    if (config.plate_color)
+      config.plate_color = this._rgbToHex(config.plate_color);
+    if (config.rivet_color)
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+    return config;
+  }
+  _getSchema() {
+    return [
+      {
+        name: "",
+        type: "expandable",
+        title: "Layout & Text",
+        schema: [
+          { name: "title", label: "Title", selector: { text: {} } },
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box", min: 6, max: 48 } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Appearance",
+        schema: [
+          {
+            name: "theme",
+            label: "Theme",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None/Custom" },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1)
+                  }))
+                ]
+              }
+            }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      }
+    ];
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    const h = hex.replace("#", "").trim();
+    if (h.length !== 6) return null;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    if ([r, g, b].some(Number.isNaN)) return null;
+    return [r, g, b];
+  }
+  _rgbToHex(input) {
+    let rgb = input;
+    if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
+      if (Array.isArray(rgb.color)) rgb = rgb.color;
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
+    }
+    if (!Array.isArray(rgb) || rgb.length !== 3) return null;
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  _computeLabel(schema2) {
+    if (schema2.label) return schema2.label;
+    return schema2.name;
+  }
+};
+if (!customElements.get("foundry-title-editor")) {
+  customElements.define("foundry-title-editor", FoundryTitleEditor);
+}
+
 // src/foundry-card.js
 var FOUNDRY_CARDS_VERSION = "26.2.3";
 console.info(

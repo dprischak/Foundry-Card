@@ -41,6 +41,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Chart Card](#foundry-chart-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
    - [Foundry Slider Card](#foundry-slider-card)
+   - [Foundry Title Card](#foundry-title-card)
 4. [Custom Themes](#custom-themes)
 5. [Development](#development)
 6. [Roadmap](#roadmap)
@@ -162,6 +163,17 @@ A vertical retro-style slider control:
 - LED-style digital display
 - Customizable knob shapes and sizes
 - Multiple ring styles and themes
+
+<a name="foundry-title-card"></a>
+
+### 🏷️ Foundry Title Card
+
+A decorative metallic title plate for grouping dashboard sections:
+
+- Clean minimal design: plate, title, and 2 rivets only
+- No ring, no screen, no entity data
+- Full theme support with aged texture effects
+- Transparent plate mode supported
 
 <a name="installation"></a>
 
@@ -1033,6 +1045,44 @@ show_value: true
 wear_level: 50
 aged_texture: everywhere
 aged_texture_intensity: 50
+```
+
+</details>
+
+<a name="foundry-title-card"></a>
+
+### Foundry Title Card
+
+A minimal decorative title plate for labelling sections of your dashboard.
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default        | Description                                   |
+| ------------------------ | ------- | -------- | -------------- | --------------------------------------------- |
+| `title`                  | string  | No       | "Title"        | Text displayed on the plate                   |
+| `title_font_size`        | number  | No       | 18             | Font size of the title text                   |
+| `title_color`            | string  | No       | `'#3e2723'`    | Color of the title text                       |
+| `plate_color`            | string  | No       | `'#f5f5f5'`    | Background plate color                        |
+| `plate_transparent`      | boolean | No       | false          | Make the plate transparent (hides background) |
+| `rivet_color`            | string  | No       | `'#6d5d4b'`    | Color of the two side rivets                  |
+| `aged_texture`           | string  | No       | `'everywhere'` | Aged texture mode: `'none'` or `'everywhere'` |
+| `aged_texture_intensity` | number  | No       | 50             | Intensity of aged texture effect (0–100)      |
+| `theme`                  | string  | No       | -              | Name of a built-in or custom theme to apply   |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-title-card
+title: Living Room
+title_font_size: 18
+title_color: '#3e2723'
+plate_color: '#8c7626'
+rivet_color: '#6a5816'
+plate_transparent: false
+aged_texture: everywhere
+aged_texture_intensity: 50
+theme: industrial
 ```
 
 </details>
