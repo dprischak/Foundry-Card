@@ -11,6 +11,17 @@
 
 - **Issue #NA** - Entities - Allow for moving entities up or down in the list in the editor.
 
+### 🚀 New Cards
+
+#### 🏷️ Foundry Title Card
+
+**A decorative metallic title plate for grouping dashboard sections.**
+
+- **Minimal Design:** Just a plate and a title — no screen, no ring, no entity data.
+- **2 Centered Rivets:** One on the left, one on the right, vertically centered for a clean industrial look.
+- **Fully Themed:** Supports all standard Foundry themes and custom themes via `userthemes.yaml`.
+- **Visual Effects:** Plate color, title color, rivet color, transparent plate, and aged texture with adjustable intensity.
+
 ### 🐛 Defect Fixes
 
 - **Issue #62:** Renamed Thermostat card to Thermometer card for better clarity.

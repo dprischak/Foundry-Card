@@ -18,6 +18,8 @@ import './cards/foundry-uptime-card.js';
 import './cards/foundry-uptime-editor.js';
 import './cards/foundry-chart-card.js';
 import './cards/foundry-chart-editor.js';
+import './cards/foundry-title-card.js';
+import './cards/foundry-title-editor.js';
 
 const FOUNDRY_CARDS_VERSION = '26.2.3';
 
