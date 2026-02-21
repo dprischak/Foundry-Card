@@ -1,39 +1,71 @@
 import yaml from 'js-yaml';
 
-// Module-level cache
+// Module-level cache for the current page session
 let cachedThemesPromise = null;
 
+const CACHE_KEY = 'foundry_cards_themes_cache';
+const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
 export async function loadThemes() {
-  // if (cachedThemesPromise) {
-  //   return cachedThemesPromise;
-  // }
+  if (cachedThemesPromise) {
+    return cachedThemesPromise;
+  }
 
   const loadAll = async () => {
     const themes = {};
-    // Determine base path from the current script's URL
     const basePath = new URL('.', import.meta.url).href;
+    const now = Date.now();
 
-    const load = async (filename) => {
+    // Check for ?refreshcache=true in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceRefresh = urlParams.get('refreshcache') === 'true';
+
+    // Try to load from localStorage first
+    if (!forceRefresh) {
       try {
-        const url =
-          new URL(filename, basePath).href + '?v=' + new Date().getTime();
+        const cachedString = localStorage.getItem(CACHE_KEY);
+        if (cachedString) {
+          const cachedData = JSON.parse(cachedString);
+          if (
+            cachedData &&
+            cachedData.timestamp &&
+            now - cachedData.timestamp < CACHE_EXPIRY_MS
+          ) {
+            return cachedData.themes;
+          }
+        }
+      } catch (e) {
+        console.warn(
+          '[Foundry Cards] Failed to read theme cache from localStorage:',
+          e
+        );
+      }
+    }
 
-        const response = await fetch(url);
+    // Function to load and parse a specific file
+    const loadFile = async (filename) => {
+      try {
+        // Append a timestamp if forceRefresh is true to bypass browser cache completely
+        const cacheBuster = forceRefresh ? `?v=${now}` : '';
+        const url = new URL(`${filename}${cacheBuster}`, basePath).href;
+
+        // cache: 'no-cache' forces the browser to validate with the server (ETag/Last-Modified).
+        // If unchanged, it returns a 304 fast.
+        const response = await fetch(url, { cache: 'no-cache' });
+
         if (response.ok) {
           const text = await response.text();
           const data = yaml.load(text);
+          if (!data) return;
 
-          // Handle duplicate theme names by appending numbers
+          // Handle duplicate theme names
           for (const [themeName, themeData] of Object.entries(data)) {
             let finalName = themeName;
             let counter = 2;
-
-            // If theme name already exists, append a number
             while (themes[finalName]) {
               finalName = `${themeName}_${counter}`;
               counter++;
             }
-
             themes[finalName] = themeData;
           }
         } else {
@@ -42,15 +74,32 @@ export async function loadThemes() {
           );
         }
       } catch (e) {
-        console.warn(`Failed to load theme file: ${filename}`, e);
+        console.warn(
+          `[Foundry Cards] Exception loading theme file: ${filename}`,
+          e
+        );
       }
     };
 
-    // Load default themes
-    await load('themes.yaml');
+    // Load both files
+    await loadFile('themes.yaml');
+    await loadFile('userthemes.yaml');
 
-    // Attempt to load user themes (optional)
-    await load('userthemes.yaml');
+    // Save to localStorage
+    try {
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          timestamp: now,
+          themes: themes,
+        })
+      );
+    } catch (e) {
+      console.warn(
+        '[Foundry Cards] Failed to save theme cache to localStorage:',
+        e
+      );
+    }
 
     return themes;
   };

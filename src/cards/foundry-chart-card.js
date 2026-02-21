@@ -24,85 +24,96 @@ class FoundryChartCard extends HTMLElement {
       chart: { ...(config.chart || {}) },
     };
 
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entity) {
+        throw new Error('Entity is required');
+      }
+
+      this.config.hours_to_show = this.config.hours_to_show || 24;
+      this.config.update_interval = this.config.update_interval || 60;
+      this.config.bucket_count = this.config.bucket_count || 50;
+      this.config.bucket_minutes = this.config.bucket_minutes || null;
+      this.config.aggregation = this.config.aggregation || 'avg';
+      this.config.show_footer =
+        this.config.show_footer !== undefined ? this.config.show_footer : true;
+      this.config.show_inspect_value =
+        this.config.show_inspect_value !== undefined
+          ? this.config.show_inspect_value
+          : true;
+      this.config.show_x_axis_minmax =
+        this.config.show_x_axis_minmax !== undefined
+          ? this.config.show_x_axis_minmax
+          : false;
+      this.config.show_y_axis_minmax =
+        this.config.show_y_axis_minmax !== undefined
+          ? this.config.show_y_axis_minmax
+          : false;
+      this.config.segments = Array.isArray(this.config.segments)
+        ? this.config.segments
+        : [];
+      this.config.segment_blend_width =
+        this.config.segment_blend_width !== undefined
+          ? this.config.segment_blend_width
+          : 0;
+
+      this.config.ring_style = this.config.ring_style || 'brass';
+      this.config.title = this.config.title || 'Foundry Chart';
+      this.config.title_font_size = this.config.title_font_size || 14;
+      this.config.title_color = this.config.title_color || '#3e2723';
+      this.config.plate_color = this.config.plate_color || '#f5f5f5';
+      this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+      this.config.font_color = this.config.font_color || '#000000';
+      this.config.wear_level =
+        this.config.wear_level !== undefined ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled =
+        this.config.glass_effect_enabled !== undefined
+          ? this.config.glass_effect_enabled
+          : true;
+
+      this.config.line_color = this.config.line_color || '#d32f2f';
+      this.config.line_width = this.config.line_width || 2;
+      this.config.fill_under_line =
+        this.config.fill_under_line !== undefined
+          ? this.config.fill_under_line
+          : false;
+      this.config.grid_minor_color = this.config.grid_minor_color || '#cfead6';
+      this.config.grid_major_color = this.config.grid_major_color || '#8fc79d';
+      this.config.grid_opacity =
+        this.config.grid_opacity !== undefined ? this.config.grid_opacity : 0.6;
+      this.config.value_precision =
+        this.config.value_precision !== undefined
+          ? this.config.value_precision
+          : 2;
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+
+      this._rendered = false;
+      if (this._history) {
+        this._renderHistory();
+      } else {
+        this.render();
+      }
+
+      if (this._interval) clearInterval(this._interval);
+      this._interval = setInterval(
+        () => this._fetchHistory(),
+        this.config.update_interval * 1000
+      );
+    };
+
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this._rendered = false;
-          this._renderHistory();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    if (!this.config.entity) {
-      throw new Error('Entity is required');
-    }
-
-    this.config.hours_to_show = this.config.hours_to_show || 24;
-    this.config.update_interval = this.config.update_interval || 60;
-    this.config.bucket_count = this.config.bucket_count || 50;
-    this.config.bucket_minutes = this.config.bucket_minutes || null;
-    this.config.aggregation = this.config.aggregation || 'avg';
-    this.config.show_footer =
-      this.config.show_footer !== undefined ? this.config.show_footer : true;
-    this.config.show_inspect_value =
-      this.config.show_inspect_value !== undefined
-        ? this.config.show_inspect_value
-        : true;
-    this.config.show_x_axis_minmax =
-      this.config.show_x_axis_minmax !== undefined
-        ? this.config.show_x_axis_minmax
-        : false;
-    this.config.show_y_axis_minmax =
-      this.config.show_y_axis_minmax !== undefined
-        ? this.config.show_y_axis_minmax
-        : false;
-    this.config.segments = Array.isArray(this.config.segments)
-      ? this.config.segments
-      : [];
-    this.config.segment_blend_width =
-      this.config.segment_blend_width !== undefined
-        ? this.config.segment_blend_width
-        : 0;
-
-    this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.title = this.config.title || 'Foundry Chart';
-    this.config.title_font_size = this.config.title_font_size || 14;
-    this.config.title_color = this.config.title_color || '#3e2723';
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.font_color = this.config.font_color || '#000000';
-    this.config.wear_level =
-      this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled =
-      this.config.glass_effect_enabled !== undefined
-        ? this.config.glass_effect_enabled
-        : true;
-
-    this.config.line_color = this.config.line_color || '#d32f2f';
-    this.config.line_width = this.config.line_width || 2;
-    this.config.fill_under_line =
-      this.config.fill_under_line !== undefined
-        ? this.config.fill_under_line
-        : false;
-    this.config.grid_minor_color = this.config.grid_minor_color || '#cfead6';
-    this.config.grid_major_color = this.config.grid_major_color || '#8fc79d';
-    this.config.grid_opacity =
-      this.config.grid_opacity !== undefined ? this.config.grid_opacity : 0.6;
-    this.config.value_precision =
-      this.config.value_precision !== undefined
-        ? this.config.value_precision
-        : 2;
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-
-    if (this._interval) clearInterval(this._interval);
-    this._interval = setInterval(
-      () => this._fetchHistory(),
-      this.config.update_interval * 1000
-    );
   }
 
   static getStubConfig() {

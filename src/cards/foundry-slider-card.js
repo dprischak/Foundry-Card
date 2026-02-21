@@ -12,87 +12,91 @@ class FoundrySliderCard extends HTMLElement {
   setConfig(config) {
     this.config = { ...config };
 
-    this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      this.config.min = this.config.min !== undefined ? this.config.min : 0;
+      this.config.max = this.config.max !== undefined ? this.config.max : 100;
+      this.config.step = this.config.step !== undefined ? this.config.step : 1;
+      this.config.value =
+        this.config.value !== undefined ? this.config.value : this.config.min;
+
+      // Brass Theme Defaults (from digital clock)
+      this.config.ring_style = this.config.ring_style || 'brass';
+      this.config.plate_color = this.config.plate_color || '#8c7626';
+      this.config.face_color =
+        this.config.face_color ??
+        this.config.background_color ??
+        this.config.plate_color ??
+        this.config.slider_background_color ??
+        '#8c7626';
+      this.config.plate_transparent =
+        this.config.plate_transparent !== undefined
+          ? this.config.plate_transparent
+          : false;
+      this.config.rivet_color = this.config.rivet_color || '#6a5816';
+      this.config.knob_color = this.config.knob_color || '#c9a961';
+      this.config.font_color = this.config.font_color || '#000000';
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+
+      // Slider-specific colors
+      this.config.slider_color = this.config.slider_color || '#444444';
+      this.config.primary_tick_color =
+        this.config.primary_tick_color ?? 'rgba(0,0,0,0.22)';
+      this.config.secondary_tick_color =
+        this.config.secondary_tick_color ?? 'rgba(0,0,0,0.22)';
+
+      // Display Settings
+      this.config.show_value =
+        this.config.show_value !== undefined ? this.config.show_value : true;
+      this.config.number_color =
+        this.config.number_color || this.config.title_color || '#3e2723';
+      this.config.background_style = this.config.background_style || 'gradient';
+      this.config.title_font_size =
+        this.config.title_font_size !== undefined
+          ? this.config.title_font_size
+          : 14;
+      this.config.value_font_size =
+        this.config.value_font_size !== undefined
+          ? this.config.value_font_size
+          : 36;
+
+      // Knob Settings
+      this.config.knob_shape = this.config.knob_shape || 'square'; // 'circular', 'square', 'rectangular'
+      this.config.knob_size =
+        this.config.knob_size !== undefined ? this.config.knob_size : 100;
+
+      // Visual Effects (from digital clock)
+      this.config.wear_level =
+        this.config.wear_level !== undefined ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled =
+        this.config.glass_effect_enabled !== undefined
+          ? this.config.glass_effect_enabled
+          : true;
+      this.config.aged_texture =
+        this.config.aged_texture !== undefined
+          ? this.config.aged_texture
+          : 'glass_only';
+      this.config.aged_texture_intensity =
+        this.config.aged_texture_intensity !== undefined
+          ? this.config.aged_texture_intensity
+          : 50;
+
+      ensureLedFont();
+      this.render();
+      this._updateValueDisplay(this.config.value);
+      if (this._hass) this._updateFromEntity();
+    };
 
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this._updateValueDisplay(this.config.value);
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    this.config.min = this.config.min !== undefined ? this.config.min : 0;
-    this.config.max = this.config.max !== undefined ? this.config.max : 100;
-    this.config.step = this.config.step !== undefined ? this.config.step : 1;
-    this.config.value =
-      this.config.value !== undefined ? this.config.value : this.config.min;
-
-    // Brass Theme Defaults (from digital clock)
-    this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.plate_color = this.config.plate_color || '#8c7626';
-    this.config.face_color =
-      this.config.face_color ??
-      this.config.background_color ??
-      this.config.plate_color ??
-      this.config.slider_background_color ??
-      '#8c7626';
-    this.config.plate_transparent =
-      this.config.plate_transparent !== undefined
-        ? this.config.plate_transparent
-        : false;
-    this.config.rivet_color = this.config.rivet_color || '#6a5816';
-    this.config.knob_color = this.config.knob_color || '#c9a961';
-    this.config.font_color = this.config.font_color || '#000000';
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-
-    // Slider-specific colors
-    this.config.slider_color = this.config.slider_color || '#444444';
-    this.config.primary_tick_color =
-      this.config.primary_tick_color ?? 'rgba(0,0,0,0.22)';
-    this.config.secondary_tick_color =
-      this.config.secondary_tick_color ?? 'rgba(0,0,0,0.22)';
-
-    // Display Settings
-    this.config.show_value =
-      this.config.show_value !== undefined ? this.config.show_value : true;
-    this.config.number_color =
-      this.config.number_color || this.config.title_color || '#3e2723';
-    this.config.background_style = this.config.background_style || 'gradient';
-    this.config.title_font_size =
-      this.config.title_font_size !== undefined
-        ? this.config.title_font_size
-        : 14;
-    this.config.value_font_size =
-      this.config.value_font_size !== undefined
-        ? this.config.value_font_size
-        : 36;
-
-    // Knob Settings
-    this.config.knob_shape = this.config.knob_shape || 'square'; // 'circular', 'square', 'rectangular'
-    this.config.knob_size =
-      this.config.knob_size !== undefined ? this.config.knob_size : 100;
-
-    // Visual Effects (from digital clock)
-    this.config.wear_level =
-      this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled =
-      this.config.glass_effect_enabled !== undefined
-        ? this.config.glass_effect_enabled
-        : true;
-    this.config.aged_texture =
-      this.config.aged_texture !== undefined
-        ? this.config.aged_texture
-        : 'glass_only';
-    this.config.aged_texture_intensity =
-      this.config.aged_texture_intensity !== undefined
-        ? this.config.aged_texture_intensity
-        : 50;
-
-    ensureLedFont();
-    this.render();
   }
 
   set hass(hass) {

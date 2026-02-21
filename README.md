@@ -1195,9 +1195,17 @@ steampunk:
 - Not all properties are used by all cards (e.g., `needle_color` only applies to gauge cards)
 - Custom themes will appear in the theme dropdown alongside built-in themes
 - If a property is omitted, the card will use its default value
-- Changes to `userthemes.yaml` require a browser refresh to take effect
-- Themes are persistant. Cards will load what is in the themes.
 - If you change a value in a card that is controlled by the themes it will change your card to no theme.
+
+### Theme Caching
+
+To ensure your dashboard loads as quickly as possible, Foundry Cards aggressively cache your `themes.yaml` and `userthemes.yaml` files.
+
+- **10-Minute Cache:** Once loaded, themes are cached in your browser's Local Storage for 10 minutes. During this time, navigating around your dashboard will instantly load themes without making any network requests to the server.
+- **Forcing a Refresh:** If you edit your theme files and want to see the changes immediately (without waiting 10 minutes or clearing your browser data), simply append `?refreshcache=true` to your Home Assistant URL and hit Enter.
+  - Example: `http://homeassistant.local:8123/lovelace/home?refreshcache=true`
+  - _(If your URL already has `?` parameters, use `&refreshcache=true` instead)_
+  - This forces the cards to bypass all local caches, download the freshest copy of the theme files directly from the server, and restart the 10-minute timer.
 
 <a name="development"></a>
 

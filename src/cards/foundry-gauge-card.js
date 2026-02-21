@@ -108,31 +108,35 @@ class FoundryGaugeCard extends HTMLElement {
     // Validate and sanitize configuration
     this._validateConfig();
 
+    const applyDefaultsAndRender = () => {
+      // Default behavior like built-in cards
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: 'more-info' };
+      }
+
+      // Default ring style to brass if not specified
+      if (this.config.ring_style === undefined) {
+        this.config.ring_style = 'brass';
+      }
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+      if (this._hass) {
+        requestAnimationFrame(() => this.updateGauge());
+      }
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this.updateGauge();
         }
+        applyDefaultsAndRender();
       });
-    }
-
-    // Default behavior like built-in cards
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: 'more-info' };
-    }
-
-    // Default ring style to brass if not specified
-    if (this.config.ring_style === undefined) {
-      this.config.ring_style = 'brass';
-    }
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
-    if (this._hass) {
-      requestAnimationFrame(() => this.updateGauge());
+    } else {
+      applyDefaultsAndRender();
     }
   }
 
