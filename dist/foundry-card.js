@@ -3319,15 +3319,15 @@ var FoundryGaugeCard = class extends HTMLElement {
                 </filter>
                 
                 <!-- Aged texture -->
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
                 
                 <!-- Clip path for gauge face to contain aged texture -->
@@ -5448,9 +5448,12 @@ var FoundryThermometerCard = class extends HTMLElement {
     const faceColor = config.face_color || "#f8f8f0";
     let faceFill = backgroundStyle === "solid" ? faceColor : `url(#thermometerFace-${uid})`;
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
-    const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = config.plate_transparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     let liquidColor = "#cc0000";
     if (config.liquid_color) {
       if (Array.isArray(config.liquid_color)) {
@@ -5533,16 +5536,15 @@ var FoundryThermometerCard = class extends HTMLElement {
             <defs>
               ${this.renderGradients(uid)}
 
-              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                </filter>
 
               <linearGradient id="glassTube-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -5560,19 +5562,18 @@ var FoundryThermometerCard = class extends HTMLElement {
                  <stop offset="100%" style="stop-color:${this.darkenColor(liquidColor, 40)}" />
               </linearGradient>
 
-              <linearGradient id="thermometerFace-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#dfdfdf;stop-opacity:1" />
-                  <stop offset="20%" style="stop-color:#f8f8f0;stop-opacity:1" />
-                  <stop offset="80%" style="stop-color:#f8f8f0;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
-              </linearGradient>
+              <radialGradient id="thermometerFace-${uid}" cx="50%" cy="50%">
+                  <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="85%"  style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
+              </radialGradient>
             </defs>
 
             ${this.renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config)}
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
-            ${this.renderSquareRim(ringStyle, uid, faceFill, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+            ${this.renderSquareRim(ringStyle, uid, faceFill, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
 
             <g transform="translate(${rimX}, ${rimY})">
                 
@@ -5623,8 +5624,7 @@ var FoundryThermometerCard = class extends HTMLElement {
     const filter = effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))";
     return `
       <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-            fill="${fill}" 
-            stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
+            fill="${fill}"
             filter="${filter}" />
     `;
   }
@@ -5646,7 +5646,7 @@ var FoundryThermometerCard = class extends HTMLElement {
     `
     ).join("");
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     const bevelX = x + 8;
@@ -5662,9 +5662,7 @@ var FoundryThermometerCard = class extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
-
-      ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
+            fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
 
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
             fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
@@ -6129,7 +6127,6 @@ var FoundryThermometerEditor = class extends HTMLElement {
         "face_color",
         "liquid_color",
         "plate_transparent",
-        "glass_effect_enabled",
         "wear_level",
         "aged_texture",
         "aged_texture_intensity"
@@ -6196,7 +6193,6 @@ var FoundryThermometerEditor = class extends HTMLElement {
     ];
     data.background_style = sourceConfig.background_style ?? "gradient";
     data.plate_transparent = sourceConfig.plate_transparent ?? false;
-    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
     data.wear_level = sourceConfig.wear_level ?? 50;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
@@ -6352,11 +6348,6 @@ var FoundryThermometerEditor = class extends HTMLElement {
           {
             name: "plate_transparent",
             label: "Transparent Plate",
-            selector: { boolean: {} }
-          },
-          {
-            name: "glass_effect_enabled",
-            label: "Glass Effect",
             selector: { boolean: {} }
           },
           {
@@ -6693,6 +6684,8 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     } = this.config;
     const agedTextureOpacity = (100 - aged_texture_intensity) / 100 * 1;
     const effectiveAgedTexture = plate_transparent && aged_texture === "everywhere" ? "glass_only" : aged_texture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; }
@@ -6908,8 +6901,7 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
 
             <!-- Plate -->
             <rect x="${padding}" y="${padding}" width="${plateW}" height="${plateH}" rx="15" ry="15"
-                  fill="${plate_transparent ? "none" : plate_color}" 
-                  stroke="${plate_transparent ? "none" : "#444"}" stroke-width="2"
+                  fill="${plate_transparent ? "none" : plate_color}"
                   filter="${effectiveAgedTexture === "everywhere" && !plate_transparent ? `url(#aged-${uid})` : ""}" />
 
             ${this.renderRivets(width, height, padding)}
@@ -6917,7 +6909,7 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
 
             <!-- Screen -->
             <g transform="translate(${width / 2 - 120}, 50)">
-                ${this.renderTopScreen(uid, ring_style, font_bg_color, font_color, glass_effect_enabled, 0, "--", "")}
+                ${this.renderTopScreen(uid, ring_style, font_bg_color, font_color, glass_effect_enabled, 0, "--", "", agedTextureOnFace)}
             </g>
 
             <!-- Controls -->
@@ -7227,16 +7219,15 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
   renderFilters(uid, opacity) {
     if (!opacity) opacity = 0.5;
     return `
-        <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-          <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+          <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
           <feComponentTransfer result="grainTexture">
             <feFuncR type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
             <feFuncG type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
             <feFuncB type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
           </feComponentTransfer>
-          <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-          <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+          <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
         </filter>
       `;
   }
@@ -7292,7 +7283,7 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
         return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
     }
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     const bevelX = x + 8;
     const bevelY = y + 8;
@@ -7304,18 +7295,28 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
     const screenH = bevelH - 8;
     return `
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" style="box-shadow: inset 0 0 10px #000;"/>
       <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
     `;
   }
-  renderTopScreen(uid, ringStyle, bg, color, glass, temp, humidity, action) {
+  renderTopScreen(uid, ringStyle, bg, color, glass, temp, humidity, action, agedTextureOnFace) {
     const w = 240;
     const h = 120;
     const x = 0;
     const y = 0;
-    const rimSvg = this.renderSquareRim(ringStyle, uid, bg, glass, x, y, w, h);
+    const rimSvg = this.renderSquareRim(
+      ringStyle,
+      uid,
+      bg,
+      glass,
+      x,
+      y,
+      w,
+      h,
+      agedTextureOnFace
+    );
     return `
         ${rimSvg}
         <g transform="translate(${x + w / 2}, ${y + h / 2})">
@@ -7935,15 +7936,15 @@ var FoundryAnalogClockCard = class extends HTMLElement {
                 </linearGradient>
                 
                 <!-- Aged texture -->
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
                 
                 <!-- Clip path for gauge face -->
@@ -9062,6 +9063,8 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const titleFontFamily = "Georgia, serif";
     this.shadowRoot.innerHTML = `
       <style>
@@ -9125,16 +9128,15 @@ var FoundryDigitalClockCard = class extends HTMLElement {
                 ${this.renderGradients(uid)}
 
                 <!-- Aged texture -->
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
               
@@ -9142,14 +9144,13 @@ var FoundryDigitalClockCard = class extends HTMLElement {
               <!-- Wider and shorter: 260x140 (ViewBox 260) -->
               <rect x="5" y="10" width="250" height="130" rx="20" ry="20" 
                     fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
                     filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
 
               <!-- 2. The Rivets -->
               ${this.renderRivets()}
 
               <!-- 3. The Ring (Wider) -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, agedTextureOnFace)}
               
               <!-- Title text -->
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
@@ -9365,7 +9366,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
         </linearGradient>
       `;
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     return `
@@ -9374,7 +9375,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
 
       <!-- Face Background (Screen Color) -->
-      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
 
       <!-- Glass Glare on Screen (Top 20% approx) -->
       <!-- Screen: x=32, w=196. Top=47. -->
@@ -10217,15 +10218,15 @@ var FoundrySliderCard = class extends HTMLElement {
               </linearGradient>
 
               <!-- Aged texture filter -->
-              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                 <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                 <feComponentTransfer result="grainTexture">
                   <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                 </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
+                <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
               </filter>
 
               <clipPath id="plateClip-${uid}">
@@ -10240,8 +10241,6 @@ var FoundrySliderCard = class extends HTMLElement {
             <!-- Base Plate -->
             <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
               fill="${cfg.plate_transparent ? "none" : cfg.plate_color}"
-              stroke="${cfg.plate_transparent ? "none" : "#888"}" 
-              stroke-width="0.5"
               clip-path="url(#plateClip-${uid})"
               ${effectiveAgedTexture === "everywhere" && !cfg.plate_transparent ? `filter="url(#aged-${uid})"` : ""} />
 
@@ -11634,6 +11633,8 @@ var FoundryEntitiesCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const titleFontFamily = "Georgia, serif";
     const rowHeightSingle = 15;
     const rowHeightDouble = 26;
@@ -11714,30 +11715,28 @@ var FoundryEntitiesCard = class extends HTMLElement {
                 </radialGradient>
                 ${this.renderGradients(uid)}
                 
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
               
               <!-- Plate -->
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="20" ry="20" 
                     fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
                     filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
 
               <!-- Rivets -->
               ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
               <!-- Ring & Screen -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
               
               <!-- Title -->
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ""}
@@ -11803,7 +11802,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
     `
     ).join("");
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     const bevelX = x + 8;
@@ -11821,7 +11820,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
       
       <!-- Face Background (Screen Color) -->
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
+            fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
 
       <!-- Glass Glare (Top 20%) -->
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
@@ -12746,6 +12745,8 @@ var FoundryButtonCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const width = 110;
     const height = 110;
     const plateWidth = width - 10;
@@ -12808,27 +12809,25 @@ var FoundryButtonCard = class extends HTMLElement {
                 </radialGradient>
                 ${this.renderGradients(uid)}
                 
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
               
               <!-- Plate -->
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
                     fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
                     filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
 
               <!-- Ring & Screen -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
               
               <!-- Content Group -->
                <g id="content-group" font-family="ds-digitaldot" text-anchor="middle" style="pointer-events: none;">
@@ -12885,7 +12884,7 @@ var FoundryButtonCard = class extends HTMLElement {
   renderRivets(_w, _h, _x, _y) {
     return "";
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return "";
     const bevelX = x + 4;
@@ -12907,7 +12906,7 @@ var FoundryButtonCard = class extends HTMLElement {
       <!-- Face Background (Screen) -->
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="8" ry="8" 
             fill="${bgColor}" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
-             style="box-shadow: inset 0 0 10px #000;"/>
+             style="box-shadow: inset 0 0 10px #000;" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
       
       <!-- Glass Glare -->
       ${glassEffectEnabled ? `<path d="M ${screenX + 8} ${screenY} L ${screenX + screenW - 8} ${screenY} Q ${screenX + screenW} ${screenY} ${screenX + screenW} ${screenY + 8} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} L ${screenX} ${screenY + 8} Q ${screenX} ${screenY} ${screenX + 8} ${screenY} Z" fill="url(#glassGrad-${uid})" style="pointer-events: none;" />` : ""}
@@ -13765,6 +13764,8 @@ var FoundryUptimeCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const plateWidth = 280;
     const plateHeight = 170;
     const rimWidth = 240;
@@ -13790,16 +13791,15 @@ var FoundryUptimeCard = class extends HTMLElement {
               <defs>
                  ${this.renderGradients(uid)}
                  <!-- Reuse noise filter from entities if possible, inline here for safety -->
-                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                   <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                   <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                    <feComponentTransfer result="grainTexture">
                         <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                    </feComponentTransfer>
-                   <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                   <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                   <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                  </filter>
                  <!-- Tube Shadow -->
                  <filter id="inner-shadow-${uid}">
@@ -13823,14 +13823,13 @@ var FoundryUptimeCard = class extends HTMLElement {
 
               <!-- Plate -->
               <rect x="5" y="5" width="${plateWidth - 10}" height="${plateHeight - 10}" rx="20" ry="20" 
-                    fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5" 
+                    fill="${plateTransparent ? "none" : plateColor}"
                     filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
 
               ${this.renderRivets(plateWidth - 10, plateHeight - 10, 5, 5)}
 
               <!-- Main Frame (Rim) -->
-              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
 
               <!-- Title -->
               <text x="${plateWidth / 2}" y="28" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
@@ -13953,11 +13952,11 @@ var FoundryUptimeCard = class extends HTMLElement {
     };
     return switchS[s] || switchS["brass"];
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     return `
        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
        <!-- Inner Shadow on Screen -->
         <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="url(#screenGrad-${uid})" stroke="none" opacity="0.3" pointer-events="none"/>
 
@@ -15150,6 +15149,8 @@ var FoundryChartCard = class extends HTMLElement {
     const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
     const plateWidth = 280;
     const plateHeight = 190;
     const rimWidth = 240;
@@ -15185,16 +15186,15 @@ var FoundryChartCard = class extends HTMLElement {
             <svg class="vector-svg" viewBox="0 0 ${plateWidth} ${plateHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
                  ${this.renderGradients(uid)}
-                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                   <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                   <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                    <feComponentTransfer result="grainTexture">
                         <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                    </feComponentTransfer>
-                   <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                   <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                   <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                  </filter>
                  <filter id="inner-shadow-${uid}">
                     <feFlood flood-color="black"/>
@@ -15223,12 +15223,11 @@ var FoundryChartCard = class extends HTMLElement {
 
               <rect x="5" y="5" width="${plateWidth - 10}" height="${plateHeight - 10}" rx="20" ry="20" 
                     fill="${plateTransparent ? "none" : plateColor}" 
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5" 
                     filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
 
               ${this.renderRivets(plateWidth - 10, plateHeight - 10, 5, 5)}
 
-              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
 
               <text id="chart-title" x="${plateWidth / 2}" y="24" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
@@ -15324,11 +15323,11 @@ var FoundryChartCard = class extends HTMLElement {
     };
     return switchS[s] || switchS["brass"];
   }
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     return `
        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
         <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="url(#screenGrad-${uid})" stroke="none" opacity="0.3" pointer-events="none"/>
 
        ${glassEffectEnabled ? `<path d="M ${x + 12} ${y + 12} L ${x + w - 12} ${y + 12} L ${x + w - 12} ${y + 12 + (h - 24) * 0.2} Q ${x + w / 2} ${y + 12 + (h - 24) * 0.25} ${x + 12} ${y + 12 + (h - 24) * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
@@ -15705,6 +15704,8 @@ var FoundryChartEditor = class extends HTMLElement {
     data.theme = sourceConfig.theme ?? "none";
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -15966,6 +15967,25 @@ var FoundryChartEditor = class extends HTMLElement {
             name: "wear_level",
             label: "Wear Level (%)",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity (%)",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
           }
         ]
       }
@@ -16080,23 +16100,21 @@ var FoundryTitleCard = class extends HTMLElement {
           <div class="container" role="presentation">
             <svg class="vector-svg" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
 
               <!-- Plate -->
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="14" ry="14"
                     fill="${plateTransparent ? "none" : plateColor}"
-                    stroke="${plateTransparent ? "none" : "#888"}" stroke-width="0.5"
                     filter="${applyAgedToPlate ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}"/>
 
               <!-- Rivets \u2014 top-left and top-right only -->

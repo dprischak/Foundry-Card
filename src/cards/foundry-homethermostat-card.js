@@ -359,6 +359,9 @@ class FoundryHomeThermostatCard extends HTMLElement {
       plate_transparent && aged_texture === 'everywhere'
         ? 'glass_only'
         : aged_texture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -575,8 +578,7 @@ class FoundryHomeThermostatCard extends HTMLElement {
 
             <!-- Plate -->
             <rect x="${padding}" y="${padding}" width="${plateW}" height="${plateH}" rx="15" ry="15"
-                  fill="${plate_transparent ? 'none' : plate_color}" 
-                  stroke="${plate_transparent ? 'none' : '#444'}" stroke-width="2"
+                  fill="${plate_transparent ? 'none' : plate_color}"
                   filter="${effectiveAgedTexture === 'everywhere' && !plate_transparent ? `url(#aged-${uid})` : ''}" />
 
             ${this.renderRivets(width, height, padding)}
@@ -584,7 +586,7 @@ class FoundryHomeThermostatCard extends HTMLElement {
 
             <!-- Screen -->
             <g transform="translate(${width / 2 - 120}, 50)">
-                ${this.renderTopScreen(uid, ring_style, font_bg_color, font_color, glass_effect_enabled, 0, '--', '')}
+                ${this.renderTopScreen(uid, ring_style, font_bg_color, font_color, glass_effect_enabled, 0, '--', '', agedTextureOnFace)}
             </g>
 
             <!-- Controls -->
@@ -944,16 +946,15 @@ class FoundryHomeThermostatCard extends HTMLElement {
   renderFilters(uid, opacity) {
     if (!opacity) opacity = 0.5;
     return `
-        <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-          <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+          <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
           <feComponentTransfer result="grainTexture">
             <feFuncR type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
             <feFuncG type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
             <feFuncB type="linear" slope="${1 - opacity}" intercept="${opacity}"/>
           </feComponentTransfer>
-          <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-          <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+          <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
         </filter>
       `;
   }
@@ -1015,7 +1016,17 @@ class FoundryHomeThermostatCard extends HTMLElement {
     }
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    x,
+    y,
+    w,
+    h,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     const bevelX = x + 8;
     const bevelY = y + 8;
@@ -1028,19 +1039,39 @@ class FoundryHomeThermostatCard extends HTMLElement {
 
     return `
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+      <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" style="box-shadow: inset 0 0 10px #000;"/>
       <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
     `;
   }
 
-  renderTopScreen(uid, ringStyle, bg, color, glass, temp, humidity, action) {
+  renderTopScreen(
+    uid,
+    ringStyle,
+    bg,
+    color,
+    glass,
+    temp,
+    humidity,
+    action,
+    agedTextureOnFace
+  ) {
     const w = 240;
     const h = 120;
     const x = 0;
     const y = 0; // Relative
-    const rimSvg = this.renderSquareRim(ringStyle, uid, bg, glass, x, y, w, h);
+    const rimSvg = this.renderSquareRim(
+      ringStyle,
+      uid,
+      bg,
+      glass,
+      x,
+      y,
+      w,
+      h,
+      agedTextureOnFace
+    );
 
     return `
         ${rimSvg}

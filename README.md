@@ -699,7 +699,6 @@ An industrial liquid-in-glass thermometer:
 | `primary_tick_color`     | string       | No       | '#333333'               | Color of major ticks                                                                                  |
 | `secondary_tick_color`   | string       | No       | '#333333'               | Color of minor ticks                                                                                  |
 | `wear_level`             | number       | No       | 50                      | Intensity of wear marks (0-100)                                                                       |
-| `glass_effect_enabled`   | boolean      | No       | true                    | Enable glass effect overlay                                                                           |
 | `aged_texture`           | string       | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', 'everywhere'                                                 |
 | `aged_texture_intensity` | number       | No       | 50                      | Intensity of aged texture effect (0-100)                                                              |
 | `tap_action`             | object       | No       | `{action: 'more-info'}` | Action to perform on tap                                                                              |
@@ -735,7 +734,6 @@ segments:
     color: '#F44336'
 liquid_color: '#cc0000'
 plate_transparent: false
-glass_effect_enabled: true
 wear_level: 50
 aged_texture: everywhere
 aged_texture_intensity: 50

@@ -312,7 +312,6 @@ class FoundryThermometerEditor extends HTMLElement {
         'face_color',
         'liquid_color',
         'plate_transparent',
-        'glass_effect_enabled',
         'wear_level',
         'aged_texture',
         'aged_texture_intensity',
@@ -409,7 +408,6 @@ class FoundryThermometerEditor extends HTMLElement {
     ];
     data.background_style = sourceConfig.background_style ?? 'gradient';
     data.plate_transparent = sourceConfig.plate_transparent ?? false;
-    data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
     data.wear_level = sourceConfig.wear_level ?? 50;
     data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
@@ -580,11 +578,6 @@ class FoundryThermometerEditor extends HTMLElement {
           {
             name: 'plate_transparent',
             label: 'Transparent Plate',
-            selector: { boolean: {} },
-          },
-          {
-            name: 'glass_effect_enabled',
-            label: 'Glass Effect',
             selector: { boolean: {} },
           },
           {

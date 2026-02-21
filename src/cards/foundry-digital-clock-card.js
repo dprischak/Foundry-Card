@@ -178,7 +178,9 @@ class FoundryDigitalClockCard extends HTMLElement {
       plateTransparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
-    // agedTextureEnabled removed as unused
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
 
     // Hardcoded font for time - Renamed to avoid conflicts
     // const timeFontFamily = 'FoundryDigitalLED, monospace';
@@ -246,16 +248,15 @@ class FoundryDigitalClockCard extends HTMLElement {
                 ${this.renderGradients(uid)}
 
                 <!-- Aged texture -->
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
               
@@ -263,14 +264,13 @@ class FoundryDigitalClockCard extends HTMLElement {
               <!-- Wider and shorter: 260x140 (ViewBox 260) -->
               <rect x="5" y="10" width="250" height="130" rx="20" ry="20" 
                     fill="${plateTransparent ? 'none' : plateColor}" 
-                    stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
                     filter="${effectiveAgedTexture === 'everywhere' && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
 
               <!-- 2. The Rivets -->
               ${this.renderRivets()}
 
               <!-- 3. The Ring (Wider) -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled)}
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, agedTextureOnFace)}
               
               <!-- Title text -->
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
@@ -518,7 +518,13 @@ class FoundryDigitalClockCard extends HTMLElement {
       `;
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
@@ -535,7 +541,7 @@ class FoundryDigitalClockCard extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
 
       <!-- Face Background (Screen Color) -->
-      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+      <rect x="32" y="47" width="196" height="56" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
 
       <!-- Glass Glare on Screen (Top 20% approx) -->
       <!-- Screen: x=32, w=196. Top=47. -->

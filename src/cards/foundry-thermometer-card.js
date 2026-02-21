@@ -123,17 +123,22 @@ class FoundryThermometerCard extends HTMLElement {
 
     // Appearance
     const wearLevel = config.wear_level !== undefined ? config.wear_level : 50;
-    const glassEffectEnabled =
-      config.glass_effect_enabled !== undefined
-        ? config.glass_effect_enabled
-        : true;
 
-    // agedTexture is unused here, only intensity needed for filter definition
+    const agedTexture =
+      config.aged_texture !== undefined ? config.aged_texture : 'everywhere';
     const agedTextureIntensity =
       config.aged_texture_intensity !== undefined
         ? config.aged_texture_intensity
         : 50;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
+
+    const effectiveAgedTexture =
+      config.plate_transparent && agedTexture === 'everywhere'
+        ? 'glass_only'
+        : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
 
     // Handle liquid_color being either array (standard) or string (hex/rgb from editor sometimes)
     let liquidColor = '#cc0000';
@@ -233,16 +238,15 @@ class FoundryThermometerCard extends HTMLElement {
             <defs>
               ${this.renderGradients(uid)}
 
-              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                </filter>
 
               <linearGradient id="glassTube-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -260,19 +264,18 @@ class FoundryThermometerCard extends HTMLElement {
                  <stop offset="100%" style="stop-color:${this.darkenColor(liquidColor, 40)}" />
               </linearGradient>
 
-              <linearGradient id="thermometerFace-${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#dfdfdf;stop-opacity:1" />
-                  <stop offset="20%" style="stop-color:#f8f8f0;stop-opacity:1" />
-                  <stop offset="80%" style="stop-color:#f8f8f0;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#bfbfbf;stop-opacity:1" />
-              </linearGradient>
+              <radialGradient id="thermometerFace-${uid}" cx="50%" cy="50%">
+                  <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="85%"  style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
+              </radialGradient>
             </defs>
 
             ${this.renderBackground(uid, plateWidth, plateHeight, plateX, plateY, config)}
 
             ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
-            ${this.renderSquareRim(ringStyle, uid, faceFill, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+            ${this.renderSquareRim(ringStyle, uid, faceFill, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
 
             <g transform="translate(${rimX}, ${rimY})">
                 
@@ -341,8 +344,7 @@ class FoundryThermometerCard extends HTMLElement {
 
     return `
       <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
-            fill="${fill}" 
-            stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
+            fill="${fill}"
             filter="${filter}" />
     `;
   }
@@ -369,7 +371,7 @@ class FoundryThermometerCard extends HTMLElement {
       .join('');
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(ringStyle, uid, bgColor, x, y, w, h, agedTextureOnFace) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
@@ -388,9 +390,7 @@ class FoundryThermometerCard extends HTMLElement {
             filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
       
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
-
-      ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
+            fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
 
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
             fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" 
