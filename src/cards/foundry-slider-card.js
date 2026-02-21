@@ -419,15 +419,15 @@ class FoundrySliderCard extends HTMLElement {
               </linearGradient>
 
               <!-- Aged texture filter -->
-              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+              <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                 <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                 <feComponentTransfer result="grainTexture">
                   <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                 </feComponentTransfer>
-                <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply"/>
+                <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
               </filter>
 
               <clipPath id="plateClip-${uid}">
@@ -442,8 +442,6 @@ class FoundrySliderCard extends HTMLElement {
             <!-- Base Plate -->
             <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="15" ry="15" 
               fill="${cfg.plate_transparent ? 'none' : cfg.plate_color}"
-              stroke="${cfg.plate_transparent ? 'none' : '#888'}" 
-              stroke-width="0.5"
               clip-path="url(#plateClip-${uid})"
               ${effectiveAgedTexture === 'everywhere' && !cfg.plate_transparent ? `filter="url(#aged-${uid})"` : ''} />
 

@@ -9,6 +9,7 @@
 
 ### 🛠️ Improvements
 
+- **Aged Texture** - Fixed the aged texture on all cards so we have a uniform look and feel.
 - **Theme Cache** - Forced the cards to wait to the theme is loaded, if they use themes, before rendering the card.
 - **Theme Cache** - Added a theme cache to prevent the browser from reloading the theme files on every page load.
 - **Theme Cache Refresh** - Added a refreshcache=true to the url to force a refresh of the theme files.
@@ -27,6 +28,7 @@
 
 ### 🐛 Defect Fixes
 
+- **Issue #NA:** Thermometer - Removed glass effect and made it look more like the slider.  
 - **Issue #NA:** Clocks and Gauge - removed the background by making it transparent.
 - **Issue #72:** Thermometer - Update to be same size and default as the slider
 - **Issue #73:** Analog Clock and Guage - Make corners rounded.

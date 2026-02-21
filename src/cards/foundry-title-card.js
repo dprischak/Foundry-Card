@@ -139,23 +139,21 @@ class FoundryTitleCard extends HTMLElement {
           <div class="container" role="presentation">
             <svg class="vector-svg" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
 
               <!-- Plate -->
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="14" ry="14"
                     fill="${plateTransparent ? 'none' : plateColor}"
-                    stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
                     filter="${applyAgedToPlate ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}"/>
 
               <!-- Rivets — top-left and top-right only -->

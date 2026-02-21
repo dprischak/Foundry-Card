@@ -385,6 +385,8 @@ class FoundryChartEditor extends HTMLElement {
     data.theme = sourceConfig.theme ?? 'none';
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
+    data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
 
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
@@ -657,6 +659,25 @@ class FoundryChartEditor extends HTMLElement {
           {
             name: 'wear_level',
             label: 'Wear Level (%)',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'aged_texture',
+            label: 'Aged Texture Style',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'aged_texture_intensity',
+            label: 'Texture Intensity (%)',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
         ],

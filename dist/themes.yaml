@@ -45,7 +45,7 @@ racing:
   glass_effect_enabled: true
   wear_level: 50
   aged_texture: 'everywhere'
-  aged_texture_intensity: 50
+  aged_texture_intensity: 20
   face_color: '#929090'
   background_style: 'gradient'
   knob_color: '#2e2e2e'

@@ -241,6 +241,9 @@ class FoundryEntitiesCard extends HTMLElement {
       plateTransparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
 
     const titleFontFamily = 'Georgia, serif';
 
@@ -332,30 +335,28 @@ class FoundryEntitiesCard extends HTMLElement {
                 </radialGradient>
                 ${this.renderGradients(uid)}
                 
-                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                   <feComponentTransfer result="grainTexture">
                     <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                     <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                   </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                  <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                 </filter>
               </defs>
               
               <!-- Plate -->
               <rect x="${plateX}" y="${plateY}" width="${plateWidth}" height="${plateHeight}" rx="20" ry="20" 
                     fill="${plateTransparent ? 'none' : plateColor}" 
-                    stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5"
                     filter="${effectiveAgedTexture === 'everywhere' && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
 
               <!-- Rivets -->
               ${this.renderRivets(plateWidth, plateHeight, plateX, plateY)}
 
               <!-- Ring & Screen -->
-              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(ringStyle, uid, fontBgColor, glassEffectEnabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
               
               <!-- Title -->
               ${title ? `<text x="130" y="28" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.2); pointer-events: none;">${title}</text>` : ''}
@@ -435,7 +436,17 @@ class FoundryEntitiesCard extends HTMLElement {
       .join('');
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    x,
+    y,
+    w,
+    h,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
     if (!data) return '';
 
@@ -458,7 +469,7 @@ class FoundryEntitiesCard extends HTMLElement {
       
       <!-- Face Background (Screen Color) -->
       <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="10" ry="10" 
-            fill="${bgColor}" stroke="none" />
+            fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
 
       <!-- Glass Glare (Top 20%) -->
       ${glassEffectEnabled ? `<path d="M ${screenX} ${screenY} L ${screenX + screenW} ${screenY} L ${screenX + screenW} ${screenY + screenH * 0.2} Q ${screenX + screenW / 2} ${screenY + screenH * 0.25} ${screenX} ${screenY + screenH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}

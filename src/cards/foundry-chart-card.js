@@ -846,6 +846,9 @@ class FoundryChartCard extends HTMLElement {
       plateTransparent && agedTexture === 'everywhere'
         ? 'glass_only'
         : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === 'glass_only';
+    const agedTextureOnFace =
+      agedTextureEnabled || effectiveAgedTexture === 'everywhere';
 
     const plateWidth = 280;
     const plateHeight = 190;
@@ -884,16 +887,15 @@ class FoundryChartCard extends HTMLElement {
             <svg class="vector-svg" viewBox="0 0 ${plateWidth} ${plateHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
                  ${this.renderGradients(uid)}
-                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%">
+                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-                   <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"/>
+                   <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
                    <feComponentTransfer result="grainTexture">
                         <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                         <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
                    </feComponentTransfer>
-                   <feBlend in="SourceGraphic" in2="grainTexture" mode="multiply" result="blended"/>
-                   <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+                   <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
                  </filter>
                  <filter id="inner-shadow-${uid}">
                     <feFlood flood-color="black"/>
@@ -922,12 +924,11 @@ class FoundryChartCard extends HTMLElement {
 
               <rect x="5" y="5" width="${plateWidth - 10}" height="${plateHeight - 10}" rx="20" ry="20" 
                     fill="${plateTransparent ? 'none' : plateColor}" 
-                    stroke="${plateTransparent ? 'none' : '#888'}" stroke-width="0.5" 
                     filter="${effectiveAgedTexture === 'everywhere' && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))'}" />
 
               ${this.renderRivets(plateWidth - 10, plateHeight - 10, 5, 5)}
 
-              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight)}
+              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
 
               <text id="chart-title" x="${plateWidth / 2}" y="24" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
 
@@ -1035,12 +1036,22 @@ class FoundryChartCard extends HTMLElement {
     return switchS[s] || switchS['brass'];
   }
 
-  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h) {
+  renderSquareRim(
+    ringStyle,
+    uid,
+    bgColor,
+    glassEffectEnabled,
+    x,
+    y,
+    w,
+    h,
+    agedTextureOnFace
+  ) {
     const data = this.getRimStyleData(ringStyle, uid);
 
     return `
        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
-       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" />
+       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ''} />
         <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="url(#screenGrad-${uid})" stroke="none" opacity="0.3" pointer-events="none"/>
 
        ${glassEffectEnabled ? `<path d="M ${x + 12} ${y + 12} L ${x + w - 12} ${y + 12} L ${x + w - 12} ${y + 12 + (h - 24) * 0.2} Q ${x + w / 2} ${y + 12 + (h - 24) * 0.25} ${x + 12} ${y + 12 + (h - 24) * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ''}
