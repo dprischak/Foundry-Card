@@ -75,10 +75,10 @@ class FoundryTitleCard extends HTMLElement {
 
     // Card dimensions — compact since it's title-only
     const plateWidth = 250;
-    const plateHeight = 50;
-    const plateX = 5;
+    const plateHeight = 30;
+    const plateX = 2;
     const plateY = 5;
-    const viewBoxHeight = plateHeight + 20;
+    const viewBoxHeight = plateHeight + 10;
     const viewBoxWidth = 260;
 
     // Title vertical center of plate
@@ -88,24 +88,35 @@ class FoundryTitleCard extends HTMLElement {
       <style>
         :host {
           display: block;
+          height: 100%;
         }
         ha-card {
           container-type: inline-size;
           background: transparent;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .card {
           position: relative;
           cursor: default;
+          width: 100%;
         }
         .container {
           position: relative;
           width: 100%;
+          height: 100%;
           max-width: 520px;
           margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .vector-svg {
           width: 100%;
-          height: auto;
+          height: 100%;
+          max-height: 100%;
           filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
         }
         .rivet {
@@ -178,7 +189,13 @@ class FoundryTitleCard extends HTMLElement {
   static getConfigElement() {
     return document.createElement('foundry-title-editor');
   }
-
+  getGridOptions() {
+    return {
+      columns: 12,
+      rows: 1,
+      min_rows: 1,
+    };
+  }
   static getStubConfig() {
     return {
       title: 'Title Card',
@@ -190,6 +207,10 @@ class FoundryTitleCard extends HTMLElement {
       aged_texture: 'everywhere',
       aged_texture_intensity: 50,
       theme: 'industrial',
+      grid_options: {
+        columns: 12,
+        rows: 1,
+      },
     };
   }
 }
