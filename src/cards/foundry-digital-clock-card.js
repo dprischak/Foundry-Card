@@ -192,6 +192,8 @@ class FoundryDigitalClockCard extends HTMLElement {
         }
         ha-card {
           container-type: inline-size;
+          background: transparent;
+          box-shadow: none;
         }
         .card {
           background: transparent;
