@@ -886,6 +886,8 @@ Show entity history in a compact chart:
 | `show_inspect_value`     | boolean | No       | true            | During inspect, replace current value with inspected Y and show inspect bar |
 | `show_x_axis_minmax`     | boolean | No       | false           | Show X-axis min/max labels under chart (auto-hides footer start/Now labels) |
 | `show_y_axis_minmax`     | boolean | No       | false           | Show Y-axis min/max value labels on the chart axis                          |
+| `segments`               | array   | No       | []              | Value color ranges (`from`, `to`, `color`) for line/fill coloring           |
+| `segment_blend_width`    | number  | No       | 0               | Total blend width around each touching range boundary (value units)         |
 | `line_color`             | string  | No       | '#d32f2f'       | Line color                                                                  |
 | `line_width`             | number  | No       | 2               | Line width                                                                  |
 | `fill_under_line`        | boolean | No       | false           | Fill the area under the line                                                |
@@ -919,6 +921,17 @@ aggregation: avg
 show_inspect_value: true
 show_x_axis_minmax: false
 show_y_axis_minmax: false
+segment_blend_width: 4
+segments:
+  - from: 10
+    to: 20
+    color: '#F44336'
+  - from: 20
+    to: 30
+    color: '#4CAF50'
+  - from: 30
+    to: 60
+    color: '#2196F3'
 line_color: '#d32f2f'
 line_width: 2
 fill_under_line: true

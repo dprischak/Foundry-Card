@@ -29,6 +29,7 @@
 - **Issue #NA:** Chart - Added `show_inspect_value` option in Chart Settings (visual editor) to control whether hover/drag inspection replaces the top-right value with the inspected Y value.
 - **Issue #NA:** Chart - `show_inspect_value` now also controls the vertical inspect bar and defaults to on for existing cards in the visual editor.
 - **Issue #NA:** Chart - Added `show_x_axis_minmax` and `show_y_axis_minmax` options to display X/Y axis min/max labels; when X labels are enabled, footer start/Now labels are hidden to prevent overlap.
+- **Issue #NA:** Chart - Added configurable color ranges (`segments`) with optional boundary blending (`segment_blend_width`) and a Gauge-style range editor in Chart Settings.
 - **Issue #61:** Slider - LED screen background is now a solid flat fill using `font_bg_color` (same as Entities card), removing the dark-ring radial gradient effect. Editor labels updated to "Screen Background" and "Digital Font Color" to match the Entities card.
 - Fixed minor tick marks visibility on Slider card (increased limit to 250 steps)
 - Removed unused `tick_color` (fallback) configuration from Slider card

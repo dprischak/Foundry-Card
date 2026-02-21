@@ -14442,6 +14442,8 @@ var FoundryChartCard = class extends HTMLElement {
     this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
     this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
     this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
+    this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
+    this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
     this.config.ring_style = this.config.ring_style || "brass";
     this.config.title = this.config.title || "Foundry Chart";
     this.config.title_font_size = this.config.title_font_size || 14;
@@ -14494,8 +14496,81 @@ var FoundryChartCard = class extends HTMLElement {
       aggregation: "avg",
       show_inspect_value: true,
       show_x_axis_minmax: false,
-      show_y_axis_minmax: false
+      show_y_axis_minmax: false,
+      segments: [],
+      segment_blend_width: 0
     };
+  }
+  _normalizeSegments(segments) {
+    if (!Array.isArray(segments)) return [];
+    return segments.map((segment) => ({
+      from: Number(segment?.from),
+      to: Number(segment?.to),
+      color: typeof segment?.color === "string" ? segment.color : null
+    })).filter(
+      (segment) => Number.isFinite(segment.from) && Number.isFinite(segment.to) && segment.to > segment.from && !!segment.color
+    ).sort((a, b) => a.from - b.from);
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    let normalized = hex.trim();
+    if (!normalized.startsWith("#")) return null;
+    normalized = normalized.slice(1);
+    if (normalized.length === 3) {
+      normalized = normalized.split("").map((char) => char + char).join("");
+    }
+    if (normalized.length !== 6) return null;
+    const value = Number.parseInt(normalized, 16);
+    if (!Number.isFinite(value)) return null;
+    return {
+      r: value >> 16 & 255,
+      g: value >> 8 & 255,
+      b: value & 255
+    };
+  }
+  _rgbToHex(rgb) {
+    if (!rgb) return null;
+    const clamp = (value) => Math.max(0, Math.min(255, Math.round(Number(value) || 0)));
+    const r = clamp(rgb.r);
+    const g = clamp(rgb.g);
+    const b = clamp(rgb.b);
+    return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+  }
+  _blendHexColors(colorA, colorB, ratio) {
+    const rgbA = this._hexToRgb(colorA);
+    const rgbB = this._hexToRgb(colorB);
+    if (!rgbA) return colorB;
+    if (!rgbB) return colorA;
+    const t = Math.max(0, Math.min(1, Number(ratio) || 0));
+    return this._rgbToHex({
+      r: rgbA.r + (rgbB.r - rgbA.r) * t,
+      g: rgbA.g + (rgbB.g - rgbA.g) * t,
+      b: rgbA.b + (rgbB.b - rgbA.b) * t
+    });
+  }
+  _getSegmentColorForValue(value, normalizedSegments, blendWidth, fallbackColor) {
+    if (!Number.isFinite(value) || normalizedSegments.length === 0) {
+      return fallbackColor;
+    }
+    const halfBlendWidth = Math.max(0, Number(blendWidth) || 0) / 2;
+    if (halfBlendWidth > 0) {
+      for (let index = 0; index < normalizedSegments.length - 1; index += 1) {
+        const left = normalizedSegments[index];
+        const right = normalizedSegments[index + 1];
+        if (Math.abs(right.from - left.to) > 1e-6) continue;
+        const boundary = left.to;
+        const blendStart = boundary - halfBlendWidth;
+        const blendEnd = boundary + halfBlendWidth;
+        if (value >= blendStart && value <= blendEnd) {
+          const ratio = (value - blendStart) / (blendEnd - blendStart);
+          return this._blendHexColors(left.color, right.color, ratio);
+        }
+      }
+    }
+    const matchedSegment = normalizedSegments.find(
+      (segment) => value >= segment.from && value <= segment.to
+    );
+    return matchedSegment?.color || fallbackColor;
   }
   set hass(hass) {
     this._hass = hass;
@@ -14820,11 +14895,32 @@ var FoundryChartCard = class extends HTMLElement {
     }
     const emptyEl = this.shadowRoot.getElementById("chart-empty");
     const lineEl = this.shadowRoot.getElementById("chart-line");
+    const lineSegmentsEl = this.shadowRoot.getElementById(
+      "chart-line-segments"
+    );
     const areaEl = this.shadowRoot.getElementById("chart-area");
+    const segmentGradientEl = this.shadowRoot.getElementById(
+      `chartSegmentGrad-${this._uniqueId}`
+    );
+    const normalizedSegments = this._normalizeSegments(this.config.segments);
+    const segmentBlendWidth = Math.max(
+      0,
+      Number(this.config.segment_blend_width) || 0
+    );
+    const useSegmentColors = normalizedSegments.length > 0;
+    const applyDefaultColors = () => {
+      if (lineEl) lineEl.setAttribute("stroke", this.config.line_color);
+      if (lineEl) lineEl.setAttribute("visibility", "visible");
+      if (lineSegmentsEl) lineSegmentsEl.innerHTML = "";
+      if (areaEl) areaEl.setAttribute("fill", this.config.line_color);
+      if (segmentGradientEl) segmentGradientEl.innerHTML = "";
+    };
     if (values.length === 0) {
       if (emptyEl) emptyEl.setAttribute("visibility", "visible");
       if (lineEl) lineEl.setAttribute("d", "");
+      if (lineSegmentsEl) lineSegmentsEl.innerHTML = "";
       if (areaEl) areaEl.setAttribute("d", "");
+      applyDefaultColors();
     } else {
       if (emptyEl) emptyEl.setAttribute("visibility", "hidden");
       const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
@@ -14854,6 +14950,41 @@ var FoundryChartCard = class extends HTMLElement {
       });
       const linePath = pathParts.join(" ");
       if (lineEl) lineEl.setAttribute("d", linePath);
+      if (useSegmentColors && segmentGradientEl && lineEl && lineSegmentsEl) {
+        const stops = buckets.map((bucket, index) => {
+          const offset = bucketCount <= 1 ? 0 : index / (bucketCount - 1) * 100;
+          const bucketColor = this._getSegmentColorForValue(
+            bucket.value,
+            normalizedSegments,
+            segmentBlendWidth,
+            this.config.line_color
+          );
+          return `<stop offset="${offset}%" stop-color="${bucketColor}" />`;
+        }).join("");
+        segmentGradientEl.innerHTML = stops;
+        const segmentPaths = [];
+        for (let index = 1; index < points.length; index += 1) {
+          const prevPoint = points[index - 1];
+          const currPoint = points[index];
+          if (prevPoint.y === null || currPoint.y === null) continue;
+          const prevValue = buckets[index - 1]?.value;
+          const currValue = buckets[index]?.value;
+          const sampleValue = Number.isFinite(prevValue) && Number.isFinite(currValue) ? (prevValue + currValue) / 2 : Number.isFinite(currValue) ? currValue : prevValue;
+          const segmentColor = this._getSegmentColorForValue(
+            sampleValue,
+            normalizedSegments,
+            segmentBlendWidth,
+            this.config.line_color
+          );
+          segmentPaths.push(
+            `<path d="M ${prevPoint.x} ${prevPoint.y} L ${currPoint.x} ${currPoint.y}" fill="none" stroke="${segmentColor}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>`
+          );
+        }
+        lineSegmentsEl.innerHTML = segmentPaths.join("");
+        lineEl.setAttribute("visibility", "hidden");
+      } else {
+        applyDefaultColors();
+      }
       if (areaEl) {
         if (this.config.fill_under_line) {
           const first = points.find((p) => p.y !== null);
@@ -14861,6 +14992,14 @@ var FoundryChartCard = class extends HTMLElement {
           if (first && last) {
             const areaPath = `${linePath} L ${last.x} ${plotBottom} L ${first.x} ${plotBottom} Z`;
             areaEl.setAttribute("d", areaPath);
+            if (useSegmentColors && segmentGradientEl) {
+              areaEl.setAttribute(
+                "fill",
+                `url(#chartSegmentGrad-${this._uniqueId})`
+              );
+            } else {
+              areaEl.setAttribute("fill", this.config.line_color);
+            }
           } else {
             areaEl.setAttribute("d", "");
           }
@@ -14967,6 +15106,7 @@ var FoundryChartCard = class extends HTMLElement {
                     <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
                     <stop offset="100%" style="stop-color:#000;stop-opacity:0.2" />
                  </linearGradient>
+                 <linearGradient id="chartSegmentGrad-${uid}" x1="0%" y1="0%" x2="100%" y2="0%"></linearGradient>
                  <pattern id="gridMinor-${uid}" width="10" height="10" patternUnits="userSpaceOnUse">
                    <path d="M10 0 L0 0 0 10" fill="none" stroke="${config.grid_minor_color}" stroke-width="0.5" opacity="${config.grid_opacity}" />
                  </pattern>
@@ -15000,6 +15140,7 @@ var FoundryChartCard = class extends HTMLElement {
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
                       <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <g id="chart-line-segments"></g>
                       <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.line_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
                   </g>
 
@@ -15145,7 +15286,10 @@ var FoundryChartEditor = class extends HTMLElement {
     this._themesLoaded = false;
   }
   setConfig(config) {
-    this._config = { ...config };
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
     this.render();
     if (!this._themesLoaded) {
       this._loadThemes();
@@ -15170,7 +15314,12 @@ var FoundryChartEditor = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    if (!this._root) {
+      this.render();
+      return;
+    }
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
   }
   render() {
     if (!this._hass || !this._config) return;
@@ -15180,6 +15329,83 @@ var FoundryChartEditor = class extends HTMLElement {
       const style = document.createElement("style");
       style.textContent = `
                 .card-config { display: flex; flex-direction: column; gap: 16px; }
+                .segments-section {
+                  margin-top: 4px;
+                  margin-bottom: 4px;
+                  padding: 16px;
+                  background: var(--card-background-color, #fff);
+                  border: 1px solid var(--divider-color, #e0e0e0);
+                  border-radius: 4px;
+                }
+                .section-header {
+                  font-weight: 500;
+                  margin-bottom: 12px;
+                  color: var(--primary-text-color);
+                  font-size: 16px;
+                }
+                .segment-row {
+                  display: flex;
+                  gap: 8px;
+                  align-items: flex-end;
+                  margin-bottom: 12px;
+                  background: var(--secondary-background-color, #f9f9f9);
+                  padding: 10px;
+                  border-radius: 4px;
+                }
+                .input-group {
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                }
+                .input-group label {
+                  font-size: 11px;
+                  color: var(--secondary-text-color);
+                  text-transform: uppercase;
+                  font-weight: 600;
+                }
+                .input-group input {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
+                .input-group input[type='color'] {
+                  height: 36px;
+                  padding: 2px;
+                  cursor: pointer;
+                }
+                .remove-btn {
+                  background: none;
+                  border: none;
+                  color: var(--error-color, #db4437);
+                  cursor: pointer;
+                  padding: 8px;
+                  height: 36px;
+                  display: flex;
+                  align-items: center;
+                }
+                .remove-btn:hover {
+                  background: rgba(219, 68, 55, 0.1);
+                  border-radius: 50%;
+                }
+                .add-btn {
+                  background-color: var(--primary-color, #03a9f4);
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-weight: 500;
+                  font-size: 14px;
+                  margin-top: 4px;
+                }
+                .add-btn:hover {
+                  background-color: var(--primary-color-dark, #0288d1);
+                }
             `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
@@ -15190,6 +15416,9 @@ var FoundryChartEditor = class extends HTMLElement {
         (ev) => this._handleFormChanged(ev)
       );
       this._root.appendChild(this._form1);
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._root.appendChild(this._segmentsContainer);
       this._form2 = document.createElement("ha-form");
       this._form2.computeLabel = this._computeLabel;
       this._form2.addEventListener(
@@ -15209,6 +15438,7 @@ var FoundryChartEditor = class extends HTMLElement {
       this._form2.data = data;
       this._form2.schema = this._getSchemaBottom();
     }
+    this._renderSegments();
   }
   _updateConfig(updates) {
     this._config = { ...this._config, ...updates };
@@ -15267,12 +15497,108 @@ var FoundryChartEditor = class extends HTMLElement {
     if (schema2.label) return schema2.label;
     return schema2.name;
   }
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = `<div class="section-header">Color Ranges</div>`;
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((segment, index) => {
+      const fromValue = segment.from !== void 0 ? segment.from : 0;
+      const toValue = segment.to !== void 0 ? segment.to : 0;
+      const colorValue = segment.color || "#4CAF50";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromValue}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toValue}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colorValue}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+    const blendWidth = Number(this._config.segment_blend_width) || 0;
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    html += `
+      <div class="segment-row" style="margin-top: 12px;">
+        <div class="input-group">
+          <label>Segment Blend Width</label>
+          <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+      </div>
+    `;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const index = Number.parseInt(event.target.dataset.idx);
+        const key = event.target.dataset.key;
+        let value = event.target.value;
+        if (key !== "color") value = Number(value);
+        this._updateSegment(index, key, value);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const target = event.target.closest(".remove-btn");
+        if (target) {
+          this._removeSegment(Number.parseInt(target.dataset.idx));
+        }
+      });
+    });
+    const addButton = this._segmentsContainer.querySelector("#add-btn");
+    if (addButton) {
+      addButton.addEventListener("click", () => this._addSegment());
+    }
+    const blendWidthInput = this._segmentsContainer.querySelector(
+      "#segment-blend-width"
+    );
+    if (blendWidthInput) {
+      blendWidthInput.addEventListener("change", (event) => {
+        const blendWidth2 = Math.max(0, Number(event.target.value) || 0);
+        this._updateConfig({ segment_blend_width: blendWidth2 });
+      });
+    }
+  }
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const lastSegment = segments[segments.length - 1];
+    const from = Number.isFinite(lastSegment?.to) ? lastSegment.to : 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
   _configToForm(config) {
     const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
+    data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)

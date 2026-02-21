@@ -57,6 +57,13 @@ class FoundryChartCard extends HTMLElement {
       this.config.show_y_axis_minmax !== undefined
         ? this.config.show_y_axis_minmax
         : false;
+    this.config.segments = Array.isArray(this.config.segments)
+      ? this.config.segments
+      : [];
+    this.config.segment_blend_width =
+      this.config.segment_blend_width !== undefined
+        ? this.config.segment_blend_width
+        : 0;
 
     this.config.ring_style = this.config.ring_style || 'brass';
     this.config.title = this.config.title || 'Foundry Chart';
@@ -126,7 +133,104 @@ class FoundryChartCard extends HTMLElement {
       show_inspect_value: true,
       show_x_axis_minmax: false,
       show_y_axis_minmax: false,
+      segments: [],
+      segment_blend_width: 0,
     };
+  }
+
+  _normalizeSegments(segments) {
+    if (!Array.isArray(segments)) return [];
+    return segments
+      .map((segment) => ({
+        from: Number(segment?.from),
+        to: Number(segment?.to),
+        color: typeof segment?.color === 'string' ? segment.color : null,
+      }))
+      .filter(
+        (segment) =>
+          Number.isFinite(segment.from) &&
+          Number.isFinite(segment.to) &&
+          segment.to > segment.from &&
+          !!segment.color
+      )
+      .sort((a, b) => a.from - b.from);
+  }
+
+  _hexToRgb(hex) {
+    if (typeof hex !== 'string') return null;
+    let normalized = hex.trim();
+    if (!normalized.startsWith('#')) return null;
+    normalized = normalized.slice(1);
+    if (normalized.length === 3) {
+      normalized = normalized
+        .split('')
+        .map((char) => char + char)
+        .join('');
+    }
+    if (normalized.length !== 6) return null;
+    const value = Number.parseInt(normalized, 16);
+    if (!Number.isFinite(value)) return null;
+    return {
+      r: (value >> 16) & 255,
+      g: (value >> 8) & 255,
+      b: value & 255,
+    };
+  }
+
+  _rgbToHex(rgb) {
+    if (!rgb) return null;
+    const clamp = (value) =>
+      Math.max(0, Math.min(255, Math.round(Number(value) || 0)));
+    const r = clamp(rgb.r);
+    const g = clamp(rgb.g);
+    const b = clamp(rgb.b);
+    return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  _blendHexColors(colorA, colorB, ratio) {
+    const rgbA = this._hexToRgb(colorA);
+    const rgbB = this._hexToRgb(colorB);
+    if (!rgbA) return colorB;
+    if (!rgbB) return colorA;
+    const t = Math.max(0, Math.min(1, Number(ratio) || 0));
+    return this._rgbToHex({
+      r: rgbA.r + (rgbB.r - rgbA.r) * t,
+      g: rgbA.g + (rgbB.g - rgbA.g) * t,
+      b: rgbA.b + (rgbB.b - rgbA.b) * t,
+    });
+  }
+
+  _getSegmentColorForValue(
+    value,
+    normalizedSegments,
+    blendWidth,
+    fallbackColor
+  ) {
+    if (!Number.isFinite(value) || normalizedSegments.length === 0) {
+      return fallbackColor;
+    }
+
+    const halfBlendWidth = Math.max(0, Number(blendWidth) || 0) / 2;
+    if (halfBlendWidth > 0) {
+      for (let index = 0; index < normalizedSegments.length - 1; index += 1) {
+        const left = normalizedSegments[index];
+        const right = normalizedSegments[index + 1];
+        if (Math.abs(right.from - left.to) > 1e-6) continue;
+
+        const boundary = left.to;
+        const blendStart = boundary - halfBlendWidth;
+        const blendEnd = boundary + halfBlendWidth;
+        if (value >= blendStart && value <= blendEnd) {
+          const ratio = (value - blendStart) / (blendEnd - blendStart);
+          return this._blendHexColors(left.color, right.color, ratio);
+        }
+      }
+    }
+
+    const matchedSegment = normalizedSegments.find(
+      (segment) => value >= segment.from && value <= segment.to
+    );
+    return matchedSegment?.color || fallbackColor;
   }
 
   set hass(hass) {
@@ -547,12 +651,35 @@ class FoundryChartCard extends HTMLElement {
 
     const emptyEl = this.shadowRoot.getElementById('chart-empty');
     const lineEl = this.shadowRoot.getElementById('chart-line');
+    const lineSegmentsEl = this.shadowRoot.getElementById(
+      'chart-line-segments'
+    );
     const areaEl = this.shadowRoot.getElementById('chart-area');
+    const segmentGradientEl = this.shadowRoot.getElementById(
+      `chartSegmentGrad-${this._uniqueId}`
+    );
+
+    const normalizedSegments = this._normalizeSegments(this.config.segments);
+    const segmentBlendWidth = Math.max(
+      0,
+      Number(this.config.segment_blend_width) || 0
+    );
+    const useSegmentColors = normalizedSegments.length > 0;
+
+    const applyDefaultColors = () => {
+      if (lineEl) lineEl.setAttribute('stroke', this.config.line_color);
+      if (lineEl) lineEl.setAttribute('visibility', 'visible');
+      if (lineSegmentsEl) lineSegmentsEl.innerHTML = '';
+      if (areaEl) areaEl.setAttribute('fill', this.config.line_color);
+      if (segmentGradientEl) segmentGradientEl.innerHTML = '';
+    };
 
     if (values.length === 0) {
       if (emptyEl) emptyEl.setAttribute('visibility', 'visible');
       if (lineEl) lineEl.setAttribute('d', '');
+      if (lineSegmentsEl) lineSegmentsEl.innerHTML = '';
       if (areaEl) areaEl.setAttribute('d', '');
+      applyDefaultColors();
     } else {
       if (emptyEl) emptyEl.setAttribute('visibility', 'hidden');
       const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
@@ -586,6 +713,55 @@ class FoundryChartCard extends HTMLElement {
       const linePath = pathParts.join(' ');
       if (lineEl) lineEl.setAttribute('d', linePath);
 
+      if (useSegmentColors && segmentGradientEl && lineEl && lineSegmentsEl) {
+        const stops = buckets
+          .map((bucket, index) => {
+            const offset =
+              bucketCount <= 1 ? 0 : (index / (bucketCount - 1)) * 100;
+            const bucketColor = this._getSegmentColorForValue(
+              bucket.value,
+              normalizedSegments,
+              segmentBlendWidth,
+              this.config.line_color
+            );
+            return `<stop offset="${offset}%" stop-color="${bucketColor}" />`;
+          })
+          .join('');
+        segmentGradientEl.innerHTML = stops;
+
+        const segmentPaths = [];
+        for (let index = 1; index < points.length; index += 1) {
+          const prevPoint = points[index - 1];
+          const currPoint = points[index];
+          if (prevPoint.y === null || currPoint.y === null) continue;
+
+          const prevValue = buckets[index - 1]?.value;
+          const currValue = buckets[index]?.value;
+          const sampleValue =
+            Number.isFinite(prevValue) && Number.isFinite(currValue)
+              ? (prevValue + currValue) / 2
+              : Number.isFinite(currValue)
+                ? currValue
+                : prevValue;
+
+          const segmentColor = this._getSegmentColorForValue(
+            sampleValue,
+            normalizedSegments,
+            segmentBlendWidth,
+            this.config.line_color
+          );
+
+          segmentPaths.push(
+            `<path d="M ${prevPoint.x} ${prevPoint.y} L ${currPoint.x} ${currPoint.y}" fill="none" stroke="${segmentColor}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>`
+          );
+        }
+
+        lineSegmentsEl.innerHTML = segmentPaths.join('');
+        lineEl.setAttribute('visibility', 'hidden');
+      } else {
+        applyDefaultColors();
+      }
+
       if (areaEl) {
         if (this.config.fill_under_line) {
           const first = points.find((p) => p.y !== null);
@@ -593,6 +769,14 @@ class FoundryChartCard extends HTMLElement {
           if (first && last) {
             const areaPath = `${linePath} L ${last.x} ${plotBottom} L ${first.x} ${plotBottom} Z`;
             areaEl.setAttribute('d', areaPath);
+            if (useSegmentColors && segmentGradientEl) {
+              areaEl.setAttribute(
+                'fill',
+                `url(#chartSegmentGrad-${this._uniqueId})`
+              );
+            } else {
+              areaEl.setAttribute('fill', this.config.line_color);
+            }
           } else {
             areaEl.setAttribute('d', '');
           }
@@ -716,6 +900,7 @@ class FoundryChartCard extends HTMLElement {
                     <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
                     <stop offset="100%" style="stop-color:#000;stop-opacity:0.2" />
                  </linearGradient>
+                 <linearGradient id="chartSegmentGrad-${uid}" x1="0%" y1="0%" x2="100%" y2="0%"></linearGradient>
                  <pattern id="gridMinor-${uid}" width="10" height="10" patternUnits="userSpaceOnUse">
                    <path d="M10 0 L0 0 0 10" fill="none" stroke="${config.grid_minor_color}" stroke-width="0.5" opacity="${config.grid_opacity}" />
                  </pattern>
@@ -749,6 +934,7 @@ class FoundryChartCard extends HTMLElement {
                   <g clip-path="url(#chartClip-${uid})">
                       <path id="chart-area" d="" fill="${config.line_color}" opacity="0.2"></path>
                       <path id="chart-line" d="" fill="none" stroke="${config.line_color}" stroke-width="${chartGeometry.lineWidth}" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <g id="chart-line-segments"></g>
                       <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.line_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
                   </g>
 

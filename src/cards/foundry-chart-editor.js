@@ -22,7 +22,10 @@ class FoundryChartEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    this._config = { ...config };
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : [],
+    };
     this.render();
     if (!this._themesLoaded) {
       this._loadThemes();
@@ -49,7 +52,12 @@ class FoundryChartEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    if (!this._root) {
+      this.render();
+      return;
+    }
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
   }
 
   render() {
@@ -61,6 +69,83 @@ class FoundryChartEditor extends HTMLElement {
       const style = document.createElement('style');
       style.textContent = `
                 .card-config { display: flex; flex-direction: column; gap: 16px; }
+                .segments-section {
+                  margin-top: 4px;
+                  margin-bottom: 4px;
+                  padding: 16px;
+                  background: var(--card-background-color, #fff);
+                  border: 1px solid var(--divider-color, #e0e0e0);
+                  border-radius: 4px;
+                }
+                .section-header {
+                  font-weight: 500;
+                  margin-bottom: 12px;
+                  color: var(--primary-text-color);
+                  font-size: 16px;
+                }
+                .segment-row {
+                  display: flex;
+                  gap: 8px;
+                  align-items: flex-end;
+                  margin-bottom: 12px;
+                  background: var(--secondary-background-color, #f9f9f9);
+                  padding: 10px;
+                  border-radius: 4px;
+                }
+                .input-group {
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                }
+                .input-group label {
+                  font-size: 11px;
+                  color: var(--secondary-text-color);
+                  text-transform: uppercase;
+                  font-weight: 600;
+                }
+                .input-group input {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
+                .input-group input[type='color'] {
+                  height: 36px;
+                  padding: 2px;
+                  cursor: pointer;
+                }
+                .remove-btn {
+                  background: none;
+                  border: none;
+                  color: var(--error-color, #db4437);
+                  cursor: pointer;
+                  padding: 8px;
+                  height: 36px;
+                  display: flex;
+                  align-items: center;
+                }
+                .remove-btn:hover {
+                  background: rgba(219, 68, 55, 0.1);
+                  border-radius: 50%;
+                }
+                .add-btn {
+                  background-color: var(--primary-color, #03a9f4);
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-weight: 500;
+                  font-size: 14px;
+                  margin-top: 4px;
+                }
+                .add-btn:hover {
+                  background-color: var(--primary-color-dark, #0288d1);
+                }
             `;
       this.shadowRoot.appendChild(style);
       this.shadowRoot.appendChild(this._root);
@@ -71,6 +156,10 @@ class FoundryChartEditor extends HTMLElement {
         this._handleFormChanged(ev)
       );
       this._root.appendChild(this._form1);
+
+      this._segmentsContainer = document.createElement('div');
+      this._segmentsContainer.className = 'segments-section';
+      this._root.appendChild(this._segmentsContainer);
 
       this._form2 = document.createElement('ha-form');
       this._form2.computeLabel = this._computeLabel;
@@ -93,6 +182,8 @@ class FoundryChartEditor extends HTMLElement {
       this._form2.data = data;
       this._form2.schema = this._getSchemaBottom();
     }
+
+    this._renderSegments();
   }
 
   _updateConfig(updates) {
@@ -171,6 +262,117 @@ class FoundryChartEditor extends HTMLElement {
     return schema.name;
   }
 
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+
+    const segments = this._config.segments || [];
+
+    let html = `<div class="section-header">Color Ranges</div>`;
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+
+    segments.forEach((segment, index) => {
+      const fromValue = segment.from !== undefined ? segment.from : 0;
+      const toValue = segment.to !== undefined ? segment.to : 0;
+      const colorValue = segment.color || '#4CAF50';
+
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromValue}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toValue}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colorValue}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+
+    const blendWidth = Number(this._config.segment_blend_width) || 0;
+
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    html += `
+      <div class="segment-row" style="margin-top: 12px;">
+        <div class="input-group">
+          <label>Segment Blend Width</label>
+          <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+      </div>
+    `;
+    this._segmentsContainer.innerHTML = html;
+
+    this._segmentsContainer.querySelectorAll('.seg-input').forEach((input) => {
+      input.addEventListener('change', (event) => {
+        const index = Number.parseInt(event.target.dataset.idx);
+        const key = event.target.dataset.key;
+        let value = event.target.value;
+        if (key !== 'color') value = Number(value);
+        this._updateSegment(index, key, value);
+      });
+    });
+
+    this._segmentsContainer
+      .querySelectorAll('.remove-btn')
+      .forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const target = event.target.closest('.remove-btn');
+          if (target) {
+            this._removeSegment(Number.parseInt(target.dataset.idx));
+          }
+        });
+      });
+
+    const addButton = this._segmentsContainer.querySelector('#add-btn');
+    if (addButton) {
+      addButton.addEventListener('click', () => this._addSegment());
+    }
+
+    const blendWidthInput = this._segmentsContainer.querySelector(
+      '#segment-blend-width'
+    );
+    if (blendWidthInput) {
+      blendWidthInput.addEventListener('change', (event) => {
+        const blendWidth = Math.max(0, Number(event.target.value) || 0);
+        this._updateConfig({ segment_blend_width: blendWidth });
+      });
+    }
+  }
+
+  _updateSegment(index, key, value) {
+    const segments = [...(this._config.segments || [])];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+
+  _addSegment() {
+    const segments = [...(this._config.segments || [])];
+    const lastSegment = segments[segments.length - 1];
+    const from = Number.isFinite(lastSegment?.to) ? lastSegment.to : 0;
+    const to = from + 10;
+    segments.push({ from, to, color: '#4CAF50' });
+    this._updateConfig({ segments });
+  }
+
+  _removeSegment(index) {
+    const segments = [...(this._config.segments || [])];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+
   _configToForm(config) {
     const themeData =
       config.theme && config.theme !== 'none' && this._themes
@@ -182,6 +384,7 @@ class FoundryChartEditor extends HTMLElement {
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? 'none';
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
+    data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
 
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
