@@ -11,60 +11,66 @@ class FoundryEntitiesCard extends HTMLElement {
   setConfig(config) {
     this.config = { ...config };
 
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entities) {
+        throw new Error('Entities list is required');
+      }
+
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: 'more-info' };
+      }
+
+      // Defaults
+      this.config.ring_style = this.config.ring_style || 'brass';
+      this.config.title =
+        this.config.title !== undefined ? this.config.title : 'Entities';
+      this.config.title_font_size =
+        this.config.title_font_size !== undefined
+          ? this.config.title_font_size
+          : 14;
+      this.config.title_color = this.config.title_color || '#3e2723';
+      this.config.plate_color = this.config.plate_color || '#f5f5f5';
+      this.config.plate_transparent =
+        this.config.plate_transparent !== undefined
+          ? this.config.plate_transparent
+          : false;
+      this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+      this.config.font_color = this.config.font_color || '#000000';
+
+      this.config.wear_level =
+        this.config.wear_level !== undefined ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled =
+        this.config.glass_effect_enabled !== undefined
+          ? this.config.glass_effect_enabled
+          : true;
+      this.config.aged_texture =
+        this.config.aged_texture !== undefined
+          ? this.config.aged_texture
+          : 'everywhere';
+      this.config.aged_texture_intensity =
+        this.config.aged_texture_intensity !== undefined
+          ? this.config.aged_texture_intensity
+          : 50;
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this.render();
+      if (this._hass) this._updateValues();
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    if (!this.config.entities) {
-      throw new Error('Entities list is required');
-    }
-
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: 'more-info' };
-    }
-
-    // Defaults
-    this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.title =
-      this.config.title !== undefined ? this.config.title : 'Entities';
-    this.config.title_font_size =
-      this.config.title_font_size !== undefined
-        ? this.config.title_font_size
-        : 14;
-    this.config.title_color = this.config.title_color || '#3e2723';
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent =
-      this.config.plate_transparent !== undefined
-        ? this.config.plate_transparent
-        : false;
-    this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.font_color = this.config.font_color || '#000000';
-
-    this.config.wear_level =
-      this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled =
-      this.config.glass_effect_enabled !== undefined
-        ? this.config.glass_effect_enabled
-        : true;
-    this.config.aged_texture =
-      this.config.aged_texture !== undefined
-        ? this.config.aged_texture
-        : 'everywhere';
-    this.config.aged_texture_intensity =
-      this.config.aged_texture_intensity !== undefined
-        ? this.config.aged_texture_intensity
-        : 50;
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this.render();
   }
 
   set hass(hass) {

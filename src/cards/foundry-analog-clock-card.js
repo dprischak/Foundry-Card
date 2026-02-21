@@ -16,31 +16,36 @@ class FoundryAnalogClockCard extends HTMLElement {
   setConfig(config) {
     this.config = { ...config };
 
+    const applyDefaultsAndRender = () => {
+      // Default behavior like built-in cards
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: 'more-info' };
+      }
+
+      // Default ring style
+      if (this.config.ring_style === undefined) {
+        this.config.ring_style = 'brass';
+      }
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+
+      // Start clock timer
+      this._startClock();
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    // Default behavior like built-in cards
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: 'more-info' };
-    }
-
-    // Default ring style
-    if (this.config.ring_style === undefined) {
-      this.config.ring_style = 'brass';
-    }
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
-
-    // Start clock timer
-    this._startClock();
   }
 
   set hass(hass) {

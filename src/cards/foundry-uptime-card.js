@@ -17,99 +17,110 @@ class FoundryUptimeCard extends HTMLElement {
       duration: config.duration ? { ...config.duration } : undefined,
     };
 
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entity) {
+        throw new Error('Entity is required');
+      }
+
+      // Defaults
+      this.config.hours_to_show = this.config.hours_to_show || 24;
+      this.config.update_interval = this.config.update_interval || 60;
+      this.config.show_footer =
+        this.config.show_footer !== undefined ? this.config.show_footer : true;
+
+      this.config.ok = this.config.ok || [
+        'on',
+        'connected',
+        'home',
+        'open',
+        'true',
+        'running',
+        'active',
+      ];
+      this.config.ko = this.config.ko || [
+        'off',
+        'disconnected',
+        'not_home',
+        'closed',
+        'false',
+        'stopped',
+        'inactive',
+      ];
+
+      // Normalize aliases
+      this.config.alias.ok = this.config.alias.ok || 'Up';
+      this.config.alias.ko = this.config.alias.ko || 'Down';
+
+      // Duration normalization
+      if (this.config.duration) {
+        const q = this.config.duration.quantity || 1;
+        const u = this.config.duration.unit || 'day';
+        if (u === 'minute') this.config.hours_to_show = q / 60;
+        else if (u === 'hour') this.config.hours_to_show = q;
+        else if (u === 'day') this.config.hours_to_show = q * 24;
+        else if (u === 'week') this.config.hours_to_show = q * 24 * 7;
+      }
+
+      // Visual Defaults
+      this.config.ring_style = this.config.ring_style || 'brass';
+      this.config.title = this.config.title || 'Uptime Monitor';
+      this.config.title_font_size = this.config.title_font_size || 14;
+      this.config.title_color = this.config.title_color || '#3e2723';
+      this.config.plate_color = this.config.plate_color || '#f5f5f5';
+      this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+      this.config.font_color = this.config.font_color || '#000000';
+      this.config.wear_level =
+        this.config.wear_level !== undefined ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled =
+        this.config.glass_effect_enabled !== undefined
+          ? this.config.glass_effect_enabled
+          : true;
+
+      // State Colors: REMOVED user config for simple ok/ko colors, relying on thresholds + red default
+      this.config.color.none = this.config.color.none || 'transparent';
+
+      // Support for segments (Foundry Thermostat style ranges) overriding color_thresholds
+      // segments: [{ from: 0, to: 50, color: 'red' }, ...]
+      this.config.segments = this.config.segments || undefined;
+
+      // Default color_thresholds if no segments
+      this.config.color_thresholds = this.config.color_thresholds || [
+        { value: 98, color: '#4CAF50' },
+        { value: 90, color: '#FF9800' },
+        { value: 0, color: '#F44336' },
+      ];
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+
+      this._rendered = false;
+      if (this._history) {
+        this._renderHistory();
+      } else {
+        this.render();
+      }
+
+      // Start interval
+      if (this._interval) clearInterval(this._interval);
+      this._interval = setInterval(
+        () => this._fetchHistory(),
+        this.config.update_interval * 1000
+      ); // 60s default
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this._rendered = false;
-          this._renderHistory();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    if (!this.config.entity) {
-      throw new Error('Entity is required');
-    }
-
-    // Defaults
-    this.config.hours_to_show = this.config.hours_to_show || 24;
-    this.config.update_interval = this.config.update_interval || 60;
-    this.config.show_footer =
-      this.config.show_footer !== undefined ? this.config.show_footer : true;
-
-    this.config.ok = this.config.ok || [
-      'on',
-      'connected',
-      'home',
-      'open',
-      'true',
-      'running',
-      'active',
-    ];
-    this.config.ko = this.config.ko || [
-      'off',
-      'disconnected',
-      'not_home',
-      'closed',
-      'false',
-      'stopped',
-      'inactive',
-    ];
-
-    // Normalize aliases
-    this.config.alias.ok = this.config.alias.ok || 'Up';
-    this.config.alias.ko = this.config.alias.ko || 'Down';
-
-    // Duration normalization
-    if (this.config.duration) {
-      const q = this.config.duration.quantity || 1;
-      const u = this.config.duration.unit || 'day';
-      if (u === 'minute') this.config.hours_to_show = q / 60;
-      else if (u === 'hour') this.config.hours_to_show = q;
-      else if (u === 'day') this.config.hours_to_show = q * 24;
-      else if (u === 'week') this.config.hours_to_show = q * 24 * 7;
-    }
-
-    // Visual Defaults
-    this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.title = this.config.title || 'Uptime Monitor';
-    this.config.title_font_size = this.config.title_font_size || 14;
-    this.config.title_color = this.config.title_color || '#3e2723';
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.font_color = this.config.font_color || '#000000';
-    this.config.wear_level =
-      this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled =
-      this.config.glass_effect_enabled !== undefined
-        ? this.config.glass_effect_enabled
-        : true;
-
-    // State Colors: REMOVED user config for simple ok/ko colors, relying on thresholds + red default
-    this.config.color.none = this.config.color.none || 'transparent';
-
-    // Support for segments (Foundry Thermostat style ranges) overriding color_thresholds
-    // segments: [{ from: 0, to: 50, color: 'red' }, ...]
-    this.config.segments = this.config.segments || undefined;
-
-    // Default color_thresholds if no segments
-    this.config.color_thresholds = this.config.color_thresholds || [
-      { value: 98, color: '#4CAF50' },
-      { value: 90, color: '#FF9800' },
-      { value: 0, color: '#F44336' },
-    ];
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-
-    // Start interval
-    if (this._interval) clearInterval(this._interval);
-    this._interval = setInterval(
-      () => this._fetchHistory(),
-      this.config.update_interval * 1000
-    ); // 60s default
   }
 
   static getStubConfig() {

@@ -9,41 +9,46 @@ class FoundryTitleCard extends HTMLElement {
   setConfig(config) {
     this.config = { ...config };
 
+    const applyDefaultsAndRender = () => {
+      // Defaults
+      this.config.title =
+        this.config.title !== undefined ? this.config.title : 'Title';
+      this.config.title_font_size =
+        this.config.title_font_size !== undefined
+          ? this.config.title_font_size
+          : 18;
+      this.config.title_color = this.config.title_color || '#3e2723';
+      this.config.plate_color = this.config.plate_color || '#f5f5f5';
+      this.config.plate_transparent =
+        this.config.plate_transparent !== undefined
+          ? this.config.plate_transparent
+          : false;
+      this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+      this.config.aged_texture =
+        this.config.aged_texture !== undefined
+          ? this.config.aged_texture
+          : 'everywhere';
+      this.config.aged_texture_intensity =
+        this.config.aged_texture_intensity !== undefined
+          ? this.config.aged_texture_intensity
+          : 50;
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    // Defaults
-    this.config.title =
-      this.config.title !== undefined ? this.config.title : 'Title';
-    this.config.title_font_size =
-      this.config.title_font_size !== undefined
-        ? this.config.title_font_size
-        : 18;
-    this.config.title_color = this.config.title_color || '#3e2723';
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent =
-      this.config.plate_transparent !== undefined
-        ? this.config.plate_transparent
-        : false;
-    this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
-    this.config.aged_texture =
-      this.config.aged_texture !== undefined
-        ? this.config.aged_texture
-        : 'everywhere';
-    this.config.aged_texture_intensity =
-      this.config.aged_texture_intensity !== undefined
-        ? this.config.aged_texture_intensity
-        : 50;
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
   }
 
   set hass(_hass) {

@@ -13,51 +13,65 @@ class FoundryButtonCard extends HTMLElement {
 
   setConfig(config) {
     this.config = { ...config };
-    // ... snip ...
 
-    // Defaults
-    this.config.ring_style = this.config.ring_style || 'brass';
-    this.config.plate_color = this.config.plate_color || '#f5f5f5';
-    this.config.plate_transparent =
-      this.config.plate_transparent !== undefined
-        ? this.config.plate_transparent
-        : false;
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-    this.config.font_color = this.config.font_color || '#000000';
-    this.config.card_width = this.config.card_width || 240;
+    const applyDefaultsAndRender = () => {
+      // Defaults
+      this.config.title =
+        this.config.title !== undefined ? this.config.title : 'Title';
+      this.config.title_font_size =
+        this.config.title_font_size !== undefined
+          ? this.config.title_font_size
+          : 24;
+      this.config.title_color = this.config.title_color || '#3e2723';
+      this.config.ring_style = this.config.ring_style || 'brass';
+      this.config.plate_color = this.config.plate_color || '#f5f5f5';
+      this.config.plate_transparent =
+        this.config.plate_transparent !== undefined
+          ? this.config.plate_transparent
+          : false;
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+      this.config.font_color = this.config.font_color || '#000000';
+      this.config.card_width = this.config.card_width || 240;
+      this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
 
-    this.config.wear_level =
-      this.config.wear_level !== undefined ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled =
-      this.config.glass_effect_enabled !== undefined
-        ? this.config.glass_effect_enabled
-        : true;
-    this.config.aged_texture =
-      this.config.aged_texture !== undefined
-        ? this.config.aged_texture
-        : 'everywhere';
-    this.config.aged_texture_intensity =
-      this.config.aged_texture_intensity !== undefined
-        ? this.config.aged_texture_intensity
-        : 50;
+      this.config.wear_level =
+        this.config.wear_level !== undefined ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled =
+        this.config.glass_effect_enabled !== undefined
+          ? this.config.glass_effect_enabled
+          : true;
+      this.config.aged_texture =
+        this.config.aged_texture !== undefined
+          ? this.config.aged_texture
+          : 'everywhere';
+      this.config.aged_texture_intensity =
+        this.config.aged_texture_intensity !== undefined
+          ? this.config.aged_texture_intensity
+          : 50;
 
-    this.config.icon_color =
-      this.config.icon_color || 'var(--primary-text-color)';
+      this.config.icon_color =
+        this.config.icon_color || 'var(--primary-text-color)';
 
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+
+      if (this.shadowRoot) {
+        this.shadowRoot.innerHTML = '';
+      }
+      this._updateRender();
+    };
 
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          if (this.shadowRoot) {
-            this.shadowRoot.innerHTML = '';
-          }
-          this._updateRender();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
   }
 

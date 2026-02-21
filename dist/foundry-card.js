@@ -2710,17 +2710,43 @@ var jsYaml = {
 
 // src/cards/themes.js
 var cachedThemesPromise = null;
+var CACHE_KEY = "foundry_cards_themes_cache";
+var CACHE_EXPIRY_MS = 10 * 60 * 1e3;
 async function loadThemes() {
+  if (cachedThemesPromise) {
+    return cachedThemesPromise;
+  }
   const loadAll2 = async () => {
     const themes = {};
     const basePath = new URL(".", import.meta.url).href;
-    const load2 = async (filename) => {
+    const now = Date.now();
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceRefresh = urlParams.get("refreshcache") === "true";
+    if (!forceRefresh) {
       try {
-        const url = new URL(filename, basePath).href + "?v=" + (/* @__PURE__ */ new Date()).getTime();
-        const response = await fetch(url);
+        const cachedString = localStorage.getItem(CACHE_KEY);
+        if (cachedString) {
+          const cachedData = JSON.parse(cachedString);
+          if (cachedData && cachedData.timestamp && now - cachedData.timestamp < CACHE_EXPIRY_MS) {
+            return cachedData.themes;
+          }
+        }
+      } catch (e) {
+        console.warn(
+          "[Foundry Cards] Failed to read theme cache from localStorage:",
+          e
+        );
+      }
+    }
+    const loadFile = async (filename) => {
+      try {
+        const cacheBuster = forceRefresh ? `?v=${now}` : "";
+        const url = new URL(`${filename}${cacheBuster}`, basePath).href;
+        const response = await fetch(url, { cache: "no-cache" });
         if (response.ok) {
           const text = await response.text();
           const data = jsYaml.load(text);
+          if (!data) return;
           for (const [themeName, themeData] of Object.entries(data)) {
             let finalName = themeName;
             let counter = 2;
@@ -2736,11 +2762,28 @@ async function loadThemes() {
           );
         }
       } catch (e) {
-        console.warn(`Failed to load theme file: ${filename}`, e);
+        console.warn(
+          `[Foundry Cards] Exception loading theme file: ${filename}`,
+          e
+        );
       }
     };
-    await load2("themes.yaml");
-    await load2("userthemes.yaml");
+    await loadFile("themes.yaml");
+    await loadFile("userthemes.yaml");
+    try {
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          timestamp: now,
+          themes
+        })
+      );
+    } catch (e) {
+      console.warn(
+        "[Foundry Cards] Failed to save theme cache to localStorage:",
+        e
+      );
+    }
     return themes;
   };
   cachedThemesPromise = loadAll2();
@@ -2854,25 +2897,28 @@ var FoundryGaugeCard = class extends HTMLElement {
     }
     this.config = { ...config };
     this._validateConfig();
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      if (this.config.ring_style === void 0) {
+        this.config.ring_style = "brass";
+      }
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+      if (this._hass) {
+        requestAnimationFrame(() => this.updateGauge());
+      }
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this.updateGauge();
         }
+        applyDefaultsAndRender();
       });
-    }
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
-    }
-    if (this.config.ring_style === void 0) {
-      this.config.ring_style = "brass";
-    }
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
-    if (this._hass) {
-      requestAnimationFrame(() => this.updateGauge());
+    } else {
+      applyDefaultsAndRender();
     }
   }
   _validateConfig() {
@@ -5639,35 +5685,41 @@ var FoundryThermometerCard = class extends HTMLElement {
       throw new Error("You need to define an entity");
     }
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action)
+        this.config.tap_action = { action: "more-info" };
+      if (this.config.ring_style === void 0)
+        this.config.ring_style = "brass";
+      if (this.config.min === void 0) this.config.min = -40;
+      if (this.config.max === void 0) this.config.max = 120;
+      if (this.config.mercury_width === void 0)
+        this.config.mercury_width = 50;
+      if (this.config.segments_under_mercury === void 0)
+        this.config.segments_under_mercury = true;
+      this.config.plate_color = this.config.plate_color || "#8c7626";
+      this.config.rivet_color = this.config.rivet_color || "#6a5816";
+      this.config.face_color = this.config.face_color || "#f8f8f0";
+      this.config.background_style = this.config.background_style || "gradient";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.number_color = this.config.number_color || this.config.font_color || this.config.title_color || "#3e2723";
+      this.config.tick_color = this.config.tick_color || "#333";
+      this.config.primary_tick_color = this.config.primary_tick_color || this.config.tick_color;
+      this.config.secondary_tick_color = this.config.secondary_tick_color || this.config.tick_color;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this.render();
+      if (this._hass) this.updateCard();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this.updateCard();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.tap_action)
-      this.config.tap_action = { action: "more-info" };
-    if (this.config.ring_style === void 0) this.config.ring_style = "brass";
-    if (this.config.min === void 0) this.config.min = -40;
-    if (this.config.max === void 0) this.config.max = 120;
-    if (this.config.mercury_width === void 0) this.config.mercury_width = 50;
-    if (this.config.segments_under_mercury === void 0)
-      this.config.segments_under_mercury = true;
-    this.config.plate_color = this.config.plate_color || "#8c7626";
-    this.config.rivet_color = this.config.rivet_color || "#6a5816";
-    this.config.face_color = this.config.face_color || "#f8f8f0";
-    this.config.background_style = this.config.background_style || "gradient";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.number_color = this.config.number_color || this.config.font_color || this.config.title_color || "#3e2723";
-    this.config.tick_color = this.config.tick_color || "#333";
-    this.config.primary_tick_color = this.config.primary_tick_color || this.config.tick_color;
-    this.config.secondary_tick_color = this.config.secondary_tick_color || this.config.tick_color;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this.render();
   }
   _attachActionListeners() {
     const root = this.shadowRoot?.getElementById("actionRoot");
@@ -6403,31 +6455,35 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       throw new Error("Please define a climate entity");
     }
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      this.config.title = this.config.title !== void 0 ? this.config.title : "Thermostat";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this._rendered = false;
+      this.render();
+      if (this._hass) this._updateValues();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this._updateValues();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    this.config.title = this.config.title !== void 0 ? this.config.title : "Thermostat";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this._rendered = false;
-    this.render();
   }
   set hass(hass) {
     this._hass = hass;
@@ -7652,23 +7708,27 @@ var FoundryAnalogClockCard = class extends HTMLElement {
   }
   setConfig(config) {
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      if (this.config.ring_style === void 0) {
+        this.config.ring_style = "brass";
+      }
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+      this._startClock();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
-    }
-    if (this.config.ring_style === void 0) {
-      this.config.ring_style = "brass";
-    }
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
-    this._startClock();
   }
   set hass(hass) {
     this._hass = hass;
@@ -8900,35 +8960,39 @@ var FoundryDigitalClockCard = class extends HTMLElement {
   }
   setConfig(config) {
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.use_24h_format = this.config.use_24h_format !== void 0 ? this.config.use_24h_format : true;
+      this.config.show_seconds = this.config.show_seconds !== void 0 ? this.config.show_seconds : true;
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this.render();
+      this._startClock();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
-    }
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.use_24h_format = this.config.use_24h_format !== void 0 ? this.config.use_24h_format : true;
-    this.config.show_seconds = this.config.show_seconds !== void 0 ? this.config.show_seconds : true;
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this.render();
-    this._startClock();
   }
   set hass(hass) {
     this._hass = hass;
@@ -9838,44 +9902,48 @@ var FoundrySliderCard = class extends HTMLElement {
   }
   setConfig(config) {
     this.config = { ...config };
-    this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      this.config.min = this.config.min !== void 0 ? this.config.min : 0;
+      this.config.max = this.config.max !== void 0 ? this.config.max : 100;
+      this.config.step = this.config.step !== void 0 ? this.config.step : 1;
+      this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.plate_color = this.config.plate_color || "#8c7626";
+      this.config.face_color = this.config.face_color ?? this.config.background_color ?? this.config.plate_color ?? this.config.slider_background_color ?? "#8c7626";
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.rivet_color = this.config.rivet_color || "#6a5816";
+      this.config.knob_color = this.config.knob_color || "#c9a961";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.slider_color = this.config.slider_color || "#444444";
+      this.config.primary_tick_color = this.config.primary_tick_color ?? "rgba(0,0,0,0.22)";
+      this.config.secondary_tick_color = this.config.secondary_tick_color ?? "rgba(0,0,0,0.22)";
+      this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
+      this.config.number_color = this.config.number_color || this.config.title_color || "#3e2723";
+      this.config.background_style = this.config.background_style || "gradient";
+      this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+      this.config.value_font_size = this.config.value_font_size !== void 0 ? this.config.value_font_size : 36;
+      this.config.knob_shape = this.config.knob_shape || "square";
+      this.config.knob_size = this.config.knob_size !== void 0 ? this.config.knob_size : 100;
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "glass_only";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      ensureLedFont();
+      this.render();
+      this._updateValueDisplay(this.config.value);
+      if (this._hass) this._updateFromEntity();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this._updateValueDisplay(this.config.value);
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    this.config.min = this.config.min !== void 0 ? this.config.min : 0;
-    this.config.max = this.config.max !== void 0 ? this.config.max : 100;
-    this.config.step = this.config.step !== void 0 ? this.config.step : 1;
-    this.config.value = this.config.value !== void 0 ? this.config.value : this.config.min;
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.plate_color = this.config.plate_color || "#8c7626";
-    this.config.face_color = this.config.face_color ?? this.config.background_color ?? this.config.plate_color ?? this.config.slider_background_color ?? "#8c7626";
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6a5816";
-    this.config.knob_color = this.config.knob_color || "#c9a961";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.slider_color = this.config.slider_color || "#444444";
-    this.config.primary_tick_color = this.config.primary_tick_color ?? "rgba(0,0,0,0.22)";
-    this.config.secondary_tick_color = this.config.secondary_tick_color ?? "rgba(0,0,0,0.22)";
-    this.config.show_value = this.config.show_value !== void 0 ? this.config.show_value : true;
-    this.config.number_color = this.config.number_color || this.config.title_color || "#3e2723";
-    this.config.background_style = this.config.background_style || "gradient";
-    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
-    this.config.value_font_size = this.config.value_font_size !== void 0 ? this.config.value_font_size : 36;
-    this.config.knob_shape = this.config.knob_shape || "square";
-    this.config.knob_size = this.config.knob_size !== void 0 ? this.config.knob_size : 100;
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "glass_only";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    ensureLedFont();
-    this.render();
   }
   set hass(hass) {
     this._hass = hass;
@@ -11421,36 +11489,41 @@ var FoundryEntitiesCard = class extends HTMLElement {
   }
   setConfig(config) {
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entities) {
+        throw new Error("Entities list is required");
+      }
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.title = this.config.title !== void 0 ? this.config.title : "Entities";
+      this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this.render();
+      if (this._hass) this._updateValues();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.entities) {
-      throw new Error("Entities list is required");
-    }
-    if (!this.config.tap_action) {
-      this.config.tap_action = { action: "more-info" };
-    }
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.title = this.config.title !== void 0 ? this.config.title : "Entities";
-    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 14;
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this.render();
   }
   set hass(hass) {
     this._hass = hass;
@@ -12550,29 +12623,38 @@ var FoundryButtonCard = class extends HTMLElement {
   // ... (existing code)
   setConfig(config) {
     this.config = { ...config };
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.card_width = this.config.card_width || 240;
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    this.config.icon_color = this.config.icon_color || "var(--primary-text-color)";
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
+    const applyDefaultsAndRender = () => {
+      this.config.title = this.config.title !== void 0 ? this.config.title : "Title";
+      this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 24;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.card_width = this.config.card_width || 240;
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.icon_color = this.config.icon_color || "var(--primary-text-color)";
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      if (this.shadowRoot) {
+        this.shadowRoot.innerHTML = "";
+      }
+      this._updateRender();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          if (this.shadowRoot) {
-            this.shadowRoot.innerHTML = "";
-          }
-          this._updateRender();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
   }
   set hass(hass) {
@@ -13338,73 +13420,82 @@ var FoundryUptimeCard = class extends HTMLElement {
       color: { ...config.color || {} },
       duration: config.duration ? { ...config.duration } : void 0
     };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entity) {
+        throw new Error("Entity is required");
+      }
+      this.config.hours_to_show = this.config.hours_to_show || 24;
+      this.config.update_interval = this.config.update_interval || 60;
+      this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
+      this.config.ok = this.config.ok || [
+        "on",
+        "connected",
+        "home",
+        "open",
+        "true",
+        "running",
+        "active"
+      ];
+      this.config.ko = this.config.ko || [
+        "off",
+        "disconnected",
+        "not_home",
+        "closed",
+        "false",
+        "stopped",
+        "inactive"
+      ];
+      this.config.alias.ok = this.config.alias.ok || "Up";
+      this.config.alias.ko = this.config.alias.ko || "Down";
+      if (this.config.duration) {
+        const q = this.config.duration.quantity || 1;
+        const u = this.config.duration.unit || "day";
+        if (u === "minute") this.config.hours_to_show = q / 60;
+        else if (u === "hour") this.config.hours_to_show = q;
+        else if (u === "day") this.config.hours_to_show = q * 24;
+        else if (u === "week") this.config.hours_to_show = q * 24 * 7;
+      }
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.title = this.config.title || "Uptime Monitor";
+      this.config.title_font_size = this.config.title_font_size || 14;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.color.none = this.config.color.none || "transparent";
+      this.config.segments = this.config.segments || void 0;
+      this.config.color_thresholds = this.config.color_thresholds || [
+        { value: 98, color: "#4CAF50" },
+        { value: 90, color: "#FF9800" },
+        { value: 0, color: "#F44336" }
+      ];
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this._rendered = false;
+      if (this._history) {
+        this._renderHistory();
+      } else {
+        this.render();
+      }
+      if (this._interval) clearInterval(this._interval);
+      this._interval = setInterval(
+        () => this._fetchHistory(),
+        this.config.update_interval * 1e3
+      );
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this._rendered = false;
-          this._renderHistory();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.entity) {
-      throw new Error("Entity is required");
-    }
-    this.config.hours_to_show = this.config.hours_to_show || 24;
-    this.config.update_interval = this.config.update_interval || 60;
-    this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
-    this.config.ok = this.config.ok || [
-      "on",
-      "connected",
-      "home",
-      "open",
-      "true",
-      "running",
-      "active"
-    ];
-    this.config.ko = this.config.ko || [
-      "off",
-      "disconnected",
-      "not_home",
-      "closed",
-      "false",
-      "stopped",
-      "inactive"
-    ];
-    this.config.alias.ok = this.config.alias.ok || "Up";
-    this.config.alias.ko = this.config.alias.ko || "Down";
-    if (this.config.duration) {
-      const q = this.config.duration.quantity || 1;
-      const u = this.config.duration.unit || "day";
-      if (u === "minute") this.config.hours_to_show = q / 60;
-      else if (u === "hour") this.config.hours_to_show = q;
-      else if (u === "day") this.config.hours_to_show = q * 24;
-      else if (u === "week") this.config.hours_to_show = q * 24 * 7;
-    }
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.title = this.config.title || "Uptime Monitor";
-    this.config.title_font_size = this.config.title_font_size || 14;
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.color.none = this.config.color.none || "transparent";
-    this.config.segments = this.config.segments || void 0;
-    this.config.color_thresholds = this.config.color_thresholds || [
-      { value: 98, color: "#4CAF50" },
-      { value: 90, color: "#FF9800" },
-      { value: 0, color: "#F44336" }
-    ];
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    if (this._interval) clearInterval(this._interval);
-    this._interval = setInterval(
-      () => this._fetchHistory(),
-      this.config.update_interval * 1e3
-    );
   }
   static getStubConfig() {
     return {
@@ -14427,53 +14518,62 @@ var FoundryChartCard = class extends HTMLElement {
       ...config,
       chart: { ...config.chart || {} }
     };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entity) {
+        throw new Error("Entity is required");
+      }
+      this.config.hours_to_show = this.config.hours_to_show || 24;
+      this.config.update_interval = this.config.update_interval || 60;
+      this.config.bucket_count = this.config.bucket_count || 50;
+      this.config.bucket_minutes = this.config.bucket_minutes || null;
+      this.config.aggregation = this.config.aggregation || "avg";
+      this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
+      this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
+      this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
+      this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
+      this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
+      this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.title = this.config.title || "Foundry Chart";
+      this.config.title_font_size = this.config.title_font_size || 14;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.line_color = this.config.line_color || "#d32f2f";
+      this.config.line_width = this.config.line_width || 2;
+      this.config.fill_under_line = this.config.fill_under_line !== void 0 ? this.config.fill_under_line : false;
+      this.config.grid_minor_color = this.config.grid_minor_color || "#cfead6";
+      this.config.grid_major_color = this.config.grid_major_color || "#8fc79d";
+      this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
+      this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this._rendered = false;
+      if (this._history) {
+        this._renderHistory();
+      } else {
+        this.render();
+      }
+      if (this._interval) clearInterval(this._interval);
+      this._interval = setInterval(
+        () => this._fetchHistory(),
+        this.config.update_interval * 1e3
+      );
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this._rendered = false;
-          this._renderHistory();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    if (!this.config.entity) {
-      throw new Error("Entity is required");
-    }
-    this.config.hours_to_show = this.config.hours_to_show || 24;
-    this.config.update_interval = this.config.update_interval || 60;
-    this.config.bucket_count = this.config.bucket_count || 50;
-    this.config.bucket_minutes = this.config.bucket_minutes || null;
-    this.config.aggregation = this.config.aggregation || "avg";
-    this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
-    this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
-    this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
-    this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
-    this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
-    this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
-    this.config.ring_style = this.config.ring_style || "brass";
-    this.config.title = this.config.title || "Foundry Chart";
-    this.config.title_font_size = this.config.title_font_size || 14;
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
-    this.config.font_color = this.config.font_color || "#000000";
-    this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
-    this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
-    this.config.line_color = this.config.line_color || "#d32f2f";
-    this.config.line_width = this.config.line_width || 2;
-    this.config.fill_under_line = this.config.fill_under_line !== void 0 ? this.config.fill_under_line : false;
-    this.config.grid_minor_color = this.config.grid_minor_color || "#cfead6";
-    this.config.grid_major_color = this.config.grid_major_color || "#8fc79d";
-    this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
-    this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    if (this._interval) clearInterval(this._interval);
-    this._interval = setInterval(
-      () => this._fetchHistory(),
-      this.config.update_interval * 1e3
-    );
   }
   static getStubConfig() {
     return {
@@ -15884,24 +15984,28 @@ var FoundryTitleCard = class extends HTMLElement {
   }
   setConfig(config) {
     this.config = { ...config };
+    const applyDefaultsAndRender = () => {
+      this.config.title = this.config.title !== void 0 ? this.config.title : "Title";
+      this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 18;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+    };
     if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-    this.config.title = this.config.title !== void 0 ? this.config.title : "Title";
-    this.config.title_font_size = this.config.title_font_size !== void 0 ? this.config.title_font_size : 18;
-    this.config.title_color = this.config.title_color || "#3e2723";
-    this.config.plate_color = this.config.plate_color || "#f5f5f5";
-    this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
-    this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
-    this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-    this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    this.render();
   }
   set hass(_hass) {
   }

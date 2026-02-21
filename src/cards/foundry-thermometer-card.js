@@ -415,51 +415,56 @@ class FoundryThermometerCard extends HTMLElement {
 
     this.config = { ...config };
 
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action)
+        this.config.tap_action = { action: 'more-info' };
+      if (this.config.ring_style === undefined)
+        this.config.ring_style = 'brass';
+      if (this.config.min === undefined) this.config.min = -40;
+      if (this.config.max === undefined) this.config.max = 120;
+      if (this.config.mercury_width === undefined)
+        this.config.mercury_width = 50;
+      if (this.config.segments_under_mercury === undefined)
+        this.config.segments_under_mercury = true;
+
+      this.config.plate_color = this.config.plate_color || '#8c7626';
+      this.config.rivet_color = this.config.rivet_color || '#6a5816';
+      this.config.face_color = this.config.face_color || '#f8f8f0';
+      this.config.background_style = this.config.background_style || 'gradient';
+      this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+
+      // Consolidate colors to number_color
+      this.config.number_color =
+        this.config.number_color ||
+        this.config.font_color ||
+        this.config.title_color ||
+        '#3e2723';
+
+      // Default tick colors if not set
+      this.config.tick_color = this.config.tick_color || '#333';
+      this.config.primary_tick_color =
+        this.config.primary_tick_color || this.config.tick_color;
+      this.config.secondary_tick_color =
+        this.config.secondary_tick_color || this.config.tick_color;
+
+      this._uniqueId =
+        this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this.render();
+      if (this._hass) this.updateCard();
+    };
+
     // Theme handling
     if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
-          this.render();
-          this.updateCard();
         }
+        applyDefaultsAndRender();
       });
+    } else {
+      applyDefaultsAndRender();
     }
-
-    if (!this.config.tap_action)
-      this.config.tap_action = { action: 'more-info' };
-    if (this.config.ring_style === undefined) this.config.ring_style = 'brass';
-    if (this.config.min === undefined) this.config.min = -40;
-    if (this.config.max === undefined) this.config.max = 120;
-    if (this.config.mercury_width === undefined) this.config.mercury_width = 50;
-    if (this.config.segments_under_mercury === undefined)
-      this.config.segments_under_mercury = true;
-
-    this.config.plate_color = this.config.plate_color || '#8c7626';
-    this.config.rivet_color = this.config.rivet_color || '#6a5816';
-    this.config.face_color = this.config.face_color || '#f8f8f0';
-    this.config.background_style = this.config.background_style || 'gradient';
-    this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
-
-    // Consolidate colors to number_color
-    // If legacy font_color/title_color exists but number_color doesn't, migrate it?
-    // Or just prefer number_color.
-    this.config.number_color =
-      this.config.number_color ||
-      this.config.font_color ||
-      this.config.title_color ||
-      '#3e2723';
-
-    // Default tick colors if not set
-    this.config.tick_color = this.config.tick_color || '#333';
-    this.config.primary_tick_color =
-      this.config.primary_tick_color || this.config.tick_color;
-    this.config.secondary_tick_color =
-      this.config.secondary_tick_color || this.config.tick_color;
-
-    this._uniqueId = Math.random().toString(36).substr(2, 9);
-    ensureLedFont();
-    this.render();
   }
 
   _attachActionListeners() {

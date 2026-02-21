@@ -9,6 +9,9 @@
 
 ### 🛠️ Improvements
 
+- **Theme Cache** - Forced the cards to wait to the theme is loaded, if they use themes, before rendering the card.
+- **Theme Cache** - Added a theme cache to prevent the browser from reloading the theme files on every page load.
+- **Theme Cache Refresh** - Added a refreshcache=true to the url to force a refresh of the theme files.
 - **Issue #NA** - Entities - Allow for moving entities up or down in the list in the editor.
 
 ### 🚀 New Cards
