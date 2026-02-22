@@ -2,3 +2,5 @@ dist/
 node_modules/
 .git/
 CHANGELOG.md
+package.json
+README.md

@@ -21,7 +21,7 @@ import './cards/foundry-chart-editor.js';
 import './cards/foundry-title-card.js';
 import './cards/foundry-title-editor.js';
 
-const FOUNDRY_CARDS_VERSION = '26.2.3';
+const FOUNDRY_CARDS_VERSION = '26.3.1';
 
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
