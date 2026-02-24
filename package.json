@@ -18,11 +18,24 @@
     "url": "git+https://github.com/dprischak/Foundry-Card.git"
   },
   "keywords": [
+    "iot",
+    "chart",
+    "slider",
+    "clock",
+    "button",
+    "entities",
+    "themes",
+    "thermostat",
+    "uptime",
     "home-assistant",
-    "lovelace",
-    "custom-card",
+    "industrial",
+    "thermometer",
+    "gauge",
+    "title",
+    "vintage",
     "hacs",
-    "gauge"
+    "lovelace",
+    "home-assistant-card"
   ],
   "author": "dprischak",
   "license": "MIT",
