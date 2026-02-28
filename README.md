@@ -1299,8 +1299,7 @@ Then open a pull request on GitHub with a clear description of your changes.
 
 Future cards planned for the Foundry Card collection:
 
-- Retro Sliders
-- Seismic Graph Card
+- Bar Chart
 - Industrial Energy Map
 
 <a name="support"></a>
