@@ -147,7 +147,7 @@ class FoundryUptimeEditor extends HTMLElement {
 
       // Custom Thresholds UI wrapper
       this._thresholdsPanel = document.createElement('ha-expansion-panel');
-      this._thresholdsPanel.header = 'Color Thresholds';
+      this._thresholdsPanel.header = 'Color Ranges';
       this._thresholdsPanel.outlined = true;
       this._thresholdsPanel.expanded = false;
       // Styling to match ha-form
@@ -227,7 +227,7 @@ class FoundryUptimeEditor extends HTMLElement {
                   `;
       });
 
-      html += `<button id="add-btn" class="add-btn">+ Add Threshold</button>`;
+      html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
 
       this._thresholdsContainer.innerHTML = html;
 
@@ -466,6 +466,7 @@ class FoundryUptimeEditor extends HTMLElement {
   _getSchemaTop() {
     return [
       { name: 'entity', selector: { entity: {} } },
+      { name: 'title', label: 'Title', selector: { text: {} } },
       {
         name: '',
         type: 'expandable',
@@ -521,7 +522,6 @@ class FoundryUptimeEditor extends HTMLElement {
               },
             },
           },
-          { name: 'title', label: 'Title', selector: { text: {} } },
           {
             name: 'ring_style',
             label: 'Ring Style',
@@ -529,6 +529,7 @@ class FoundryUptimeEditor extends HTMLElement {
               select: {
                 mode: 'dropdown',
                 options: [
+                  { value: 'none', label: 'None' },
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
                   { value: 'chrome', label: 'Chrome' },
@@ -549,16 +550,6 @@ class FoundryUptimeEditor extends HTMLElement {
               {
                 name: 'font_bg_color',
                 label: 'Screen Background',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'font_color',
-                label: 'Font Color',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'title_color',
-                label: 'Title Color',
                 selector: { color_rgb: {} },
               },
               {
@@ -585,8 +576,50 @@ class FoundryUptimeEditor extends HTMLElement {
           },
           {
             name: 'wear_level',
-            label: 'Wear Level (%)',
+            label: 'Wear Level',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'aged_texture',
+            label: 'Aged Texture',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'aged_texture_intensity',
+            label: 'Texture Intensity',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'font_color',
+                label: 'Digital Font Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'title_color',
+                label: 'Title Color',
+                selector: { color_rgb: {} },
+              },
+            ],
           },
         ],
       },

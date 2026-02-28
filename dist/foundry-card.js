@@ -253,8 +253,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function (style) {
-      map2[style].forEach(function (alias) {
+    Object.keys(map2).forEach(function(style) {
+      map2[style].forEach(function(alias) {
         result[String(alias)] = style;
       });
     });
@@ -263,7 +263,7 @@ function compileStyleAliases(map2) {
 }
 function Type$1(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function (name) {
+  Object.keys(options).forEach(function(name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -271,10 +271,10 @@ function Type$1(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function () {
+  this.resolve = options["resolve"] || function() {
     return true;
   };
-  this.construct = options["construct"] || function (data) {
+  this.construct = options["construct"] || function(data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -291,9 +291,9 @@ function Type$1(tag, options) {
 var type = Type$1;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function (currentType) {
+  schema2[name].forEach(function(currentType) {
     var newIndex = result.length;
-    result.forEach(function (previousType, previousIndex) {
+    result.forEach(function(previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -344,7 +344,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function (type$1) {
+  implicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -355,7 +355,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function (type$1) {
+  explicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -371,19 +371,19 @@ Schema$1.prototype.extend = function extend2(definition) {
 var schema = Schema$1;
 var str = new type("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : "";
   }
 });
 var seq = new type("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : [];
   }
 });
 var map = new type("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : {};
   }
 });
@@ -411,19 +411,19 @@ var _null = new type("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function () {
+    canonical: function() {
       return "~";
     },
-    lowercase: function () {
+    lowercase: function() {
       return "null";
     },
-    uppercase: function () {
+    uppercase: function() {
       return "NULL";
     },
-    camelcase: function () {
+    camelcase: function() {
       return "Null";
     },
-    empty: function () {
+    empty: function() {
       return "";
     }
   },
@@ -446,13 +446,13 @@ var bool = new type("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function (object) {
+    lowercase: function(object) {
       return object ? "true" : "false";
     },
-    uppercase: function (object) {
+    uppercase: function(object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function (object) {
+    camelcase: function(object) {
       return object ? "True" : "False";
     }
   },
@@ -549,17 +549,17 @@ var int = new type("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function (obj) {
+    binary: function(obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function (obj) {
+    octal: function(obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function (obj) {
+    decimal: function(obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function (obj) {
+    hexadecimal: function(obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -578,8 +578,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-    // Probably should update regexp & check speed
-    data[data.length - 1] === "_") {
+  // Probably should update regexp & check speed
+  data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -2257,7 +2257,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -2283,7 +2283,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = (function () {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2335,7 +2335,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = (function () {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -2659,7 +2659,7 @@ var dumper = {
   dump: dump_1
 };
 function renamed(from, to) {
-  return function () {
+  return function() {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -4563,9 +4563,18 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
         this._handleFormChanged.bind(this)
       );
       this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
       this._form2 = document.createElement("ha-form");
       this._form2.addEventListener(
         "value-changed",
@@ -4680,7 +4689,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
   _renderSegments() {
     if (!this._segmentsContainer) return;
     const segments = this._config.segments || [];
-    let html = `<div class="section-header">Color Ranges</div>`;
+    let html = "";
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
     }
@@ -5125,7 +5134,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
-                  { value: "gradient", label: "Default Gradient" },
+                  { value: "gradient", label: "Gradient" },
                   { value: "solid", label: "Solid Color" }
                 ]
               }
@@ -5135,19 +5144,19 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             name: "face_color",
             label: "Face Color (Solid Mode)",
             selector: { color_rgb: {} }
-          },
-          {
-            name: "needle_color",
-            label: "Needle Color",
-            selector: { color_rgb: {} }
           }
         ]
       },
       {
-        name: "style_fonts_ticks",
+        name: "colors_typography",
         type: "expandable",
-        title: "Fonts & Ticks",
+        title: "Colors & Typography",
         schema: [
+          {
+            name: "needle_color",
+            label: "Needle Color",
+            selector: { color_rgb: {} }
+          },
           {
             type: "grid",
             name: "",
@@ -5165,24 +5174,16 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             schema: [
               {
                 name: "primary_tick_color",
-                label: "Primary Tick Color",
+                label: "Major Tick Color",
                 selector: { color_rgb: {} }
               },
               {
                 name: "secondary_tick_color",
-                label: "Secondary Tick Color",
+                label: "Minor Tick Color",
                 selector: { color_rgb: {} }
               }
             ]
-          }
-        ]
-      },
-      // Layout
-      {
-        name: "layout",
-        type: "expandable",
-        title: "Layout & Text",
-        schema: [
+          },
           {
             type: "grid",
             name: "",
@@ -5588,16 +5589,16 @@ var FoundryThermometerCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -5999,9 +6000,18 @@ var FoundryThermometerEditor = class extends HTMLElement {
         (ev) => this._handleFormChanged(ev)
       );
       this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
       this._form2 = document.createElement("ha-form");
       this._form2.computeLabel = this._computeLabel;
       this._form2.addEventListener(
@@ -6026,7 +6036,7 @@ var FoundryThermometerEditor = class extends HTMLElement {
   _renderSegments() {
     if (!this._segmentsContainer) return;
     const segments = this._config.segments || [];
-    let html = `<div class="section-header">Color Ranges (Right Side)</div>`;
+    let html = "";
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
     }
@@ -6285,11 +6295,12 @@ var FoundryThermometerEditor = class extends HTMLElement {
           },
           {
             name: "ring_style",
-            label: "Casing Style",
+            label: "Ring Style",
             selector: {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -6308,11 +6319,6 @@ var FoundryThermometerEditor = class extends HTMLElement {
             name: "",
             schema: [
               {
-                name: "liquid_color",
-                label: "Mercury Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "plate_color",
                 label: "Plate Color",
                 selector: { color_rgb: {} }
@@ -6320,27 +6326,6 @@ var FoundryThermometerEditor = class extends HTMLElement {
               {
                 name: "rivet_color",
                 label: "Rivet Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "number_color",
-                label: "Number Color",
-                selector: { color_rgb: {} }
-              }
-            ]
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "primary_tick_color",
-                label: "Major Tick Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "secondary_tick_color",
-                label: "Minor Tick Color",
                 selector: { color_rgb: {} }
               }
             ]
@@ -6370,12 +6355,12 @@ var FoundryThermometerEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -6389,9 +6374,55 @@ var FoundryThermometerEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "liquid_color",
+                label: "Mercury Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Major Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Minor Tick Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Actions",
+        schema: [
           {
             name: "tap_action",
             label: "Tap Action",
@@ -7534,6 +7565,7 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -7557,18 +7589,8 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "plate_color",
                 label: "Plate Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "title_color",
-                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -7590,12 +7612,12 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture/Noise",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -7609,8 +7631,31 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       }
@@ -8770,19 +8815,32 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
             selector: { boolean: {} }
           },
           {
-            name: "second_hand_enabled",
-            label: "Show Second Hand",
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Gradient" },
+                  { value: "solid", label: "Solid Color" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
             selector: { boolean: {} }
           },
           {
             name: "wear_level",
             label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
-          },
-          {
-            name: "glass_effect_enabled",
-            label: "Glass Effect",
-            selector: { boolean: {} }
           },
           {
             name: "aged_texture",
@@ -8802,24 +8860,18 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
             name: "aged_texture_intensity",
             label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
-          },
+          }
+        ]
+      },
+      {
+        name: "colors_typography",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
           {
-            name: "background_style",
-            label: "Background Style",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: "gradient", label: "Default Gradient" },
-                  { value: "solid", label: "Solid Color" }
-                ]
-              }
-            }
-          },
-          {
-            name: "face_color",
-            label: "Face Color (Solid Mode)",
-            selector: { color_rgb: {} }
+            name: "second_hand_enabled",
+            label: "Show Second Hand",
+            selector: { boolean: {} }
           },
           {
             type: "grid",
@@ -8841,14 +8893,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               }
             ]
-          }
-        ]
-      },
-      {
-        name: "style_fonts_ticks",
-        type: "expandable",
-        title: "Fonts & Ticks",
-        schema: [
+          },
           {
             type: "grid",
             name: "",
@@ -8866,23 +8911,16 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
             schema: [
               {
                 name: "primary_tick_color",
-                label: "Primary Tick Color",
+                label: "Major Tick Color",
                 selector: { color_rgb: {} }
               },
               {
                 name: "secondary_tick_color",
-                label: "Secondary Tick Color",
+                label: "Minor Tick Color",
                 selector: { color_rgb: {} }
               }
             ]
-          }
-        ]
-      },
-      {
-        name: "layout",
-        type: "expandable",
-        title: "Layout & Text",
-        schema: [
+          },
           {
             name: "title_font_size",
             label: "Title Font Size",
@@ -9723,9 +9761,9 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
         }
       },
       {
-        name: "layout",
+        name: "colors_typography",
         type: "expandable",
-        title: "Layout & Text",
+        title: "Colors & Typography",
         schema: [
           {
             name: "title_font_size",
@@ -9741,6 +9779,22 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
             name: "show_seconds",
             label: "Show Seconds",
             selector: { boolean: {} }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       }
@@ -9776,6 +9830,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -9796,16 +9851,6 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
               {
                 name: "font_bg_color",
                 label: "Screen Background",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "title_color",
-                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -9832,12 +9877,12 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -9851,7 +9896,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           }
         ]
@@ -11206,6 +11251,7 @@ var FoundrySliderEditor = class extends HTMLElement {
             selector: {
               select: {
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -11253,13 +11299,70 @@ var FoundrySliderEditor = class extends HTMLElement {
             name: "",
             schema: [
               {
-                name: "number_color",
-                label: "Number Color",
+                name: "font_bg_color",
+                label: "Screen Background",
                 selector: { color_rgb: {} }
               },
               {
                 name: "rivet_color",
                 label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "colors_typography",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            name: "show_value",
+            label: "Show Value",
+            selector: { boolean: {} }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "number_color",
+                label: "Number Color",
                 selector: { color_rgb: {} }
               }
             ]
@@ -11292,9 +11395,32 @@ var FoundrySliderEditor = class extends HTMLElement {
             ]
           },
           {
-            name: "plate_transparent",
-            label: "Transparent Plate",
-            selector: { boolean: {} }
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_size",
+                label: "Title Font Size",
+                selector: {
+                  number: {
+                    min: 8,
+                    max: 24,
+                    mode: "slider"
+                  }
+                }
+              },
+              {
+                name: "value_font_size",
+                label: "Value Font Size",
+                selector: {
+                  number: {
+                    min: 20,
+                    max: 60,
+                    mode: "slider"
+                  }
+                }
+              }
+            ]
           }
         ]
       },
@@ -11332,107 +11458,6 @@ var FoundrySliderEditor = class extends HTMLElement {
             name: "knob_color",
             label: "Knob Color",
             selector: { color_rgb: {} }
-          }
-        ]
-      },
-      {
-        name: "led_settings",
-        type: "expandable",
-        title: "LED Display",
-        schema: [
-          {
-            name: "show_value",
-            label: "Show Value",
-            selector: { boolean: {} }
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "font_bg_color",
-                label: "Screen Background",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              }
-            ]
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "title_font_size",
-                label: "Title Font Size",
-                selector: {
-                  number: {
-                    min: 8,
-                    max: 24,
-                    mode: "slider"
-                  }
-                }
-              },
-              {
-                name: "value_font_size",
-                label: "Value Font Size",
-                selector: {
-                  number: {
-                    min: 20,
-                    max: 60,
-                    mode: "slider"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        name: "effects",
-        type: "expandable",
-        title: "Visual Effects",
-        schema: [
-          {
-            name: "wear_level",
-            label: "Wear Level",
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                mode: "slider",
-                unit_of_measurement: "%"
-              }
-            }
-          },
-          {
-            name: "aged_texture",
-            label: "Aged Texture",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: "none", label: "None" },
-                  { value: "glass_only", label: "Glass Only" },
-                  { value: "everywhere", label: "Everywhere" }
-                ]
-              }
-            }
-          },
-          {
-            name: "aged_texture_intensity",
-            label: "Texture Intensity",
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                mode: "slider",
-                unit_of_measurement: "%"
-              }
-            }
           }
         ]
       }
@@ -12452,16 +12477,32 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         label: "Entities (List Management)",
         selector: { entity: { multiple: true } }
       },
+      { name: "title", label: "Title", selector: { text: {} } },
       {
         name: "",
         type: "expandable",
-        title: "Layout & Text",
+        title: "Colors & Typography",
         schema: [
-          { name: "title", label: "Title", selector: { text: {} } },
           {
             name: "title_font_size",
             label: "Title Font Size",
             selector: { number: { mode: "box" } }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       }
@@ -12497,6 +12538,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -12520,18 +12562,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "plate_color",
                 label: "Plate Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "title_color",
-                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -12553,12 +12585,12 @@ var FoundryEntitiesEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -12572,7 +12604,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           }
         ]
@@ -13298,6 +13330,7 @@ var FoundryButtonEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -13321,11 +13354,6 @@ var FoundryButtonEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "plate_color",
                 label: "Plate Color",
                 selector: { color_rgb: {} }
@@ -13344,12 +13372,12 @@ var FoundryButtonEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -13363,8 +13391,20 @@ var FoundryButtonEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            name: "font_color",
+            label: "Digital Font Color",
+            selector: { color_rgb: {} }
           },
           {
             name: "card_width",
@@ -13464,6 +13504,8 @@ var FoundryUptimeCard = class extends HTMLElement {
       this.config.font_color = this.config.font_color || "#000000";
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.aged_texture = this.config.aged_texture || "everywhere";
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
       this.config.color.none = this.config.color.none || "transparent";
       this.config.segments = this.config.segments || void 0;
       this.config.color_thresholds = this.config.color_thresholds || [
@@ -14138,7 +14180,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
       );
       this._root.appendChild(this._form1);
       this._thresholdsPanel = document.createElement("ha-expansion-panel");
-      this._thresholdsPanel.header = "Color Thresholds";
+      this._thresholdsPanel.header = "Color Ranges";
       this._thresholdsPanel.outlined = true;
       this._thresholdsPanel.expanded = false;
       this._thresholdsPanel.style.marginTop = "8px";
@@ -14197,7 +14239,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
                      </div>
                   `;
       });
-      html += `<button id="add-btn" class="add-btn">+ Add Threshold</button>`;
+      html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
       this._thresholdsContainer.innerHTML = html;
       this._thresholdsContainer.querySelectorAll(".th-input").forEach((input) => {
         input.addEventListener("change", (e) => {
@@ -14366,6 +14408,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
   _getSchemaTop() {
     return [
       { name: "entity", selector: { entity: {} } },
+      { name: "title", label: "Title", selector: { text: {} } },
       {
         name: "",
         type: "expandable",
@@ -14420,7 +14463,6 @@ var FoundryUptimeEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "title", label: "Title", selector: { text: {} } },
           {
             name: "ring_style",
             label: "Ring Style",
@@ -14428,6 +14470,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -14448,16 +14491,6 @@ var FoundryUptimeEditor = class extends HTMLElement {
               {
                 name: "font_bg_color",
                 label: "Screen Background",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "font_color",
-                label: "Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "title_color",
-                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -14484,8 +14517,50 @@ var FoundryUptimeEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       }
@@ -15521,9 +15596,18 @@ var FoundryChartEditor = class extends HTMLElement {
         (ev) => this._handleFormChanged(ev)
       );
       this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
       this._segmentsContainer = document.createElement("div");
       this._segmentsContainer.className = "segments-section";
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
       this._form2 = document.createElement("ha-form");
       this._form2.computeLabel = this._computeLabel;
       this._form2.addEventListener(
@@ -15605,7 +15689,7 @@ var FoundryChartEditor = class extends HTMLElement {
   _renderSegments() {
     if (!this._segmentsContainer) return;
     const segments = this._config.segments || [];
-    let html = `<div class="section-header">Color Ranges</div>`;
+    let html = "";
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
     }
@@ -15763,6 +15847,7 @@ var FoundryChartEditor = class extends HTMLElement {
   _getSchemaTop() {
     return [
       { name: "entity", selector: { entity: {} } },
+      { name: "title", label: "Title", selector: { text: {} } },
       {
         name: "",
         type: "expandable",
@@ -15901,7 +15986,6 @@ var FoundryChartEditor = class extends HTMLElement {
               }
             }
           },
-          { name: "title", label: "Title", selector: { text: {} } },
           {
             name: "ring_style",
             label: "Ring Style",
@@ -15909,6 +15993,7 @@ var FoundryChartEditor = class extends HTMLElement {
               select: {
                 mode: "dropdown",
                 options: [
+                  { value: "none", label: "None" },
                   { value: "brass", label: "Brass" },
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
@@ -15929,16 +16014,6 @@ var FoundryChartEditor = class extends HTMLElement {
               {
                 name: "font_bg_color",
                 label: "Screen Background",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "font_color",
-                label: "Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
-                name: "title_color",
-                label: "Title Color",
                 selector: { color_rgb: {} }
               },
               {
@@ -15965,12 +16040,12 @@ var FoundryChartEditor = class extends HTMLElement {
           },
           {
             name: "wear_level",
-            label: "Wear Level (%)",
+            label: "Wear Level",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -15984,8 +16059,31 @@ var FoundryChartEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              }
+            ]
           }
         ]
       }
@@ -16320,19 +16418,7 @@ var FoundryTitleEditor = class extends HTMLElement {
   }
   _getSchema() {
     return [
-      {
-        name: "",
-        type: "expandable",
-        title: "Layout & Text",
-        schema: [
-          { name: "title", label: "Title", selector: { text: {} } },
-          {
-            name: "title_font_size",
-            label: "Title Font Size",
-            selector: { number: { mode: "box", min: 6, max: 48 } }
-          }
-        ]
-      },
+      { name: "title", label: "Title", selector: { text: {} } },
       {
         name: "",
         type: "expandable",
@@ -16364,11 +16450,6 @@ var FoundryTitleEditor = class extends HTMLElement {
                 selector: { color_rgb: {} }
               },
               {
-                name: "title_color",
-                label: "Title Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "rivet_color",
                 label: "Rivet Color",
                 selector: { color_rgb: {} }
@@ -16382,7 +16463,7 @@ var FoundryTitleEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture",
-            label: "Aged Texture Style",
+            label: "Aged Texture",
             selector: {
               select: {
                 mode: "dropdown",
@@ -16395,8 +16476,25 @@ var FoundryTitleEditor = class extends HTMLElement {
           },
           {
             name: "aged_texture_intensity",
-            label: "Texture Intensity (%)",
+            label: "Texture Intensity",
             selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            name: "title_color",
+            label: "Title Color",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box", min: 6, max: 48 } }
           }
         ]
       }

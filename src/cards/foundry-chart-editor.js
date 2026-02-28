@@ -157,9 +157,21 @@ class FoundryChartEditor extends HTMLElement {
       );
       this._root.appendChild(this._form1);
 
+      // Color Ranges panel
+      this._segmentsPanel = document.createElement('ha-expansion-panel');
+      this._segmentsPanel.header = 'Color Ranges';
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = '8px';
+      this._segmentsPanel.style.marginBottom = '8px';
+
       this._segmentsContainer = document.createElement('div');
       this._segmentsContainer.className = 'segments-section';
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = 'none';
+      this._segmentsContainer.style.padding = '16px';
+
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
 
       this._form2 = document.createElement('ha-form');
       this._form2.computeLabel = this._computeLabel;
@@ -267,7 +279,7 @@ class FoundryChartEditor extends HTMLElement {
 
     const segments = this._config.segments || [];
 
-    let html = `<div class="section-header">Color Ranges</div>`;
+    let html = '';
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
     }
@@ -455,6 +467,7 @@ class FoundryChartEditor extends HTMLElement {
   _getSchemaTop() {
     return [
       { name: 'entity', selector: { entity: {} } },
+      { name: 'title', label: 'Title', selector: { text: {} } },
       {
         name: '',
         type: 'expandable',
@@ -594,7 +607,6 @@ class FoundryChartEditor extends HTMLElement {
               },
             },
           },
-          { name: 'title', label: 'Title', selector: { text: {} } },
           {
             name: 'ring_style',
             label: 'Ring Style',
@@ -602,6 +614,7 @@ class FoundryChartEditor extends HTMLElement {
               select: {
                 mode: 'dropdown',
                 options: [
+                  { value: 'none', label: 'None' },
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
                   { value: 'chrome', label: 'Chrome' },
@@ -622,16 +635,6 @@ class FoundryChartEditor extends HTMLElement {
               {
                 name: 'font_bg_color',
                 label: 'Screen Background',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'font_color',
-                label: 'Font Color',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'title_color',
-                label: 'Title Color',
                 selector: { color_rgb: {} },
               },
               {
@@ -658,12 +661,12 @@ class FoundryChartEditor extends HTMLElement {
           },
           {
             name: 'wear_level',
-            label: 'Wear Level (%)',
+            label: 'Wear Level',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
           {
             name: 'aged_texture',
-            label: 'Aged Texture Style',
+            label: 'Aged Texture',
             selector: {
               select: {
                 mode: 'dropdown',
@@ -677,8 +680,31 @@ class FoundryChartEditor extends HTMLElement {
           },
           {
             name: 'aged_texture_intensity',
-            label: 'Texture Intensity (%)',
+            label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'font_color',
+                label: 'Digital Font Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'title_color',
+                label: 'Title Color',
+                selector: { color_rgb: {} },
+              },
+            ],
           },
         ],
       },

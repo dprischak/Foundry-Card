@@ -550,19 +550,32 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
             selector: { boolean: {} },
           },
           {
-            name: 'second_hand_enabled',
-            label: 'Show Second Hand',
+            name: 'background_style',
+            label: 'Background Style',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'gradient', label: 'Gradient' },
+                  { value: 'solid', label: 'Solid Color' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'face_color',
+            label: 'Face Color (Solid Mode)',
+            selector: { color_rgb: {} },
+          },
+          {
+            name: 'glass_effect_enabled',
+            label: 'Glass Effect',
             selector: { boolean: {} },
           },
           {
             name: 'wear_level',
             label: 'Wear Level',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
-          },
-          {
-            name: 'glass_effect_enabled',
-            label: 'Glass Effect',
-            selector: { boolean: {} },
           },
           {
             name: 'aged_texture',
@@ -583,23 +596,17 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
             label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
+        ],
+      },
+      {
+        name: 'colors_typography',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
           {
-            name: 'background_style',
-            label: 'Background Style',
-            selector: {
-              select: {
-                mode: 'dropdown',
-                options: [
-                  { value: 'gradient', label: 'Default Gradient' },
-                  { value: 'solid', label: 'Solid Color' },
-                ],
-              },
-            },
-          },
-          {
-            name: 'face_color',
-            label: 'Face Color (Solid Mode)',
-            selector: { color_rgb: {} },
+            name: 'second_hand_enabled',
+            label: 'Show Second Hand',
+            selector: { boolean: {} },
           },
           {
             type: 'grid',
@@ -622,13 +629,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
               },
             ],
           },
-        ],
-      },
-      {
-        name: 'style_fonts_ticks',
-        type: 'expandable',
-        title: 'Fonts & Ticks',
-        schema: [
           {
             type: 'grid',
             name: '',
@@ -646,23 +646,16 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
             schema: [
               {
                 name: 'primary_tick_color',
-                label: 'Primary Tick Color',
+                label: 'Major Tick Color',
                 selector: { color_rgb: {} },
               },
               {
                 name: 'secondary_tick_color',
-                label: 'Secondary Tick Color',
+                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],
           },
-        ],
-      },
-      {
-        name: 'layout',
-        type: 'expandable',
-        title: 'Layout & Text',
-        schema: [
           {
             name: 'title_font_size',
             label: 'Title Font Size',

@@ -174,19 +174,7 @@ class FoundryTitleEditor extends HTMLElement {
 
   _getSchema() {
     return [
-      {
-        name: '',
-        type: 'expandable',
-        title: 'Layout & Text',
-        schema: [
-          { name: 'title', label: 'Title', selector: { text: {} } },
-          {
-            name: 'title_font_size',
-            label: 'Title Font Size',
-            selector: { number: { mode: 'box', min: 6, max: 48 } },
-          },
-        ],
-      },
+      { name: 'title', label: 'Title', selector: { text: {} } },
       {
         name: '',
         type: 'expandable',
@@ -218,11 +206,6 @@ class FoundryTitleEditor extends HTMLElement {
                 selector: { color_rgb: {} },
               },
               {
-                name: 'title_color',
-                label: 'Title Color',
-                selector: { color_rgb: {} },
-              },
-              {
                 name: 'rivet_color',
                 label: 'Rivet Color',
                 selector: { color_rgb: {} },
@@ -236,7 +219,7 @@ class FoundryTitleEditor extends HTMLElement {
           },
           {
             name: 'aged_texture',
-            label: 'Aged Texture Style',
+            label: 'Aged Texture',
             selector: {
               select: {
                 mode: 'dropdown',
@@ -249,8 +232,25 @@ class FoundryTitleEditor extends HTMLElement {
           },
           {
             name: 'aged_texture_intensity',
-            label: 'Texture Intensity (%)',
+            label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            name: 'title_color',
+            label: 'Title Color',
+            selector: { color_rgb: {} },
+          },
+          {
+            name: 'title_font_size',
+            label: 'Title Font Size',
+            selector: { number: { mode: 'box', min: 6, max: 48 } },
           },
         ],
       },

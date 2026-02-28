@@ -76,6 +76,11 @@ class FoundryUptimeCard extends HTMLElement {
         this.config.glass_effect_enabled !== undefined
           ? this.config.glass_effect_enabled
           : true;
+      this.config.aged_texture = this.config.aged_texture || 'everywhere';
+      this.config.aged_texture_intensity =
+        this.config.aged_texture_intensity !== undefined
+          ? this.config.aged_texture_intensity
+          : 50;
 
       // State Colors: REMOVED user config for simple ok/ko colors, relying on thresholds + red default
       this.config.color.none = this.config.color.none || 'transparent';

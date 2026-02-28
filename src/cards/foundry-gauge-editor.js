@@ -187,10 +187,21 @@ class FoundryGaugeCardEditor extends HTMLElement {
       );
       this._root.appendChild(this._form1);
 
-      // --- PART 2: Manual Segments (Middle) ---
+      // --- PART 2: Color Ranges (Middle) ---
+      this._segmentsPanel = document.createElement('ha-expansion-panel');
+      this._segmentsPanel.header = 'Color Ranges';
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = '8px';
+      this._segmentsPanel.style.marginBottom = '8px';
+
       this._segmentsContainer = document.createElement('div');
       this._segmentsContainer.className = 'segments-section';
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = 'none';
+      this._segmentsContainer.style.padding = '16px';
+
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
 
       // --- PART 3: Bottom Settings (Appearance, Layout, Actions) ---
       this._form2 = document.createElement('ha-form');
@@ -345,7 +356,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
 
     const segments = this._config.segments || [];
 
-    let html = `<div class="section-header">Color Ranges</div>`;
+    let html = '';
 
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
@@ -873,7 +884,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
               select: {
                 mode: 'dropdown',
                 options: [
-                  { value: 'gradient', label: 'Default Gradient' },
+                  { value: 'gradient', label: 'Gradient' },
                   { value: 'solid', label: 'Solid Color' },
                 ],
               },
@@ -884,18 +895,18 @@ class FoundryGaugeCardEditor extends HTMLElement {
             label: 'Face Color (Solid Mode)',
             selector: { color_rgb: {} },
           },
+        ],
+      },
+      {
+        name: 'colors_typography',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
           {
             name: 'needle_color',
             label: 'Needle Color',
             selector: { color_rgb: {} },
           },
-        ],
-      },
-      {
-        name: 'style_fonts_ticks',
-        type: 'expandable',
-        title: 'Fonts & Ticks',
-        schema: [
           {
             type: 'grid',
             name: '',
@@ -913,25 +924,16 @@ class FoundryGaugeCardEditor extends HTMLElement {
             schema: [
               {
                 name: 'primary_tick_color',
-                label: 'Primary Tick Color',
+                label: 'Major Tick Color',
                 selector: { color_rgb: {} },
               },
               {
                 name: 'secondary_tick_color',
-                label: 'Secondary Tick Color',
+                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],
           },
-        ],
-      },
-
-      // Layout
-      {
-        name: 'layout',
-        type: 'expandable',
-        title: 'Layout & Text',
-        schema: [
           {
             type: 'grid',
             name: '',
