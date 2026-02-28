@@ -142,10 +142,21 @@ class FoundryThermometerEditor extends HTMLElement {
       );
       this._root.appendChild(this._form1);
 
-      // Segments UI
+      // Color Ranges panel
+      this._segmentsPanel = document.createElement('ha-expansion-panel');
+      this._segmentsPanel.header = 'Color Ranges';
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = '8px';
+      this._segmentsPanel.style.marginBottom = '8px';
+
       this._segmentsContainer = document.createElement('div');
       this._segmentsContainer.className = 'segments-section';
-      this._root.appendChild(this._segmentsContainer);
+      this._segmentsContainer.style.border = 'none';
+      this._segmentsContainer.style.padding = '16px';
+
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
 
       // Form 2: Appearance
       this._form2 = document.createElement('ha-form');
@@ -178,7 +189,7 @@ class FoundryThermometerEditor extends HTMLElement {
     if (!this._segmentsContainer) return;
     const segments = this._config.segments || [];
 
-    let html = `<div class="section-header">Color Ranges (Right Side)</div>`;
+    let html = '';
 
     if (segments.length === 0) {
       html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
@@ -514,11 +525,12 @@ class FoundryThermometerEditor extends HTMLElement {
           },
           {
             name: 'ring_style',
-            label: 'Casing Style',
+            label: 'Ring Style',
             selector: {
               select: {
                 mode: 'dropdown',
                 options: [
+                  { value: 'none', label: 'None' },
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
                   { value: 'chrome', label: 'Chrome' },
@@ -537,40 +549,13 @@ class FoundryThermometerEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'liquid_color',
-                label: 'Mercury Color',
-                selector: { color_rgb: {} },
-              },
-              {
                 name: 'plate_color',
                 label: 'Plate Color',
                 selector: { color_rgb: {} },
               },
-
               {
                 name: 'rivet_color',
                 label: 'Rivet Color',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'number_color',
-                label: 'Number Color',
-                selector: { color_rgb: {} },
-              },
-            ],
-          },
-          {
-            type: 'grid',
-            name: '',
-            schema: [
-              {
-                name: 'primary_tick_color',
-                label: 'Major Tick Color',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'secondary_tick_color',
-                label: 'Minor Tick Color',
                 selector: { color_rgb: {} },
               },
             ],
@@ -600,12 +585,12 @@ class FoundryThermometerEditor extends HTMLElement {
           },
           {
             name: 'wear_level',
-            label: 'Wear Level (%)',
+            label: 'Wear Level',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
           {
             name: 'aged_texture',
-            label: 'Aged Texture Style',
+            label: 'Aged Texture',
             selector: {
               select: {
                 mode: 'dropdown',
@@ -619,9 +604,55 @@ class FoundryThermometerEditor extends HTMLElement {
           },
           {
             name: 'aged_texture_intensity',
-            label: 'Texture Intensity (%)',
+            label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'liquid_color',
+                label: 'Mercury Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'number_color',
+                label: 'Number Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'primary_tick_color',
+                label: 'Major Tick Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'secondary_tick_color',
+                label: 'Minor Tick Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Actions',
+        schema: [
           {
             name: 'tap_action',
             label: 'Tap Action',

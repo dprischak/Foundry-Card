@@ -1,6 +1,9 @@
 ## v26.3.1
 
 ### 🛠️ Improvements
+- **Issue #82:** - Standardized the visual editors so they are all consistant
+- **Issue #82:** - Added a EditorSyleGuide.md file to document the editor style guide
+- **Issue #NA:** - Added Aged texture to the Uptime Card and editor
 
 ### 🚀 New Cards
 

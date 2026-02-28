@@ -294,6 +294,7 @@ class FoundryButtonEditor extends HTMLElement {
               select: {
                 mode: 'dropdown',
                 options: [
+                  { value: 'none', label: 'None' },
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
                   { value: 'chrome', label: 'Chrome' },
@@ -317,11 +318,6 @@ class FoundryButtonEditor extends HTMLElement {
                 selector: { color_rgb: {} },
               },
               {
-                name: 'font_color',
-                label: 'Digital Font Color',
-                selector: { color_rgb: {} },
-              },
-              {
                 name: 'plate_color',
                 label: 'Plate Color',
                 selector: { color_rgb: {} },
@@ -340,12 +336,12 @@ class FoundryButtonEditor extends HTMLElement {
           },
           {
             name: 'wear_level',
-            label: 'Wear Level (%)',
+            label: 'Wear Level',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
           },
           {
             name: 'aged_texture',
-            label: 'Aged Texture Style',
+            label: 'Aged Texture',
             selector: {
               select: {
                 mode: 'dropdown',
@@ -359,8 +355,20 @@ class FoundryButtonEditor extends HTMLElement {
           },
           {
             name: 'aged_texture_intensity',
-            label: 'Texture Intensity (%)',
+            label: 'Texture Intensity',
             selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            name: 'font_color',
+            label: 'Digital Font Color',
+            selector: { color_rgb: {} },
           },
           {
             name: 'card_width',

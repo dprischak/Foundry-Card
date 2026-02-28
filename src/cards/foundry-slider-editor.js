@@ -373,6 +373,7 @@ class FoundrySliderEditor extends HTMLElement {
             selector: {
               select: {
                 options: [
+                  { value: 'none', label: 'None' },
                   { value: 'brass', label: 'Brass' },
                   { value: 'silver', label: 'Silver' },
                   { value: 'chrome', label: 'Chrome' },
@@ -420,13 +421,70 @@ class FoundrySliderEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'number_color',
-                label: 'Number Color',
+                name: 'font_bg_color',
+                label: 'Screen Background',
                 selector: { color_rgb: {} },
               },
               {
                 name: 'rivet_color',
                 label: 'Rivet Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            name: 'plate_transparent',
+            label: 'Transparent Plate',
+            selector: { boolean: {} },
+          },
+          {
+            name: 'wear_level',
+            label: 'Wear Level',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+          {
+            name: 'aged_texture',
+            label: 'Aged Texture',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'none', label: 'None' },
+                  { value: 'glass_only', label: 'Glass Only' },
+                  { value: 'everywhere', label: 'Everywhere' },
+                ],
+              },
+            },
+          },
+          {
+            name: 'aged_texture_intensity',
+            label: 'Texture Intensity',
+            selector: { number: { min: 0, max: 100, mode: 'slider' } },
+          },
+        ],
+      },
+      {
+        name: 'colors_typography',
+        type: 'expandable',
+        title: 'Colors & Typography',
+        schema: [
+          {
+            name: 'show_value',
+            label: 'Show Value',
+            selector: { boolean: {} },
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'font_color',
+                label: 'Digital Font Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'number_color',
+                label: 'Number Color',
                 selector: { color_rgb: {} },
               },
             ],
@@ -459,9 +517,32 @@ class FoundrySliderEditor extends HTMLElement {
             ],
           },
           {
-            name: 'plate_transparent',
-            label: 'Transparent Plate',
-            selector: { boolean: {} },
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'title_font_size',
+                label: 'Title Font Size',
+                selector: {
+                  number: {
+                    min: 8,
+                    max: 24,
+                    mode: 'slider',
+                  },
+                },
+              },
+              {
+                name: 'value_font_size',
+                label: 'Value Font Size',
+                selector: {
+                  number: {
+                    min: 20,
+                    max: 60,
+                    mode: 'slider',
+                  },
+                },
+              },
+            ],
           },
         ],
       },
@@ -499,107 +580,6 @@ class FoundrySliderEditor extends HTMLElement {
             name: 'knob_color',
             label: 'Knob Color',
             selector: { color_rgb: {} },
-          },
-        ],
-      },
-      {
-        name: 'led_settings',
-        type: 'expandable',
-        title: 'LED Display',
-        schema: [
-          {
-            name: 'show_value',
-            label: 'Show Value',
-            selector: { boolean: {} },
-          },
-          {
-            type: 'grid',
-            name: '',
-            schema: [
-              {
-                name: 'font_bg_color',
-                label: 'Screen Background',
-                selector: { color_rgb: {} },
-              },
-              {
-                name: 'font_color',
-                label: 'Digital Font Color',
-                selector: { color_rgb: {} },
-              },
-            ],
-          },
-          {
-            type: 'grid',
-            name: '',
-            schema: [
-              {
-                name: 'title_font_size',
-                label: 'Title Font Size',
-                selector: {
-                  number: {
-                    min: 8,
-                    max: 24,
-                    mode: 'slider',
-                  },
-                },
-              },
-              {
-                name: 'value_font_size',
-                label: 'Value Font Size',
-                selector: {
-                  number: {
-                    min: 20,
-                    max: 60,
-                    mode: 'slider',
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'effects',
-        type: 'expandable',
-        title: 'Visual Effects',
-        schema: [
-          {
-            name: 'wear_level',
-            label: 'Wear Level',
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                mode: 'slider',
-                unit_of_measurement: '%',
-              },
-            },
-          },
-          {
-            name: 'aged_texture',
-            label: 'Aged Texture',
-            selector: {
-              select: {
-                mode: 'dropdown',
-                options: [
-                  { value: 'none', label: 'None' },
-                  { value: 'glass_only', label: 'Glass Only' },
-                  { value: 'everywhere', label: 'Everywhere' },
-                ],
-              },
-            },
-          },
-          {
-            name: 'aged_texture_intensity',
-            label: 'Texture Intensity',
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                mode: 'slider',
-                unit_of_measurement: '%',
-              },
-            },
           },
         ],
       },
