@@ -1,4 +1,4 @@
-import { fireEvent } from './utils.js';
+import { getActionConfig, handleAction } from './utils.js';
 import { ensureLedFont } from './fonts.js';
 import { loadThemes, applyTheme } from './themes.js';
 
@@ -16,6 +16,19 @@ class FoundryBarChartCard extends HTMLElement {
     this._chartBucketCount = 0;
     this._chartGeometry = null;
     this._chartValueUnit = '';
+
+    this._boundHandleClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction('tap');
+    };
+    this._boundHandleDblClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction('double_tap');
+    };
+    this._boundHandleContextMenu = (event) => {
+      event.preventDefault();
+      this._handleAction('hold');
+    };
   }
 
   setConfig(config) {
@@ -500,6 +513,40 @@ class FoundryBarChartCard extends HTMLElement {
     });
   }
 
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById('actionRoot');
+    if (!root) return;
+
+    root.removeEventListener('click', this._boundHandleClick);
+    root.removeEventListener('dblclick', this._boundHandleDblClick);
+    root.removeEventListener('contextmenu', this._boundHandleContextMenu);
+
+    root.addEventListener('click', this._boundHandleClick, { passive: true });
+    root.addEventListener('dblclick', this._boundHandleDblClick, {
+      passive: true,
+    });
+    root.addEventListener('contextmenu', this._boundHandleContextMenu);
+  }
+
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+
+    const tap = getActionConfig(this.config, 'tap_action', {
+      action: 'more-info',
+    });
+    const hold = getActionConfig(this.config, 'hold_action', {
+      action: 'more-info',
+    });
+    const dbl = getActionConfig(this.config, 'double_tap_action', {
+      action: 'more-info',
+    });
+
+    const actionConfig =
+      kind === 'hold' ? hold : kind === 'double_tap' ? dbl : tap;
+
+    handleAction(this, this._hass, this.config, actionConfig);
+  }
+
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._history) return;
@@ -793,7 +840,7 @@ class FoundryBarChartCard extends HTMLElement {
         .label-font { font-family: 'ds-digitaldot', monospace; letter-spacing: 1px; }
       </style>
       <ha-card>
-        <div class="card">
+        <div class="card" id="actionRoot">
           <div class="container">
             <svg class="vector-svg" viewBox="0 0 ${plateWidth} ${plateHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -888,14 +935,9 @@ class FoundryBarChartCard extends HTMLElement {
     const cardEl = this.shadowRoot.querySelector('.card');
     if (cardEl) {
       cardEl.style.cursor = 'pointer';
-      cardEl.onclick = () => {
-        if (Date.now() < this._suppressMoreInfoClickUntil) return;
-        if (this.config.entity) {
-          fireEvent(this, 'hass-more-info', { entityId: this.config.entity });
-        }
-      };
     }
 
+    this._attachActionListeners();
     this._bindChartInteractions();
   }
 

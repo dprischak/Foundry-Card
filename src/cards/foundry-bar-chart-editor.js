@@ -192,7 +192,7 @@ class FoundryBarChartEditor extends HTMLElement {
     if (this._form2) {
       this._form2.hass = this._hass;
       this._form2.data = data;
-      this._form2.schema = this._getSchemaBottom();
+      this._form2.schema = this._getSchemaBottom(data);
     }
 
     this._renderSegments();
@@ -400,6 +400,17 @@ class FoundryBarChartEditor extends HTMLElement {
     data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
 
+    data.actions = {};
+    ['tap', 'hold', 'double_tap'].forEach((type) => {
+      const conf = config[`${type}_action`] || {};
+      data.actions[`${type}_action_action`] = conf.action || 'more-info';
+      data.actions[`${type}_action_navigation_path`] =
+        conf.navigation_path || '';
+      data.actions[`${type}_action_service`] = conf.service || '';
+      data.actions[`${type}_action_target_entity`] =
+        conf.target?.entity_id || '';
+    });
+
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -424,7 +435,11 @@ class FoundryBarChartEditor extends HTMLElement {
   }
 
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+    Object.keys(formData).forEach((key) => {
+      if (key === 'actions') return;
+      config[key] = formData[key];
+    });
     const ensureHex = (val) => (Array.isArray(val) ? this._rgbToHex(val) : val);
 
     if (formData.font_bg_color)
@@ -441,6 +456,24 @@ class FoundryBarChartEditor extends HTMLElement {
       config.grid_minor_color = ensureHex(formData.grid_minor_color);
     if (formData.grid_major_color)
       config.grid_major_color = ensureHex(formData.grid_major_color);
+
+    if (formData.actions) {
+      ['tap', 'hold', 'double_tap'].forEach((type) => {
+        const group = formData.actions;
+        const actionType = group[`${type}_action_action`];
+        const newAction = { action: actionType };
+
+        if (actionType === 'navigate') {
+          newAction.navigation_path = group[`${type}_action_navigation_path`];
+        } else if (actionType === 'call-service') {
+          newAction.service = group[`${type}_action_service`];
+          const targetEnt = group[`${type}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+
+        config[`${type}_action`] = newAction;
+      });
+    }
 
     return config;
   }
@@ -509,6 +542,16 @@ class FoundryBarChartEditor extends HTMLElement {
             selector: { number: { min: 0, max: 6, mode: 'slider' } },
           },
           {
+            name: 'bar_padding',
+            label: 'Bar Padding',
+            selector: { number: { min: 1, max: 6, mode: 'slider' } },
+          },
+          {
+            name: 'fill_under_line',
+            label: 'Fill Under Line',
+            selector: { boolean: {} },
+          },
+          {
             name: 'aggregation',
             label: 'Aggregation',
             selector: {
@@ -544,47 +587,11 @@ class FoundryBarChartEditor extends HTMLElement {
           },
         ],
       },
-      {
-        name: '',
-        type: 'expandable',
-        title: 'Chart Style',
-        schema: [
-          {
-            name: 'bar_color',
-            label: 'Bar Color',
-            selector: { color_rgb: {} },
-          },
-          {
-            name: 'bar_padding',
-            label: 'Bar Padding',
-            selector: { number: { min: 1, max: 6, mode: 'slider' } },
-          },
-          {
-            name: 'fill_under_line',
-            label: 'Fill Under Line',
-            selector: { boolean: {} },
-          },
-          {
-            name: 'grid_minor_color',
-            label: 'Grid Minor Color',
-            selector: { color_rgb: {} },
-          },
-          {
-            name: 'grid_major_color',
-            label: 'Grid Major Color',
-            selector: { color_rgb: {} },
-          },
-          {
-            name: 'grid_opacity',
-            label: 'Grid Opacity',
-            selector: { number: { min: 0.1, max: 1, step: 0.1 } },
-          },
-        ],
-      },
     ];
   }
 
-  _getSchemaBottom() {
+  _getSchemaBottom(formData) {
+    const actionData = formData?.actions || {};
     return [
       {
         name: '',
@@ -633,11 +640,6 @@ class FoundryBarChartEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'font_bg_color',
-                label: 'Screen Background',
-                selector: { color_rgb: {} },
-              },
-              {
                 name: 'plate_color',
                 label: 'Plate Color',
                 selector: { color_rgb: {} },
@@ -653,6 +655,11 @@ class FoundryBarChartEditor extends HTMLElement {
             name: 'plate_transparent',
             label: 'Transparent Plate',
             selector: { boolean: {} },
+          },
+          {
+            name: 'font_bg_color',
+            label: 'Screen Background',
+            selector: { color_rgb: {} },
           },
           {
             name: 'glass_effect_enabled',
@@ -695,20 +702,114 @@ class FoundryBarChartEditor extends HTMLElement {
             name: '',
             schema: [
               {
-                name: 'font_color',
-                label: 'Digital Font Color',
-                selector: { color_rgb: {} },
-              },
-              {
                 name: 'title_color',
                 label: 'Title Color',
                 selector: { color_rgb: {} },
               },
+              {
+                name: 'font_color',
+                label: 'Digital Font Color',
+                selector: { color_rgb: {} },
+              },
             ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'title_font_size',
+                label: 'Title Font Size',
+                selector: { number: { mode: 'box', min: 6, max: 48 } },
+              },
+              {
+                name: 'bar_color',
+                label: 'Bar Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            type: 'grid',
+            name: '',
+            schema: [
+              {
+                name: 'grid_minor_color',
+                label: 'Grid Minor Color',
+                selector: { color_rgb: {} },
+              },
+              {
+                name: 'grid_major_color',
+                label: 'Grid Major Color',
+                selector: { color_rgb: {} },
+              },
+            ],
+          },
+          {
+            name: 'grid_opacity',
+            label: 'Grid Opacity',
+            selector: { number: { min: 0.1, max: 1, step: 0.1 } },
           },
         ],
       },
+      {
+        name: 'actions',
+        type: 'expandable',
+        title: 'Actions',
+        schema: [
+          ...this._getActionSchema('tap', 'Tap', actionData),
+          ...this._getActionSchema('hold', 'Hold', actionData),
+          ...this._getActionSchema('double_tap', 'Double Tap', actionData),
+        ],
+      },
     ];
+  }
+
+  _getActionSchema(type, label, actionData) {
+    const actionKey = `${type}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : 'more-info';
+
+    const schema = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: 'dropdown',
+            options: [
+              { value: 'more-info', label: 'More Info' },
+              { value: 'toggle', label: 'Toggle' },
+              { value: 'navigate', label: 'Navigate' },
+              { value: 'call-service', label: 'Call Service' },
+              { value: 'none', label: 'None' },
+            ],
+          },
+        },
+      },
+    ];
+
+    if (currentAction === 'navigate') {
+      schema.push({
+        name: `${type}_action_navigation_path`,
+        label: 'Navigation Path',
+        selector: { text: {} },
+      });
+    }
+
+    if (currentAction === 'call-service') {
+      schema.push({
+        name: `${type}_action_service`,
+        label: 'Service',
+        selector: { text: {} },
+      });
+      schema.push({
+        name: `${type}_action_target_entity`,
+        label: 'Target Entity',
+        selector: { entity: {} },
+      });
+    }
+
+    return schema;
   }
 }
 

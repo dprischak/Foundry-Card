@@ -16548,6 +16548,18 @@ var FoundryBarChartCard = class extends HTMLElement {
     this._chartBucketCount = 0;
     this._chartGeometry = null;
     this._chartValueUnit = "";
+    this._boundHandleClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction("tap");
+    };
+    this._boundHandleDblClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction("double_tap");
+    };
+    this._boundHandleContextMenu = (event) => {
+      event.preventDefault();
+      this._handleAction("hold");
+    };
   }
   setConfig(config) {
     this.config = {
@@ -16902,6 +16914,32 @@ var FoundryBarChartCard = class extends HTMLElement {
       }
     });
   }
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.removeEventListener("dblclick", this._boundHandleDblClick);
+    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
+    root.addEventListener("contextmenu", this._boundHandleContextMenu);
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    handleAction(this, this._hass, this.config, actionConfig);
+  }
   _updateValues() {
     if (!this.shadowRoot) return;
     if (!this._history) return;
@@ -17043,7 +17081,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       if (chartBarsEl) chartBarsEl.innerHTML = "";
     } else {
       if (emptyEl) emptyEl.setAttribute("visibility", "hidden");
-      const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
+      const { plotX, plotY, plotWidth, plotHeight } = chartGeometry;
       const parsedPadding = Number.parseFloat(this.config.bar_padding);
       const padding = Number.isFinite(parsedPadding) ? parsedPadding : 2;
       const barTotalWidth = plotWidth / bucketCount;
@@ -17054,7 +17092,10 @@ var FoundryBarChartCard = class extends HTMLElement {
             return "";
           }
           const x = plotX + index * barTotalWidth + padding / 2;
-          const pct = Math.max(0, Math.min(1, (bucket.value - minValue) / (maxValue - minValue)));
+          const pct = Math.max(
+            0,
+            Math.min(1, (bucket.value - minValue) / (maxValue - minValue))
+          );
           const barHeight = Math.max(0, pct * plotHeight);
           const y = plotY + plotHeight - barHeight;
           let fillColor = this.config.bar_color;
@@ -17139,7 +17180,7 @@ var FoundryBarChartCard = class extends HTMLElement {
         .label-font { font-family: 'ds-digitaldot', monospace; letter-spacing: 1px; }
       </style>
       <ha-card>
-        <div class="card">
+        <div class="card" id="actionRoot">
           <div class="container">
             <svg class="vector-svg" viewBox="0 0 ${plateWidth} ${plateHeight}" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -17229,13 +17270,8 @@ var FoundryBarChartCard = class extends HTMLElement {
     const cardEl = this.shadowRoot.querySelector(".card");
     if (cardEl) {
       cardEl.style.cursor = "pointer";
-      cardEl.onclick = () => {
-        if (Date.now() < this._suppressMoreInfoClickUntil) return;
-        if (this.config.entity) {
-          fireEvent(this, "hass-more-info", { entityId: this.config.entity });
-        }
-      };
     }
+    this._attachActionListeners();
     this._bindChartInteractions();
   }
   renderRivets(w, h, x, y) {
@@ -17506,7 +17542,7 @@ var FoundryBarChartEditor = class extends HTMLElement {
     if (this._form2) {
       this._form2.hass = this._hass;
       this._form2.data = data;
-      this._form2.schema = this._getSchemaBottom();
+      this._form2.schema = this._getSchemaBottom(data);
     }
     this._renderSegments();
   }
@@ -17671,6 +17707,14 @@ var FoundryBarChartEditor = class extends HTMLElement {
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.actions = {};
+    ["tap", "hold", "double_tap"].forEach((type2) => {
+      const conf = config[`${type2}_action`] || {};
+      data.actions[`${type2}_action_action`] = conf.action || "more-info";
+      data.actions[`${type2}_action_navigation_path`] = conf.navigation_path || "";
+      data.actions[`${type2}_action_service`] = conf.service || "";
+      data.actions[`${type2}_action_target_entity`] = conf.target?.entity_id || "";
+    });
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -17693,7 +17737,11 @@ var FoundryBarChartEditor = class extends HTMLElement {
     return data;
   }
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+    Object.keys(formData).forEach((key) => {
+      if (key === "actions") return;
+      config[key] = formData[key];
+    });
     const ensureHex = (val) => Array.isArray(val) ? this._rgbToHex(val) : val;
     if (formData.font_bg_color)
       config.font_bg_color = ensureHex(formData.font_bg_color);
@@ -17709,6 +17757,21 @@ var FoundryBarChartEditor = class extends HTMLElement {
       config.grid_minor_color = ensureHex(formData.grid_minor_color);
     if (formData.grid_major_color)
       config.grid_major_color = ensureHex(formData.grid_major_color);
+    if (formData.actions) {
+      ["tap", "hold", "double_tap"].forEach((type2) => {
+        const group = formData.actions;
+        const actionType = group[`${type2}_action_action`];
+        const newAction = { action: actionType };
+        if (actionType === "navigate") {
+          newAction.navigation_path = group[`${type2}_action_navigation_path`];
+        } else if (actionType === "call-service") {
+          newAction.service = group[`${type2}_action_service`];
+          const targetEnt = group[`${type2}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type2}_action`] = newAction;
+      });
+    }
     return config;
   }
   _hexToRgb(hex) {
@@ -17770,6 +17833,16 @@ var FoundryBarChartEditor = class extends HTMLElement {
             selector: { number: { min: 0, max: 6, mode: "slider" } }
           },
           {
+            name: "bar_padding",
+            label: "Bar Padding",
+            selector: { number: { min: 1, max: 6, mode: "slider" } }
+          },
+          {
+            name: "fill_under_line",
+            label: "Fill Under Line",
+            selector: { boolean: {} }
+          },
+          {
             name: "aggregation",
             label: "Aggregation",
             selector: {
@@ -17804,47 +17877,11 @@ var FoundryBarChartEditor = class extends HTMLElement {
             selector: { boolean: {} }
           }
         ]
-      },
-      {
-        name: "",
-        type: "expandable",
-        title: "Chart Style",
-        schema: [
-          {
-            name: "bar_color",
-            label: "Bar Color",
-            selector: { color_rgb: {} }
-          },
-          {
-            name: "bar_padding",
-            label: "Bar Padding",
-            selector: { number: { min: 1, max: 6, mode: "slider" } }
-          },
-          {
-            name: "fill_under_line",
-            label: "Fill Under Line",
-            selector: { boolean: {} }
-          },
-          {
-            name: "grid_minor_color",
-            label: "Grid Minor Color",
-            selector: { color_rgb: {} }
-          },
-          {
-            name: "grid_major_color",
-            label: "Grid Major Color",
-            selector: { color_rgb: {} }
-          },
-          {
-            name: "grid_opacity",
-            label: "Grid Opacity",
-            selector: { number: { min: 0.1, max: 1, step: 0.1 } }
-          }
-        ]
       }
     ];
   }
-  _getSchemaBottom() {
+  _getSchemaBottom(formData) {
+    const actionData = formData?.actions || {};
     return [
       {
         name: "",
@@ -17893,11 +17930,6 @@ var FoundryBarChartEditor = class extends HTMLElement {
             name: "",
             schema: [
               {
-                name: "font_bg_color",
-                label: "Screen Background",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "plate_color",
                 label: "Plate Color",
                 selector: { color_rgb: {} }
@@ -17913,6 +17945,11 @@ var FoundryBarChartEditor = class extends HTMLElement {
             name: "plate_transparent",
             label: "Transparent Plate",
             selector: { boolean: {} }
+          },
+          {
+            name: "font_bg_color",
+            label: "Screen Background",
+            selector: { color_rgb: {} }
           },
           {
             name: "glass_effect_enabled",
@@ -17955,20 +17992,109 @@ var FoundryBarChartEditor = class extends HTMLElement {
             name: "",
             schema: [
               {
-                name: "font_color",
-                label: "Digital Font Color",
-                selector: { color_rgb: {} }
-              },
-              {
                 name: "title_color",
                 label: "Title Color",
                 selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
               }
             ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_size",
+                label: "Title Font Size",
+                selector: { number: { mode: "box", min: 6, max: 48 } }
+              },
+              {
+                name: "bar_color",
+                label: "Bar Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "grid_minor_color",
+                label: "Grid Minor Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "grid_major_color",
+                label: "Grid Major Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "grid_opacity",
+            label: "Grid Opacity",
+            selector: { number: { min: 0.1, max: 1, step: 0.1 } }
           }
+        ]
+      },
+      {
+        name: "actions",
+        type: "expandable",
+        title: "Actions",
+        schema: [
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
         ]
       }
     ];
+  }
+  _getActionSchema(type2, label, actionData) {
+    const actionKey = `${type2}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : "more-info";
+    const schema2 = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "more-info", label: "More Info" },
+              { value: "toggle", label: "Toggle" },
+              { value: "navigate", label: "Navigate" },
+              { value: "call-service", label: "Call Service" },
+              { value: "none", label: "None" }
+            ]
+          }
+        }
+      }
+    ];
+    if (currentAction === "navigate") {
+      schema2.push({
+        name: `${type2}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "call-service") {
+      schema2.push({
+        name: `${type2}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema2.push({
+        name: `${type2}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
+    }
+    return schema2;
   }
 };
 if (!customElements.get("foundry-bar-chart-editor")) {
