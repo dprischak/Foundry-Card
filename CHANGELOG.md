@@ -17,8 +17,6 @@
 - **Shake Action:** Custom tap/hold/double-tap action for a fun meter shake animation.
 - **Full Theming:** Supports all standard Foundry ring styles, plate colors, aged textures, and custom themes.
 
-### 🐛 Defect Fixes
-
 
 ## v26.2.3
 
