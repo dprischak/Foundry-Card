@@ -1385,6 +1385,7 @@ Future cards planned for the Foundry Card collection:
 - Digital VU Meter
 
 Future
+- Standard Odometer
 - Industrial Energy Map
 - Automated Unit Testing
 
