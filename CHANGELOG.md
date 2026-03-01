@@ -7,6 +7,16 @@
 
 ### 🚀 New Cards
 
+#### 📊 Foundry Analog Meter Card
+
+**A vintage VU-style analog meter in a landscape rectangular chassis.**
+
+- **Landscape Design:** Wide rectangular form factor with a rectangular rim, matching the entities card style.
+- **VU Meter Arc:** Numbers displayed below tick marks with thin connecting lines, like a classic VU meter.
+- **PEAK LED:** Indicator that lights up with the highest color segment when the value meets its threshold.
+- **Shake Action:** Custom tap/hold/double-tap action for a fun meter shake animation.
+- **Full Theming:** Supports all standard Foundry ring styles, plate colors, aged textures, and custom themes.
+
 ### 🐛 Defect Fixes
 
 

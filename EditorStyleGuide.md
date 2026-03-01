@@ -53,10 +53,10 @@ Expandable. Use a title specific to the card type.
 
 Expandable via `ha-expansion-panel` with header **"Color Ranges"**, `outlined: true`, `expanded: false`. This is a custom UI section (not ha-form).
 
-| Card                        | Data Model | Fields per Entry      | Add Button Text   |
-| --------------------------- | ---------- | --------------------- | ----------------- |
-| Gauge / Chart / Thermometer | Segments   | `from`, `to`, `color` | + Add Color Range |
-| Uptime                      | Thresholds | `value`, `color`      | + Add Color Range |
+| Card                                      | Data Model | Fields per Entry      | Add Button Text   |
+| ----------------------------------------- | ---------- | --------------------- | ----------------- |
+| Gauge / Chart / Thermometer / Analog Meter | Segments   | `from`, `to`, `color` | + Add Color Range |
+| Uptime                                    | Thresholds | `value`, `color`      | + Add Color Range |
 
 > [!NOTE]
 > All color definition sections must use the title **"Color Ranges"** regardless of the underlying data model. The add button must read **"+ Add Color Range"**. Implementation must use `ha-expansion-panel` (not a plain div with section-header).
@@ -101,9 +101,9 @@ Expandable with title **"Colors & Typography"**. Contains element colors, text s
 
 ### Card-Specific Properties
 
-| YAML Key                     | Label                  | Selector                                           | Card(s)       |
-| ---------------------------- | ---------------------- | -------------------------------------------------- | ------------- |
-| `needle_color`               | Needle Color           | `{ color_rgb: {} }`                                | Gauge         |
+| YAML Key                     | Label                  | Selector                                           | Card(s)              |
+| ---------------------------- | ---------------------- | -------------------------------------------------- | -------------------- |
+| `needle_color`               | Needle Color           | `{ color_rgb: {} }`                                | Gauge, Analog Meter  |
 | `hour_hand_color`            | Hour Hand              | `{ color_rgb: {} }`                                | Analog Clock  |
 | `minute_hand_color`          | Minute Hand            | `{ color_rgb: {} }`                                | Analog Clock  |
 | `second_hand_color`          | Second Hand            | `{ color_rgb: {} }`                                | Analog Clock  |
