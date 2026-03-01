@@ -135,7 +135,7 @@ class FoundryBarChartCard extends HTMLElement {
       glass_effect_enabled: true,
       bar_color: '#d32f2f',
       bar_padding: 2,
-      
+
       grid_minor_color: '#cfead6',
       grid_major_color: '#8fc79d',
       grid_opacity: 0.6,
@@ -671,32 +671,35 @@ class FoundryBarChartCard extends HTMLElement {
       if (chartBarsEl) chartBarsEl.innerHTML = '';
     } else {
       if (emptyEl) emptyEl.setAttribute('visibility', 'hidden');
-      const { plotX, plotY, plotWidth, plotHeight, plotBottom } = chartGeometry;
-      
+      const { plotX, plotY, plotWidth, plotHeight } = chartGeometry;
+
       const parsedPadding = Number.parseFloat(this.config.bar_padding);
       const padding = Number.isFinite(parsedPadding) ? parsedPadding : 2;
-      
+
       const barTotalWidth = plotWidth / bucketCount;
       const barWidth = Math.max(0.5, barTotalWidth - padding);
 
       if (chartBarsEl) {
         const barElements = buckets.map((bucket, index) => {
           if (bucket.value === null || bucket.value === undefined) {
-             return '';
+            return '';
           }
           const x = plotX + index * barTotalWidth + padding / 2;
-          const pct = Math.max(0, Math.min(1, (bucket.value - minValue) / (maxValue - minValue)));
+          const pct = Math.max(
+            0,
+            Math.min(1, (bucket.value - minValue) / (maxValue - minValue))
+          );
           const barHeight = Math.max(0, pct * plotHeight);
           const y = plotY + plotHeight - barHeight;
-          
+
           let fillColor = this.config.bar_color;
           if (useSegmentColors) {
-             fillColor = this._getSegmentColorForValue(
-                bucket.value,
-                normalizedSegments,
-                0,
-                this.config.bar_color
-             );
+            fillColor = this._getSegmentColorForValue(
+              bucket.value,
+              normalizedSegments,
+              0,
+              this.config.bar_color
+            );
           }
 
           return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${fillColor}" rx="1" ry="1"></rect>`;
