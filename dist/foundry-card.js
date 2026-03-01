@@ -17975,6 +17975,1738 @@ if (!customElements.get("foundry-bar-chart-editor")) {
   customElements.define("foundry-bar-chart-editor", FoundryBarChartEditor);
 }
 
+// src/cards/foundry-analog-meter-card.js
+var FoundryAnalogMeterCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._resizeObserver = null;
+    this._isShaking = false;
+    this._shakeTargetAngle = null;
+    this._previousNeedleAngle = null;
+    this._previousValue = null;
+    this._entityError = null;
+    this._boundHandleClick = () => this._handleAction("tap");
+    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleContextMenu = (e) => {
+      e.preventDefault();
+      this._handleAction("hold");
+    };
+    this._boundHandleKeyDown = (e) => this._handleKeyDown(e);
+    this._debouncedReflow = debounce(() => {
+    }, 100);
+  }
+  connectedCallback() {
+  }
+  disconnectedCallback() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+    }
+  }
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error("You need to define an entity");
+    }
+    this.config = { ...config };
+    this._validateConfig();
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      if (this.config.ring_style === void 0) {
+        this.config.ring_style = "brass";
+      }
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+      if (this._hass) {
+        requestAnimationFrame(() => this.updateMeter());
+      }
+    };
+    if (this.config.theme && this.config.theme !== "none") {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+        }
+        applyDefaultsAndRender();
+      });
+    } else {
+      applyDefaultsAndRender();
+    }
+  }
+  _validateConfig() {
+    const config = this.config;
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    if (min >= max) {
+      console.warn(
+        "Foundry Analog Meter Card: min value must be less than max value. Using defaults."
+      );
+      this.config.min = 0;
+      this.config.max = 100;
+    }
+    if (config.animation_duration !== void 0) {
+      const duration = parseFloat(config.animation_duration);
+      if (isNaN(duration) || duration <= 0) {
+        console.warn(
+          "Foundry Analog Meter Card: animation_duration must be positive. Using 1.2s."
+        );
+        this.config.animation_duration = 1.2;
+      } else {
+        this.config.animation_duration = Math.min(duration, 10);
+      }
+    }
+    if (config.wear_level !== void 0) {
+      const wear = parseFloat(config.wear_level);
+      if (isNaN(wear)) {
+        this.config.wear_level = 50;
+      } else {
+        this.config.wear_level = Math.max(0, Math.min(100, wear));
+      }
+    }
+    if (config.aged_texture_intensity !== void 0) {
+      const intensity = parseFloat(config.aged_texture_intensity);
+      if (isNaN(intensity)) {
+        this.config.aged_texture_intensity = 50;
+      } else {
+        this.config.aged_texture_intensity = Math.max(
+          0,
+          Math.min(100, intensity)
+        );
+      }
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.config) return;
+    if (!this.shadowRoot) return;
+    this.updateMeter();
+  }
+  render() {
+    const config = this.config;
+    const title = config.title || "";
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    const uid = this._uniqueId;
+    const animationDuration = config.animation_duration !== void 0 ? config.animation_duration : 1.2;
+    const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 12;
+    const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
+    const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
+    const plateColor = config.plate_color !== void 0 ? config.plate_color : "transparent";
+    const plateTransparent = config.plate_transparent !== void 0 ? config.plate_transparent : false;
+    const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
+    const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
+    const startAngleDeg = 222;
+    const endAngleDeg = 318;
+    this._startAngle = startAngleDeg;
+    this._endAngle = endAngleDeg;
+    this._animationDuration = animationDuration;
+    const vbWidth = 300;
+    const vbHeight = 180;
+    const cx = 150;
+    const cy = 170;
+    const needleRadius = 130;
+    this._cx = cx;
+    this._cy = cy;
+    this._needleRadius = needleRadius;
+    const segments = config.segments || [
+      { from: -20, to: 0, color: "#3e2723" },
+      { from: 0, to: 3, color: "#F44336" }
+    ];
+    const plateX = 5;
+    const plateY = 5;
+    const plateW = vbWidth - 10;
+    const plateH = vbHeight - 10;
+    const rimX = 35;
+    const rimY = 32;
+    const rimW = vbWidth - 70;
+    const rimH = vbHeight - 64;
+    const faceX = rimX + 8;
+    const faceY = rimY + 8;
+    const faceW = rimW - 16;
+    const faceH = rimH - 16;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          padding: 0px;
+        }
+        ha-card {
+          container-type: inline-size;
+          background: transparent;
+          box-shadow: none;
+        }
+        .card {
+          background: transparent;
+          padding: 0px;
+          position: relative;
+          cursor: pointer;
+        }
+        .meter-container {
+          position: relative;
+          width: 100%;
+          max-width: 520px;
+          margin: 0 auto;
+          container-type: inline-size;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-3px) rotate(-0.5deg); }
+          20%, 40%, 60%, 80% { transform: translateX(3px) rotate(0.5deg); }
+        }
+        .meter-container.shaking {
+          animation: shake 0.25s ease-in-out;
+        }
+        .meter-svg {
+          width: 100%;
+          height: auto;
+          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+        }
+        .rivet {
+          fill: ${rivetColor};
+          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+        }
+        .screw-detail {
+          stroke: #4a4034;
+          stroke-width: 0.5;
+          fill: none;
+        }
+        .peak-label {
+          font-size: 6px;
+          font-family: 'Arial', sans-serif;
+          font-weight: bold;
+          fill: ${config.number_color || "#3e2723"};
+          text-anchor: middle;
+        }
+      </style>
+      <ha-card role="img" aria-label="${title ? title.replace(/\\\\n/g, " ") : "Foundry analog meter"} showing ${config.entity}" tabindex="0">
+        <div class="card" id="actionRoot">
+          <div class="meter-container" role="presentation">
+            <svg class="meter-svg" viewBox="0 0 ${vbWidth} ${vbHeight}" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+              <defs>
+                <!-- Gradient for meter face -->
+                <radialGradient id="meterFace-${uid}" cx="50%" cy="80%">
+                  <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="85%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
+                </radialGradient>
+                
+                <!-- Rim gradients -->
+                <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ddc68f;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#b8944d;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#d4b877;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#a68038;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#c0c0c0;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#b0b0b0;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f6f6f6;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#dcdcdc;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#f0f0f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#cfcfcf;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2a6fdb;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#5ea2ff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f4f9e;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#4f8fe6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#163b76;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2fbf71;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#6fe0a6;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f7a49;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#53cf8e;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#165a36;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#e53935;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ff6f6c;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#9e1f1c;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e85a57;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3a3a3a;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#555555;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f1f1f;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#444444;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#141414;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#c77c43;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#e1a06a;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#9a5c2a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#d7925a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+                </linearGradient>
+                
+                <!-- Shadow filter -->
+                <filter id="innerShadow-${uid}">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                  <feOffset dx="1" dy="1" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.5"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                
+                <!-- Aged texture -->
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
+                  <feComponentTransfer result="grainTexture">
+                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  </feComponentTransfer>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
+                </filter>
+                
+                <!-- Clip paths -->
+                <clipPath id="faceClip-${uid}">
+                  <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="8" ry="8"/>
+                </clipPath>
+                <clipPath id="plateClip-${uid}">
+                  <rect x="${plateX}" y="${plateY}" width="${plateW}" height="${plateH}" rx="20" ry="20" />
+                </clipPath>
+                
+                <!-- Glass glare gradient -->
+                <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" />
+                  <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
+                </linearGradient>
+              </defs>
+              
+              <!-- Plate -->
+              <rect x="${plateX}" y="${plateY}" width="${plateW}" height="${plateH}" rx="20" ry="20" 
+                    fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}" 
+                    clip-path="url(#plateClip-${uid})"
+                    ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
+              
+              <!-- Rectangular Rim -->
+              ${this.renderRectRim(ringStyle, uid, rimX, rimY, rimW, rimH)}
+              
+              <!-- Face (screen area) -->
+              <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="8" ry="8"
+                    fill="${config.background_style === "solid" ? config.face_color || "#f8f8f0" : `url(#meterFace-${uid})`}"
+                    ${agedTexture !== "none" && agedTextureOnFace ? `filter="url(#aged-${uid})" clip-path="url(#faceClip-${uid})"` : ""} />
+              
+              <!-- Glass effect overlay -->
+              ${glassEffectEnabled ? `<path d="M ${faceX} ${faceY} L ${faceX + faceW} ${faceY} L ${faceX + faceW} ${faceY + faceH * 0.2} Q ${faceX + faceW / 2} ${faceY + faceH * 0.25} ${faceX} ${faceY + faceH * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="url(#faceClip-${uid})" style="pointer-events: none;" />` : ""}
+              
+              <!-- Face border -->
+              <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="8" ry="8"
+                    fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1" />
+              
+              <!-- Segment arcs -->
+              <g id="segments"></g>
+              
+              <!-- Tick marks and numbers -->
+              <g id="ticks"></g>
+              <g id="numbers"></g>
+              
+              <!-- Title text (VU label) -->
+              ${title ? this.renderTitleText(title, titleFontSize, config.number_color, cx, cy) : ""}
+              
+              <!-- PEAK indicator -->
+              <g id="peakGroup" transform="translate(${faceX + faceW - 25}, ${faceY + faceH - 20})">
+                <circle id="peakLed" cx="0" cy="0" r="5" fill="#666" opacity="0.3" stroke="#4a4034" stroke-width="0.5"/>
+                <circle cx="0" cy="0" r="3" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.3"/>
+                <text class="peak-label" x="0" y="10">PEAK</text>
+              </g>
+              
+              <!-- Hidden ARIA live region for accessibility -->
+              <foreignObject x="0" y="0" width="1" height="1" style="overflow: hidden;">
+                <div xmlns="http://www.w3.org/1999/xhtml" id="ariaLive" aria-live="polite" aria-atomic="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"></div>
+              </foreignObject>
+              
+              <!-- Fixed clip container keeps needle hidden behind the ring -->
+              <g clip-path="url(#faceClip-${uid})">
+                <!-- Rotating needle inside the clip -->
+                <g id="needle" style="transform-origin: ${cx}px ${cy}px; transition: transform ${animationDuration}s ease-out;">
+                  <!-- Needle shadow -->
+                  <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - needleRadius}"
+                        stroke="rgba(0,0,0,0.2)" stroke-width="2.5"
+                        transform="translate(1.5,1.5)"/>
+                  <!-- Needle body (thin line) -->
+                  <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - needleRadius}"
+                        stroke="${config.needle_color || "#1a1a1a"}" stroke-width="1.5"
+                        stroke-linecap="round"/>
+                </g>
+              </g>
+              
+              <!-- Needle stoppers -->
+              <g id="stoppers"></g>
+              
+              <!-- Needle pivot is hidden behind the ring (below face) -->
+              
+              <!-- Corner rivets -->
+              ${this.renderRivets(plateW, plateH, plateX, plateY)}
+              
+              <!-- Age spots and wear marks -->
+              ${this.renderWearMarks(wearLevel, vbWidth, vbHeight)}
+            </svg>
+          </div>
+        </div>
+      </ha-card>
+    `;
+    this._attachActionListeners();
+    this.drawSegments(segments, min, max);
+    this.drawTicks(min, max, config);
+    this.drawStoppers();
+  }
+  renderRivets(w, h, x, y) {
+    const offset = 15;
+    const rivets = [
+      { cx: x + offset, cy: y + offset },
+      { cx: x + w - offset, cy: y + offset },
+      { cx: x + offset, cy: y + h - offset },
+      { cx: x + w - offset, cy: y + h - offset }
+    ];
+    return rivets.map(
+      (r) => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `
+    ).join("");
+  }
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.removeEventListener("dblclick", this._boundHandleDblClick);
+    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
+    root.removeEventListener("keydown", this._boundHandleKeyDown);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
+    root.addEventListener("contextmenu", this._boundHandleContextMenu);
+    root.addEventListener("keydown", this._boundHandleKeyDown);
+  }
+  _handleKeyDown(e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      this._handleAction("tap");
+    }
+  }
+  _findDirectionalPath(currentAngle, targetAngle, valueIncreasing) {
+    if (currentAngle === null) return targetAngle;
+    let diff = targetAngle - currentAngle;
+    while (diff > 180) diff -= 360;
+    while (diff < -180) diff += 360;
+    if (valueIncreasing !== null) {
+      if (valueIncreasing && diff < 0) {
+        diff += 360;
+      } else if (!valueIncreasing && diff > 0) {
+        diff -= 360;
+      }
+    }
+    return currentAngle + diff;
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    const entityId = this.config.entity;
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    if (actionConfig?.action === "shake") {
+      this._shakeMeter();
+      return;
+    }
+    this._runAction(actionConfig, entityId);
+  }
+  _shakeMeter() {
+    if (this._isShaking) return;
+    if (!this._hass || !this.config) return;
+    const entity = this._hass.states[this.config.entity];
+    if (!entity) return;
+    const value = parseFloat(entity.state);
+    if (isNaN(value)) return;
+    const min = this.config.min !== void 0 ? this.config.min : 0;
+    const max = this.config.max !== void 0 ? this.config.max : 100;
+    const range = max - min;
+    const clampedValue = Math.max(min, Math.min(max, value));
+    const deviationPercent = 0.1 + Math.random() * 0.4;
+    const deviation = range * deviationPercent * (Math.random() > 0.5 ? 1 : -1);
+    const targetValue = Math.max(min, Math.min(max, clampedValue + deviation));
+    const valuePosition = Math.max(0, Math.min(1, (targetValue - min) / range));
+    const startAngle = this._startAngle;
+    const endAngle = this._endAngle;
+    const totalAngle = endAngle - startAngle;
+    let targetMeterAngle = startAngle + totalAngle * valuePosition;
+    this._isShaking = true;
+    this._shakeTargetAngle = targetMeterAngle - 270;
+    const needle = this.shadowRoot.getElementById("needle");
+    if (!needle) return;
+    const meterContainer = this.shadowRoot.querySelector(".meter-container");
+    if (meterContainer) {
+      meterContainer.classList.add("shaking");
+      setTimeout(() => {
+        meterContainer.classList.remove("shaking");
+      }, 250);
+    }
+    needle.style.transition = "transform 0.3s ease-out";
+    needle.style.transform = `rotate(${this._shakeTargetAngle}deg)`;
+    setTimeout(() => {
+      if (needle) {
+        needle.style.transition = "transform 3s cubic-bezier(0.4, 0.0, 0.2, 1)";
+        this._isShaking = false;
+        this._shakeTargetAngle = null;
+        this.updateMeter();
+      }
+    }, 300);
+  }
+  _runAction(actionConfig, entityId) {
+    const action = actionConfig?.action;
+    if (!action || action === "none") return;
+    if (action === "more-info") {
+      fireEvent(this, "hass-more-info", { entityId });
+      return;
+    }
+    if (action === "navigate") {
+      const path = actionConfig.navigation_path;
+      if (!path) return;
+      history.pushState(null, "", path);
+      fireEvent(window, "location-changed", { replace: false });
+      return;
+    }
+    if (action === "toggle") {
+      if (!entityId) return;
+      this._hass.callService("homeassistant", "toggle", {
+        entity_id: entityId
+      });
+      return;
+    }
+    if (action === "call-service") {
+      const service = actionConfig.service;
+      if (!service) return;
+      const [domain, srv] = service.split(".");
+      if (!domain || !srv) return;
+      const data = { ...actionConfig.service_data || {} };
+      if (actionConfig.target?.entity_id)
+        data.entity_id = actionConfig.target.entity_id;
+      this._hass.callService(domain, srv, data);
+      return;
+    }
+  }
+  renderTitleText(title, fontSize, color = "#3e2723", cx = 150, cy = 155) {
+    const lines = title.replace(/\\n/g, "\n").split("\n").slice(0, 3);
+    const lineHeight = fontSize * 1.2;
+    const totalHeight = (lines.length - 1) * lineHeight;
+    const startY = cy - 45 - totalHeight / 2;
+    return lines.map((line, index) => {
+      const y = startY + index * lineHeight;
+      return `<text x="${cx}" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
+    }).join("\n");
+  }
+  getRimStyleData(ringStyle, uid) {
+    switch (ringStyle) {
+      case "brass":
+        return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case "silver":
+      case "chrome":
+        return { grad: `silverRim-${uid}`, stroke: "#999999" };
+      case "white":
+        return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
+      case "blue":
+        return { grad: `blueRim-${uid}`, stroke: "#1e4f8f" };
+      case "green":
+        return { grad: `greenRim-${uid}`, stroke: "#1f6b3a" };
+      case "red":
+        return { grad: `redRim-${uid}`, stroke: "#8f1e1e" };
+      case "black":
+        return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
+      case "copper":
+        return { grad: `copperRim-${uid}`, stroke: "#c77c43" };
+      default:
+        return null;
+    }
+  }
+  renderRectRim(ringStyle, uid, x, y, w, h) {
+    const data = this.getRimStyleData(ringStyle, uid);
+    if (!data) return "";
+    const bevelX = x + 4;
+    const bevelY = y + 4;
+    const bevelW = w - 8;
+    const bevelH = h - 8;
+    return `
+      <!-- Outer Frame (The Rim) -->
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" ry="12" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
+            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+      <!-- Inner Bevel -->
+      <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+    `;
+  }
+  renderWearMarks(wearLevel, vbWidth, vbHeight) {
+    if (wearLevel <= 0) return "";
+    const marks = [];
+    const numMarks = Math.floor(wearLevel / 5);
+    const seed = 42;
+    let rng = seed;
+    const random = () => {
+      rng = rng * 16807 % 2147483647;
+      return (rng - 1) / 2147483646;
+    };
+    for (let i = 0; i < numMarks; i++) {
+      const x = 10 + random() * (vbWidth - 20);
+      const y = 10 + random() * (vbHeight - 20);
+      const r = 0.5 + random() * 2;
+      const opacity = 0.05 + random() * 0.15;
+      const type2 = random();
+      if (type2 < 0.3) {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(60,40,20,${opacity})"/>`
+        );
+      } else if (type2 < 0.6) {
+        const x2 = x + (random() - 0.5) * 15;
+        const y2 = y + (random() - 0.5) * 15;
+        marks.push(
+          `<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="rgba(200,190,170,${opacity})" stroke-width="0.3"/>`
+        );
+      } else if (type2 < 0.8) {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r * 1.5}" fill="rgba(80,110,60,${opacity * 0.5})"/>`
+        );
+      } else {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r * 0.5}" fill="rgba(40,30,20,${opacity * 0.8})" stroke="rgba(200,190,170,${opacity * 0.3})" stroke-width="0.2"/>`
+        );
+      }
+    }
+    return marks.join("\n");
+  }
+  drawSegments(segments, min, max) {
+    const segmentsGroup = this.shadowRoot.getElementById("segments");
+    const cx = this._cx;
+    const cy = this._cy;
+    const radius = this._needleRadius - 10;
+    const startAngle = this._startAngle;
+    const endAngle = this._endAngle;
+    const totalAngle = endAngle - startAngle;
+    segments.forEach((segment) => {
+      const fromPercent = (segment.from - min) / (max - min);
+      const toPercent = (segment.to - min) / (max - min);
+      const segmentStartAngle = startAngle + totalAngle * fromPercent;
+      const segmentEndAngle = startAngle + totalAngle * toPercent;
+      const path = this.describeArc(
+        cx,
+        cy,
+        radius,
+        segmentStartAngle,
+        segmentEndAngle
+      );
+      const pathElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+      );
+      pathElement.setAttribute("d", path);
+      pathElement.setAttribute("fill", "none");
+      pathElement.setAttribute("stroke", segment.color);
+      pathElement.setAttribute("stroke-width", "6");
+      pathElement.setAttribute("opacity", "0.7");
+      segmentsGroup.appendChild(pathElement);
+    });
+  }
+  drawTicks(min, max, config) {
+    const ticksGroup = this.shadowRoot.getElementById("ticks");
+    const numbersGroup = this.shadowRoot.getElementById("numbers");
+    const cx = this._cx;
+    const cy = this._cy;
+    const startAngle = this._startAngle;
+    const endAngle = this._endAngle;
+    const totalAngle = endAngle - startAngle;
+    const numTicks = 10;
+    const numberRadius = this._needleRadius - 25;
+    const tickOuterRadius = this._needleRadius - 5;
+    const tickInnerRadius = this._needleRadius - 15;
+    const minorTickOuterRadius = this._needleRadius - 5;
+    const minorTickInnerRadius = this._needleRadius - 10;
+    const connectLineRadius = this._needleRadius - 15;
+    ticksGroup.innerHTML = "";
+    numbersGroup.innerHTML = "";
+    for (let i = 0; i <= numTicks; i++) {
+      const angle = startAngle + totalAngle * i / numTicks;
+      const angleRad = angle * Math.PI / 180;
+      const x1 = cx + tickInnerRadius * Math.cos(angleRad);
+      const y1 = cy + tickInnerRadius * Math.sin(angleRad);
+      const x2 = cx + tickOuterRadius * Math.cos(angleRad);
+      const y2 = cy + tickOuterRadius * Math.sin(angleRad);
+      const tick = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
+      tick.setAttribute("x1", x1);
+      tick.setAttribute("y1", y1);
+      tick.setAttribute("x2", x2);
+      tick.setAttribute("y2", y2);
+      tick.setAttribute("stroke", config.primary_tick_color || "#3e2723");
+      tick.setAttribute("stroke-width", "1.5");
+      ticksGroup.appendChild(tick);
+      const numX = cx + numberRadius * Math.cos(angleRad);
+      const numY = cy + numberRadius * Math.sin(angleRad);
+      const connX = cx + connectLineRadius * Math.cos(angleRad);
+      const connY = cy + connectLineRadius * Math.sin(angleRad);
+      const connLine = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
+      connLine.setAttribute("x1", numX);
+      connLine.setAttribute("y1", numY + 3);
+      connLine.setAttribute("x2", connX);
+      connLine.setAttribute("y2", connY);
+      connLine.setAttribute("stroke", config.primary_tick_color || "#3e2723");
+      connLine.setAttribute("stroke-width", "0.5");
+      connLine.setAttribute("opacity", "0.6");
+      ticksGroup.appendChild(connLine);
+      const value = min + (max - min) * i / numTicks;
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text"
+      );
+      text.setAttribute("x", numX);
+      text.setAttribute("y", numY);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("font-size", "9");
+      text.setAttribute("font-weight", "bold");
+      text.setAttribute("fill", config.number_color || "#3e2723");
+      text.setAttribute("font-family", "Georgia, serif");
+      const displayValue = max - min <= 10 ? value.toFixed(1) : Math.round(value);
+      text.textContent = displayValue;
+      numbersGroup.appendChild(text);
+      if (i < numTicks) {
+        for (let j = 1; j < 5; j++) {
+          const minorAngle = angle + totalAngle / numTicks * (j / 5);
+          const minorAngleRad = minorAngle * Math.PI / 180;
+          const mx1 = cx + minorTickInnerRadius * Math.cos(minorAngleRad);
+          const my1 = cy + minorTickInnerRadius * Math.sin(minorAngleRad);
+          const mx2 = cx + minorTickOuterRadius * Math.cos(minorAngleRad);
+          const my2 = cy + minorTickOuterRadius * Math.sin(minorAngleRad);
+          const minorTick = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          );
+          minorTick.setAttribute("x1", mx1);
+          minorTick.setAttribute("y1", my1);
+          minorTick.setAttribute("x2", mx2);
+          minorTick.setAttribute("y2", my2);
+          minorTick.setAttribute(
+            "stroke",
+            config.secondary_tick_color || "#5d4e37"
+          );
+          minorTick.setAttribute("stroke-width", "0.75");
+          ticksGroup.appendChild(minorTick);
+        }
+      }
+    }
+  }
+  drawStoppers() {
+    const stoppersGroup = this.shadowRoot.getElementById("stoppers");
+    if (!stoppersGroup) return;
+    const cx = this._cx;
+    const cy = this._cy;
+    const radius = this._needleRadius - 2;
+    const startAngle = this._startAngle;
+    const endAngle = this._endAngle;
+    const startAngleRad = startAngle * Math.PI / 180;
+    const startX = cx + radius * Math.cos(startAngleRad);
+    const startY = cy + radius * Math.sin(startAngleRad);
+    const startStopper = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    startStopper.setAttribute("cx", startX);
+    startStopper.setAttribute("cy", startY);
+    startStopper.setAttribute("r", "3");
+    startStopper.setAttribute("fill", "#8B0000");
+    startStopper.setAttribute("stroke", "#4a4034");
+    startStopper.setAttribute("stroke-width", "0.5");
+    stoppersGroup.appendChild(startStopper);
+    const endAngleRad = endAngle * Math.PI / 180;
+    const endX = cx + radius * Math.cos(endAngleRad);
+    const endY = cy + radius * Math.sin(endAngleRad);
+    const endStopper = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    endStopper.setAttribute("cx", endX);
+    endStopper.setAttribute("cy", endY);
+    endStopper.setAttribute("r", "3");
+    endStopper.setAttribute("fill", "#8B0000");
+    endStopper.setAttribute("stroke", "#4a4034");
+    endStopper.setAttribute("stroke-width", "0.5");
+    stoppersGroup.appendChild(endStopper);
+  }
+  describeArc(x, y, radius, startAngle, endAngle) {
+    const start = this.polarToCartesian(x, y, radius, endAngle);
+    const end = this.polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M",
+      start.x,
+      start.y,
+      "A",
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y
+    ].join(" ");
+  }
+  polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+    const angleInRadians = angleInDegrees * Math.PI / 180;
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians)
+    };
+  }
+  darkenColor(color, amount) {
+    if (Array.isArray(color) && color.length === 3) {
+      const toHex = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+      color = `#${toHex(color[0])}${toHex(color[1])}${toHex(color[2])}`;
+    }
+    if (typeof color !== "string" || color.trim() === "") {
+      color = "#000000";
+    }
+    const hex = color.replace("#", "");
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const newR = Math.max(0, Math.floor(r * (1 - amount)));
+    const newG = Math.max(0, Math.floor(g * (1 - amount)));
+    const newB = Math.max(0, Math.floor(b * (1 - amount)));
+    return `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
+  }
+  updateMeter() {
+    if (!this._hass || !this.config) return;
+    const entity = this._hass.states[this.config.entity];
+    if (!entity) {
+      this._handleEntityError("Entity not found");
+      return;
+    }
+    if (entity.state === "unavailable" || entity.state === "unknown") {
+      this._handleEntityError(`Entity is ${entity.state}`);
+      return;
+    }
+    let value;
+    try {
+      value = parseFloat(entity.state);
+      if (isNaN(value)) {
+        this._handleEntityError(`Non-numeric state: "${entity.state}"`);
+        return;
+      }
+      this._clearEntityError();
+    } catch (error) {
+      this._handleEntityError(`Error parsing state: ${error.message}`);
+      return;
+    }
+    const min = this.config.min !== void 0 ? this.config.min : 0;
+    const max = this.config.max !== void 0 ? this.config.max : 100;
+    const range = max - min;
+    const clampedValue = Math.max(min, Math.min(max, value));
+    const valuePosition = Math.max(
+      0,
+      Math.min(1, (clampedValue - min) / range)
+    );
+    const startAngle = this._startAngle;
+    const endAngle = this._endAngle;
+    const totalAngle = endAngle - startAngle;
+    const gaugeAngle = startAngle + totalAngle * valuePosition;
+    let needleAngle = gaugeAngle - 270;
+    const needle = this.shadowRoot.getElementById("needle");
+    if (needle && !this._isShaking) {
+      let valueIncreasing = null;
+      if (this._previousValue !== null) {
+        valueIncreasing = clampedValue > this._previousValue;
+      }
+      needleAngle = this._findDirectionalPath(
+        this._previousNeedleAngle,
+        needleAngle,
+        valueIncreasing
+      );
+      needle.style.transform = `rotate(${needleAngle}deg)`;
+      this._previousNeedleAngle = needleAngle;
+      this._previousValue = clampedValue;
+      this._updateAriaLive(value);
+    }
+    const segments = this.config.segments || [];
+    if (segments.length > 0) {
+      const sorted = [...segments].sort((a, b) => b.from - a.from);
+      const peakSegment = sorted[0];
+      const peakLed = this.shadowRoot.getElementById("peakLed");
+      if (peakLed) {
+        if (clampedValue >= peakSegment.from) {
+          peakLed.setAttribute("fill", peakSegment.color);
+          peakLed.setAttribute("opacity", "1");
+        } else {
+          peakLed.setAttribute("fill", "#666");
+          peakLed.setAttribute("opacity", "0.3");
+        }
+      }
+    }
+  }
+  _handleEntityError(message) {
+    if (this._entityError !== message) {
+      console.warn(
+        `Foundry Analog Meter Card [${this.config.entity}]: ${message}`
+      );
+      this._entityError = message;
+    }
+  }
+  _clearEntityError() {
+    this._entityError = null;
+  }
+  _updateAriaLive(value) {
+    const ariaLive = this.shadowRoot?.getElementById("ariaLive");
+    if (ariaLive) {
+      const unit = this.config.unit || "";
+      ariaLive.textContent = `${this.config.title || "Meter"}: ${value}${unit ? " " + unit : ""}`;
+    }
+  }
+  getCardSize() {
+    return 3;
+  }
+  static get supportsCardResize() {
+    return true;
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-analog-meter-card-editor");
+  }
+  static getStubConfig() {
+    return {
+      entity: "sensor.temperature",
+      title: "Analog Meter",
+      title_font_size: 12,
+      ring_style: "brass",
+      rivet_color: "#6a5816",
+      plate_color: "#8c7626",
+      plate_transparent: false,
+      min: 0,
+      max: 100,
+      unit: "",
+      animation_duration: 1.2,
+      wear_level: 50,
+      glass_effect_enabled: true,
+      aged_texture: "everywhere",
+      aged_texture_intensity: 50,
+      segments: [{ from: 80, to: 100, color: "#F44336" }],
+      background_style: "gradient",
+      face_color: "#f8f8f0",
+      number_color: "#3e2723",
+      primary_tick_color: "#3e2723",
+      secondary_tick_color: "#5d4e37",
+      needle_color: "#1a1a1a"
+    };
+  }
+};
+if (!customElements.get("foundry-analog-meter-card")) {
+  customElements.define("foundry-analog-meter-card", FoundryAnalogMeterCard);
+}
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-analog-meter-card",
+  name: "Foundry Analog Meter Card",
+  preview: true,
+  description: "A vintage industrial style VU meter card",
+  documentationURL: "https://github.com/dprischak/Foundry-Card"
+});
+
+// src/cards/foundry-analog-meter-editor.js
+var FoundryAnalogMeterCardEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._themes = {};
+    this._themesLoaded = false;
+  }
+  setConfig(config) {
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
+    this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      if (this._root && this._root.parentNode) {
+        this._root.parentNode.removeChild(this._root);
+      }
+      this._root = null;
+      this._form1 = null;
+      this._form2 = null;
+      if (!this._advancedMode) {
+        this.render();
+      }
+    } catch (e) {
+      console.error("Error loading themes:", e);
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      const style = document.createElement("style");
+      style.textContent = `
+        /* Layout adjustments */
+        .card-config { display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Segment Section Styling */
+        .segments-section {
+          margin-top: 8px;
+          margin-bottom: 8px;
+          padding: 16px;
+          background: var(--card-background-color, #fff);
+          border: 1px solid var(--divider-color, #e0e0e0);
+          border-radius: 4px;
+        }
+        .section-header {
+          font-weight: 500;
+          margin-bottom: 12px;
+          color: var(--primary-text-color);
+          font-size: 16px;
+        }
+        .segment-row {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+          margin-bottom: 12px;
+          background: var(--secondary-background-color, #f9f9f9);
+          padding: 10px;
+          border-radius: 4px;
+        }
+        .input-group {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .input-group label {
+          font-size: 11px;
+          color: var(--secondary-text-color);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+        .input-group input {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid var(--divider-color, #ccc);
+          border-radius: 4px;
+          background: var(--card-background-color, #fff);
+          color: var(--primary-text-color);
+        }
+        .input-group input[type="color"] {
+          height: 36px;
+          padding: 2px;
+          cursor: pointer;
+        }
+        .remove-btn {
+          background: none;
+          border: none;
+          color: var(--error-color, #db4437);
+          cursor: pointer;
+          padding: 8px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+        }
+        .remove-btn:hover {
+          background: rgba(219, 68, 55, 0.1);
+          border-radius: 50%;
+        }
+        .add-btn {
+          background-color: var(--primary-color, #03a9f4);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 14px;
+          margin-top: 4px;
+        }
+        .add-btn:hover {
+          background-color: var(--primary-color-dark, #0288d1);
+        }
+        .validation-warning {
+          background: var(--warning-color, #ff9800);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin: 8px 0;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .validation-error {
+          background: var(--error-color, #db4437);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin: 8px 0;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+      this._form1 = document.createElement("ha-form");
+      this._form1.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
+      this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
+      this._form2 = document.createElement("ha-form");
+      this._form2.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
+      this._root.appendChild(this._form2);
+      this._validationContainer = document.createElement("div");
+      this._root.appendChild(this._validationContainer);
+    }
+    if (this._form1) this._form1.hass = this._hass;
+    if (this._form2) this._form2.hass = this._hass;
+    const formData = this._configToForm(this._config);
+    this._form1.schema = this._getSchemaTop(formData);
+    this._form1.data = formData;
+    this._form1.computeLabel = this._computeLabel;
+    this._form2.schema = this._getSchemaBottom(formData);
+    this._form2.data = formData;
+    this._form2.computeLabel = this._computeLabel;
+    this._renderSegments();
+    this._displayValidationMessages();
+  }
+  _displayValidationMessages() {
+    if (!this._validationContainer) return;
+    const config = this._config;
+    const messages = [];
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    if (min >= max) {
+      messages.push({
+        type: "error",
+        text: "\u274C Minimum must be less than Maximum"
+      });
+    }
+    if (config.segments && config.segments.length > 0) {
+      config.segments.forEach((seg, idx) => {
+        if (seg.from >= seg.to) {
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: 'From' must be less than 'To'`
+          });
+        }
+        if (seg.from < min || seg.to > max) {
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: Range should be within min/max values`
+          });
+        }
+      });
+    }
+    if (messages.length > 0) {
+      this._validationContainer.innerHTML = messages.map((msg) => `<div class="validation-${msg.type}">${msg.text}</div>`).join("");
+    } else {
+      this._validationContainer.innerHTML = "";
+    }
+  }
+  // --- Segments Renderer (innerHTML) ---
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = "";
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((seg, index) => {
+      const fromVal = seg.from !== void 0 ? seg.from : 0;
+      const toVal = seg.to !== void 0 ? seg.to : 0;
+      const colVal = seg.color || "#000000";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromVal}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toVal}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colVal}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const key = e.target.dataset.key;
+        let val = e.target.value;
+        if (key !== "color") val = Number(val);
+        this._updateSegment(idx, key, val);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const target = e.target.closest(".remove-btn");
+        if (target) {
+          this._removeSegment(parseInt(target.dataset.idx));
+        }
+      });
+    });
+    const addBtn = this._segmentsContainer.querySelector("#add-btn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => this._addSegment());
+    }
+  }
+  // --- Data Logic for Segments ---
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const last = segments[segments.length - 1];
+    const from = last ? last.to : 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+  // --- HA Form Logic ---
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+      const themeProperties = [
+        "plate_color",
+        "rivet_color",
+        "ring_style",
+        "font_color",
+        "font_bg_color",
+        "number_color",
+        "primary_tick_color",
+        "secondary_tick_color",
+        "background_style",
+        "face_color",
+        "needle_color",
+        "plate_transparent",
+        "glass_effect_enabled",
+        "wear_level",
+        "aged_texture",
+        "aged_texture_intensity"
+      ];
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
+      );
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
+      }
+    }
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._updateConfig(newConfig);
+    }
+  }
+  _configToForm(config) {
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.appearance = {
+      theme: sourceConfig.theme ?? "none",
+      ring_style: sourceConfig.ring_style,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
+        106,
+        88,
+        22
+      ],
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? "#8c7626") ?? [
+        140,
+        118,
+        38
+      ],
+      plate_transparent: sourceConfig.plate_transparent,
+      wear_level: sourceConfig.wear_level,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+      background_style: sourceConfig.background_style,
+      face_color: this._hexToRgb(sourceConfig.face_color ?? "#f8f8f0") ?? [
+        248,
+        248,
+        240
+      ]
+    };
+    data.style_fonts_ticks = {
+      needle_color: this._hexToRgb(sourceConfig.needle_color ?? "#1a1a1a") ?? [
+        26,
+        26,
+        26
+      ],
+      number_color: this._hexToRgb(sourceConfig.number_color ?? "#3e2723") ?? [
+        62,
+        39,
+        35
+      ],
+      primary_tick_color: this._hexToRgb(
+        sourceConfig.primary_tick_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
+      secondary_tick_color: this._hexToRgb(
+        sourceConfig.secondary_tick_color ?? "#5d4e37"
+      ) ?? [93, 78, 55],
+      title_font_size: sourceConfig.title_font_size,
+      animation_duration: sourceConfig.animation_duration
+    };
+    data.actions = {};
+    ["tap", "hold", "double_tap"].forEach((type2) => {
+      const conf = config[`${type2}_action`] || {};
+      data.actions[`${type2}_action_action`] = conf.action || "more-info";
+      data.actions[`${type2}_action_navigation_path`] = conf.navigation_path || "";
+      data.actions[`${type2}_action_service`] = conf.service || "";
+      data.actions[`${type2}_action_target_entity`] = conf.target?.entity_id || "";
+    });
+    return data;
+  }
+  _formToConfig(formData) {
+    const config = { ...this._config };
+    const defaults = {
+      rivet_color: this._config?.rivet_color ?? "#6d5d4b",
+      plate_color: this._config?.plate_color ?? "#8c7626",
+      face_color: this._config?.face_color ?? "#f8f8f0",
+      needle_color: this._config?.needle_color ?? "#1a1a1a",
+      number_color: this._config?.number_color ?? "#3e2723",
+      primary_tick_color: this._config?.primary_tick_color ?? "#3e2723",
+      secondary_tick_color: this._config?.secondary_tick_color ?? "#5d4e37",
+      background_style: this._config?.background_style ?? "gradient"
+    };
+    Object.keys(formData).forEach((key) => {
+      if (["appearance", "style_fonts_ticks", "actions"].includes(key)) return;
+      config[key] = formData[key];
+    });
+    if (formData.appearance) Object.assign(config, formData.appearance);
+    if (formData.style_fonts_ticks)
+      Object.assign(config, formData.style_fonts_ticks);
+    const rc = this._rgbToHex(config.rivet_color);
+    if (rc) config.rivet_color = rc;
+    else config.rivet_color = defaults.rivet_color;
+    const pc = this._rgbToHex(config.plate_color);
+    if (pc) config.plate_color = pc;
+    else config.plate_color = defaults.plate_color;
+    const fc = this._rgbToHex(config.face_color);
+    if (fc) config.face_color = fc;
+    else config.face_color = defaults.face_color;
+    const ndlz = this._rgbToHex(config.needle_color);
+    if (ndlz) config.needle_color = ndlz;
+    else config.needle_color = defaults.needle_color;
+    const nc = this._rgbToHex(config.number_color);
+    if (nc) config.number_color = nc;
+    else config.number_color = defaults.number_color;
+    const ptc = this._rgbToHex(config.primary_tick_color);
+    if (ptc) config.primary_tick_color = ptc;
+    else config.primary_tick_color = defaults.primary_tick_color;
+    const stc = this._rgbToHex(config.secondary_tick_color);
+    if (stc) config.secondary_tick_color = stc;
+    else config.secondary_tick_color = defaults.secondary_tick_color;
+    if (formData.actions) {
+      ["tap", "hold", "double_tap"].forEach((type2) => {
+        const group = formData.actions;
+        const actionType = group[`${type2}_action_action`];
+        const newAction = { action: actionType };
+        if (actionType === "navigate") {
+          newAction.navigation_path = group[`${type2}_action_navigation_path`];
+        } else if (actionType === "call-service") {
+          newAction.service = group[`${type2}_action_service`];
+          const targetEnt = group[`${type2}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type2}_action`] = newAction;
+      });
+    }
+    return config;
+  }
+  _computeLabel(schema2) {
+    if (schema2.label) return schema2.label;
+    if (schema2.name === "entity") return "Entity";
+    return schema2.name.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  }
+  // --- Schemas ---
+  // Schema 1: Top section (Entity, Title, Unit, Min/Max)
+  _getSchemaTop(_formData) {
+    return [
+      {
+        name: "entity",
+        selector: { entity: { domain: "sensor" } }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "title", selector: { text: {} } },
+          { name: "unit", selector: { text: {} } }
+        ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "min", selector: { number: { mode: "box" } } },
+          { name: "max", selector: { number: { mode: "box" } } }
+        ]
+      }
+    ];
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    const h = hex.replace("#", "").trim();
+    if (h.length !== 6) return null;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    if ([r, g, b].some(Number.isNaN)) return null;
+    return [r, g, b];
+  }
+  _rgbToHex(input) {
+    let rgb = input;
+    if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
+      if (Array.isArray(rgb.color)) rgb = rgb.color;
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
+    }
+    if (!Array.isArray(rgb) || rgb.length !== 3) return null;
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
+    if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  // Schema 2: Bottom section (Appearance, Colors & Typography, Actions)
+  _getSchemaBottom(formData) {
+    const actionData = formData.actions || {};
+    return [
+      // Appearance
+      {
+        name: "appearance",
+        type: "expandable",
+        title: "Appearance",
+        schema: [
+          {
+            name: "theme",
+            label: "Theme",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None/Custom" },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1)
+                  }))
+                ]
+              }
+            }
+          },
+          {
+            name: "ring_style",
+            label: "Ring Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "brass", label: "Brass" },
+                  { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
+                  { value: "copper", label: "Copper" },
+                  { value: "black", label: "Black" },
+                  { value: "white", label: "White" },
+                  { value: "blue", label: "Blue" },
+                  { value: "green", label: "Green" },
+                  { value: "red", label: "Red" }
+                ]
+              }
+            }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Gradient" },
+                  { value: "solid", label: "Solid Color" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      // Colors & Typography
+      {
+        name: "style_fonts_ticks",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            name: "needle_color",
+            label: "Needle Color",
+            selector: { color_rgb: {} }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Major Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Minor Tick Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box", min: 6, max: 48 } }
+          },
+          {
+            name: "animation_duration",
+            label: "Animation Duration (s)",
+            selector: { number: { mode: "box", step: 0.1, min: 0.1 } }
+          }
+        ]
+      },
+      // Actions
+      {
+        name: "actions",
+        type: "expandable",
+        title: "Actions",
+        schema: [
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
+        ]
+      }
+    ];
+  }
+  _getActionSchema(type2, label, actionData) {
+    const actionKey = `${type2}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : "more-info";
+    const schema2 = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "more-info", label: "More Info" },
+              { value: "toggle", label: "Toggle" },
+              { value: "navigate", label: "Navigate" },
+              { value: "call-service", label: "Call Service" },
+              { value: "shake", label: "Shake (Custom)" },
+              { value: "none", label: "None" }
+            ]
+          }
+        }
+      }
+    ];
+    if (currentAction === "navigate") {
+      schema2.push({
+        name: `${type2}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "call-service") {
+      schema2.push({
+        name: `${type2}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema2.push({
+        name: `${type2}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
+    }
+    return schema2;
+  }
+};
+if (!customElements.get("foundry-analog-meter-card-editor")) {
+  customElements.define(
+    "foundry-analog-meter-card-editor",
+    FoundryAnalogMeterCardEditor
+  );
+}
+
 // src/foundry-card.js
 var FOUNDRY_CARDS_VERSION = "26.3.1";
 console.info(

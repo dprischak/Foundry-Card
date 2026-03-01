@@ -42,6 +42,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Home Thermostat](#foundry-home-thermostat)
    - [Foundry Slider Card](#foundry-slider-card)
    - [Foundry Title Card](#foundry-title-card)
+   - [Foundry Analog Meter Card](#foundry-analog-meter-card)
 4. [Custom Themes](#custom-themes)
 5. [Development](#development)
 6. [Roadmap](#roadmap)
@@ -174,6 +175,17 @@ A decorative metallic title plate for grouping dashboard sections:
 - No ring, no screen, no entity data
 - Full theme support with aged texture effects
 - Transparent plate mode supported
+
+<a name="foundry-analog-meter-card"></a>
+
+### 📊 Foundry Analog Meter Card
+
+A vintage VU-style analog meter:
+
+- Landscape rectangular chassis with thin needle
+- Numbers above tick marks with connecting lines
+- Color-coded arc segments with PEAK LED indicator
+- Shake action for fun visual feedback
 
 <a name="installation"></a>
 
@@ -1100,6 +1112,74 @@ plate_transparent: false
 aged_texture: everywhere
 aged_texture_intensity: 50
 theme: industrial
+```
+
+</details>
+
+<a name="foundry-analog-meter-card"></a>
+
+### Foundry Analog Meter Card
+
+A vintage VU-style analog meter in a landscape rectangular chassis.
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default                 | Description                                                                                          |
+| ------------------------ | ------- | -------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -                       | Entity ID to display                                                                                 |
+| `title`                  | string  | No       | -                       | Card title (supports multi-line with `\n`)                                                           |
+| `min`                    | number  | No       | 0                       | Minimum meter value                                                                                  |
+| `max`                    | number  | No       | 100                     | Maximum meter value                                                                                  |
+| `unit`                   | string  | No       | ''                      | Unit of measurement                                                                                  |
+| `segments`               | array   | No       | See below               | Color segments configuration                                                                         |
+| `animation_duration`     | number  | No       | 1.2                     | Animation duration in seconds                                                                        |
+| `title_font_size`        | number  | No       | 12                      | Font size for the title text                                                                         |
+| `ring_style`             | string  | No       | 'brass'                 | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none'  |
+| `rivet_color`            | string  | No       | '#6a5816'               | Color of the decorative rivets                                                                       |
+| `plate_color`            | string  | No       | '#8c7626'               | Color of the plate                                                                                   |
+| `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                                           |
+| `wear_level`             | number  | No       | 50                      | Amount of wear marks and age spots (0-100)                                                           |
+| `glass_effect_enabled`   | boolean | No       | true                    | Enable glass effect overlay                                                                          |
+| `aged_texture`           | string  | No       | 'everywhere'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'                                             |
+| `aged_texture_intensity` | number  | No       | 50                      | Intensity of aged texture effect (0-100)                                                             |
+| `background_style`       | string  | No       | 'gradient'              | Background style: 'gradient' or 'solid'                                                              |
+| `face_color`             | string  | No       | '#f8f8f0'               | Color of the meter face                                                                              |
+| `number_color`           | string  | No       | '#3e2723'               | Color of value numbers                                                                               |
+| `primary_tick_color`     | string  | No       | '#3e2723'               | Color of major tick marks                                                                            |
+| `secondary_tick_color`   | string  | No       | '#5d4e37'               | Color of minor tick marks                                                                            |
+| `needle_color`           | string  | No       | '#1a1a1a'               | Color of the needle                                                                                  |
+| `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap (see Actions)                                                               |
+| `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                                            |
+| `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                                                      |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-analog-meter-card
+entity: sensor.temperature
+title: Analog Meter
+title_font_size: 12
+ring_style: brass
+rivet_color: '#6a5816'
+plate_color: '#8c7626'
+plate_transparent: false
+min: 0
+max: 100
+unit: ''
+animation_duration: 1.2
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+segments:
+  - from: 80
+    to: 100
+    color: '#F44336'
+number_color: '#3e2723'
+primary_tick_color: '#3e2723'
+secondary_tick_color: '#5d4e37'
+needle_color: '#1a1a1a'
 ```
 
 </details>
