@@ -16581,6 +16581,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
       this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
       this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
+      this.config.bar_range_blend = this.config.bar_range_blend || "single";
       this.config.ring_style = this.config.ring_style || "brass";
       this.config.title = this.config.title || "Foundry Bar Chart";
       this.config.title_font_size = this.config.title_font_size || 14;
@@ -16641,6 +16642,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       bar_color: "#d32f2f",
+      bar_range_blend: "single",
       bar_padding: 2,
       grid_minor_color: "#cfead6",
       grid_major_color: "#8fc79d",
@@ -17076,6 +17078,8 @@ var FoundryBarChartCard = class extends HTMLElement {
     const chartBarsEl = this.shadowRoot.getElementById("chart-bars");
     const normalizedSegments = this._normalizeSegments(this.config.segments);
     const useSegmentColors = normalizedSegments.length > 0;
+    const barRangeBlend = this.config.bar_range_blend || "single";
+    const segmentBlendWidth = Number(this.config.segment_blend_width) || 0;
     if (values.length === 0) {
       if (emptyEl) emptyEl.setAttribute("visibility", "visible");
       if (chartBarsEl) chartBarsEl.innerHTML = "";
@@ -17087,6 +17091,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       const barTotalWidth = plotWidth / bucketCount;
       const barWidth = Math.max(0.5, barTotalWidth - padding);
       if (chartBarsEl) {
+        const gradientDefs = [];
         const barElements = buckets.map((bucket, index) => {
           if (bucket.value === null || bucket.value === void 0) {
             return "";
@@ -17098,6 +17103,51 @@ var FoundryBarChartCard = class extends HTMLElement {
           );
           const barHeight = Math.max(0, pct * plotHeight);
           const y = plotY + plotHeight - barHeight;
+          if (useSegmentColors && barRangeBlend === "gradient" && barHeight > 0) {
+            const rangeStart = minValue;
+            const rangeEnd = bucket.value;
+            const range = rangeEnd - rangeStart;
+            if (Number.isFinite(range) && range > 0) {
+              const gradId = `bar-grad-${this._uniqueId}-${index}`;
+              const halfBlendWidth = segmentBlendWidth / 2;
+              const clamp = (value) => Math.min(rangeEnd, Math.max(rangeStart, value));
+              const stopValues = /* @__PURE__ */ new Set([rangeStart, rangeEnd]);
+              normalizedSegments.forEach((segment) => {
+                if (segment.to <= rangeStart || segment.from >= rangeEnd)
+                  return;
+                stopValues.add(clamp(segment.from));
+                stopValues.add(clamp(segment.to));
+              });
+              if (halfBlendWidth > 0) {
+                for (let segIndex = 0; segIndex < normalizedSegments.length - 1; segIndex += 1) {
+                  const left = normalizedSegments[segIndex];
+                  const right = normalizedSegments[segIndex + 1];
+                  if (Math.abs(right.from - left.to) > 1e-6) continue;
+                  const boundary = left.to;
+                  if (boundary < rangeStart || boundary > rangeEnd) continue;
+                  stopValues.add(clamp(boundary - halfBlendWidth));
+                  stopValues.add(clamp(boundary + halfBlendWidth));
+                }
+              }
+              const orderedStops = Array.from(stopValues).filter((value) => Number.isFinite(value)).sort((a, b) => a - b).map((value) => {
+                const offset = Math.min(
+                  1,
+                  Math.max(0, (value - rangeStart) / range)
+                );
+                const color = this._getSegmentColorForValue(
+                  value,
+                  normalizedSegments,
+                  segmentBlendWidth,
+                  this.config.bar_color
+                );
+                return `<stop offset="${offset * 100}%" stop-color="${color}" />`;
+              }).join("");
+              gradientDefs.push(
+                `<linearGradient id="${gradId}" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${plotY + plotHeight}" y2="${y}">${orderedStops}</linearGradient>`
+              );
+              return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="url(#${gradId})" rx="1" ry="1"></rect>`;
+            }
+          }
           let fillColor = this.config.bar_color;
           if (useSegmentColors) {
             fillColor = this._getSegmentColorForValue(
@@ -17109,7 +17159,8 @@ var FoundryBarChartCard = class extends HTMLElement {
           }
           return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${fillColor}" rx="1" ry="1"></rect>`;
         });
-        chartBarsEl.innerHTML = barElements.join("");
+        const gradientMarkup = gradientDefs.length ? `<defs>${gradientDefs.join("")}</defs>` : "";
+        chartBarsEl.innerHTML = gradientMarkup + barElements.join("");
       }
     }
     if (this.config.show_footer && !this.config.show_x_axis_minmax) {
@@ -17470,6 +17521,15 @@ var FoundryBarChartEditor = class extends HTMLElement {
                   background: var(--card-background-color, #fff);
                   color: var(--primary-text-color);
                 }
+                .input-group select {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
                 .input-group input[type='color'] {
                   height: 36px;
                   padding: 2px;
@@ -17637,12 +17697,20 @@ var FoundryBarChartEditor = class extends HTMLElement {
       `;
     });
     const blendWidth = Number(this._config.segment_blend_width) || 0;
+    const barRangeBlend = this._config.bar_range_blend || "single";
     html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
     html += `
       <div class="segment-row" style="margin-top: 12px;">
         <div class="input-group">
           <label>Segment Blend Width</label>
           <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+        <div class="input-group">
+          <label>Bar Range Blend</label>
+          <select id="bar-range-blend">
+            <option value="single" ${barRangeBlend === "single" ? "selected" : ""}>Single Color</option>
+            <option value="gradient" ${barRangeBlend === "gradient" ? "selected" : ""}>Gradient Bar</option>
+          </select>
         </div>
       </div>
     `;
@@ -17675,6 +17743,13 @@ var FoundryBarChartEditor = class extends HTMLElement {
       blendWidthInput.addEventListener("change", (event) => {
         const blendWidth2 = Math.max(0, Number(event.target.value) || 0);
         this._updateConfig({ segment_blend_width: blendWidth2 });
+      });
+    }
+    const barRangeBlendSelect = this._segmentsContainer.querySelector("#bar-range-blend");
+    if (barRangeBlendSelect) {
+      barRangeBlendSelect.addEventListener("change", (event) => {
+        const barRangeBlend2 = event.target.value || "single";
+        this._updateConfig({ bar_range_blend: barRangeBlend2 });
       });
     }
   }

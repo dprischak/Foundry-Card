@@ -113,6 +113,15 @@ class FoundryBarChartEditor extends HTMLElement {
                   background: var(--card-background-color, #fff);
                   color: var(--primary-text-color);
                 }
+                .input-group select {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
                 .input-group input[type='color'] {
                   height: 36px;
                   padding: 2px;
@@ -313,6 +322,7 @@ class FoundryBarChartEditor extends HTMLElement {
     });
 
     const blendWidth = Number(this._config.segment_blend_width) || 0;
+    const barRangeBlend = this._config.bar_range_blend || 'single';
 
     html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
     html += `
@@ -320,6 +330,13 @@ class FoundryBarChartEditor extends HTMLElement {
         <div class="input-group">
           <label>Segment Blend Width</label>
           <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+        <div class="input-group">
+          <label>Bar Range Blend</label>
+          <select id="bar-range-blend">
+            <option value="single" ${barRangeBlend === 'single' ? 'selected' : ''}>Single Color</option>
+            <option value="gradient" ${barRangeBlend === 'gradient' ? 'selected' : ''}>Gradient Bar</option>
+          </select>
         </div>
       </div>
     `;
@@ -358,6 +375,15 @@ class FoundryBarChartEditor extends HTMLElement {
       blendWidthInput.addEventListener('change', (event) => {
         const blendWidth = Math.max(0, Number(event.target.value) || 0);
         this._updateConfig({ segment_blend_width: blendWidth });
+      });
+    }
+
+    const barRangeBlendSelect =
+      this._segmentsContainer.querySelector('#bar-range-blend');
+    if (barRangeBlendSelect) {
+      barRangeBlendSelect.addEventListener('change', (event) => {
+        const barRangeBlend = event.target.value || 'single';
+        this._updateConfig({ bar_range_blend: barRangeBlend });
       });
     }
   }
