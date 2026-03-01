@@ -1,3 +1,12 @@
+## v26.3.2
+
+### 🛠️ Improvements
+
+### 🚀 New Cards
+
+### 🐛 Defect Fixes
+
+
 ## v26.3.1
 
 ### 🛠️ Improvements
@@ -16,6 +25,7 @@
 - **PEAK LED:** Indicator that lights up with the highest color segment when the value meets its threshold.
 - **Shake Action:** Custom tap/hold/double-tap action for a fun meter shake animation.
 - **Full Theming:** Supports all standard Foundry ring styles, plate colors, aged textures, and custom themes.
+
 
 
 ## v26.2.3

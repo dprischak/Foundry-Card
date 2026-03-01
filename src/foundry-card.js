@@ -23,7 +23,7 @@ import './cards/foundry-title-editor.js';
 import './cards/foundry-analog-meter-card.js';
 import './cards/foundry-analog-meter-editor.js';
 
-const FOUNDRY_CARDS_VERSION = '26.3.1';
+const FOUNDRY_CARDS_VERSION = '26.3.2';
 
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
