@@ -1244,7 +1244,20 @@ Want to contribute or customize the cards?
    npm run build
    ```
 
-4. **Code Quality**
+4. **Run Unit Tests**
+
+```bash
+# Run unit tests once
+npm run test
+
+# Run in watch mode
+npm run test:watch
+
+# Run with coverage report
+npm run test:coverage
+```
+
+5. **Code Quality**
 
    The project enforces code quality through linting and formatting. These checks run automatically on Pull Requests and must pass.
 
@@ -1268,12 +1281,12 @@ Want to contribute or customize the cards?
    npm run format:fix
    ```
 
-5. **Commit your changes**
+6. **Commit your changes**
    ```bash
    git add .
    git commit -m "feat: add new feature" # or "fix: resolve bug"
    ```
-6. **Push and Create a Pull Request**
+7. **Push and Create a Pull Request**
    ```bash
    git push origin feature/your-feature-name
    ```

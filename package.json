@@ -5,7 +5,9 @@
   "type": "module",
   "main": "dist/foundry-card.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "build": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js && robocopy . dist themes.yaml /XO /NJH /NJS /NFL /NDL || if %ERRORLEVEL% LEQ 1 exit 0",
     "watch": "esbuild src/foundry-card.js --bundle --format=esm --target=es2020 --outfile=dist/foundry-card.js --sourcemap --watch",
     "lint": "eslint .",
@@ -44,11 +46,14 @@
   },
   "homepage": "https://github.com/dprischak/Foundry-Card#readme",
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.7",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
-    "prettier": "^3.8.1"
+    "jsdom": "^26.1.0",
+    "prettier": "^3.8.1",
+    "vitest": "^4.0.7"
   },
   "dependencies": {
     "js-yaml": "^4.1.1"
