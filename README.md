@@ -24,8 +24,6 @@ A collection of custom dashboard cards for Home Assistant that are designed with
 <p></p>
 <a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v26.3.1.gif" style="border-radius: 8px"></a>
 
-**New in v26.2.3:** theme support! You can now easily switch between predefined themes in the editor for all cards.
-
 ## Table of Contents
 
 1. [Cards Included](#cards-included)
