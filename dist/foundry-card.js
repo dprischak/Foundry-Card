@@ -253,8 +253,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function(style) {
-      map2[style].forEach(function(alias) {
+    Object.keys(map2).forEach(function (style) {
+      map2[style].forEach(function (alias) {
         result[String(alias)] = style;
       });
     });
@@ -263,7 +263,7 @@ function compileStyleAliases(map2) {
 }
 function Type$1(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function(name) {
+  Object.keys(options).forEach(function (name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -271,10 +271,10 @@ function Type$1(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function() {
+  this.resolve = options["resolve"] || function () {
     return true;
   };
-  this.construct = options["construct"] || function(data) {
+  this.construct = options["construct"] || function (data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -291,9 +291,9 @@ function Type$1(tag, options) {
 var type = Type$1;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function(currentType) {
+  schema2[name].forEach(function (currentType) {
     var newIndex = result.length;
-    result.forEach(function(previousType, previousIndex) {
+    result.forEach(function (previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -344,7 +344,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function(type$1) {
+  implicit.forEach(function (type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -355,7 +355,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function(type$1) {
+  explicit.forEach(function (type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -371,19 +371,19 @@ Schema$1.prototype.extend = function extend2(definition) {
 var schema = Schema$1;
 var str = new type("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : "";
   }
 });
 var seq = new type("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : [];
   }
 });
 var map = new type("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : {};
   }
 });
@@ -411,19 +411,19 @@ var _null = new type("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function() {
+    canonical: function () {
       return "~";
     },
-    lowercase: function() {
+    lowercase: function () {
       return "null";
     },
-    uppercase: function() {
+    uppercase: function () {
       return "NULL";
     },
-    camelcase: function() {
+    camelcase: function () {
       return "Null";
     },
-    empty: function() {
+    empty: function () {
       return "";
     }
   },
@@ -446,13 +446,13 @@ var bool = new type("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function(object) {
+    lowercase: function (object) {
       return object ? "true" : "false";
     },
-    uppercase: function(object) {
+    uppercase: function (object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function(object) {
+    camelcase: function (object) {
       return object ? "True" : "False";
     }
   },
@@ -549,17 +549,17 @@ var int = new type("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function(obj) {
+    binary: function (obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function(obj) {
+    octal: function (obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function(obj) {
+    decimal: function (obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function(obj) {
+    hexadecimal: function (obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -578,8 +578,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-  // Probably should update regexp & check speed
-  data[data.length - 1] === "_") {
+    // Probably should update regexp & check speed
+    data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -2257,7 +2257,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -2283,7 +2283,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = (function() {
+  state.dump = (function () {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2335,7 +2335,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = (function() {
+  var result = (function () {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -2659,7 +2659,7 @@ var dumper = {
   dump: dump_1
 };
 function renamed(from, to) {
-  return function() {
+  return function () {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -5589,16 +5589,16 @@ var FoundryThermometerCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-      const tubeWidth = 20;
-      const tubeX = 47.5;
-      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-      const widthPx = tubeWidth * pct / 100;
-      const xPx = tubeX + (tubeWidth - widthPx) / 2;
-      return `
+        const tubeWidth = 20;
+        const tubeX = 47.5;
+        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+        const widthPx = tubeWidth * pct / 100;
+        const xPx = tubeX + (tubeWidth - widthPx) / 2;
+        return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-    })()}
+      })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -19909,7 +19909,7 @@ if (!customElements.get("foundry-analog-meter-card-editor")) {
 }
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "26.3.1";
+var FOUNDRY_CARDS_VERSION = "26.3.2";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",

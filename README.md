@@ -22,9 +22,7 @@
 A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
 <p></p>
-<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v3.gif" style="border-radius: 8px"></a>
-
-**New in v26.2.3:** theme support! You can now easily switch between predefined themes in the editor for all cards.
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v26.3.1.gif" style="border-radius: 8px"></a>
 
 ## Table of Contents
 
@@ -194,10 +192,12 @@ A decorative metallic title plate for grouping dashboard sections:
 
 A vintage VU-style analog meter:
 
-- Landscape rectangular chassis with thin needle
-- Numbers above tick marks with connecting lines
-- Color-coded arc segments with PEAK LED indicator
-- Shake action for fun visual feedback
+- Landscape Design: Wide rectangular form factor with a rectangular rim, matching the entities card style.
+- VU Meter Arc: Numbers displayed below tick marks with thin connecting lines, like a classic VU meter.
+- PEAK LED: Indicator that lights up with the highest color segment when the value meets its threshold.
+- Shake Action: Custom tap/hold/double-tap action for a fun meter shake animation.
+- Full Theming: Supports all standard Foundry ring styles, plate colors, aged textures, and custom themes.
+
 
 <a name="installation"></a>
 
@@ -1391,8 +1391,15 @@ Then open a pull request on GitHub with a clear description of your changes.
 
 Future cards planned for the Foundry Card collection:
 
+2023.3.2
 - Bar Chart
+2023.3.3
+- Digital VU Meter
+
+Future
+- Standard Odometer
 - Industrial Energy Map
+- Automated Unit Testing
 
 <a name="support"></a>
 
