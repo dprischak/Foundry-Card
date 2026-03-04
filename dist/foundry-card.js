@@ -253,8 +253,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function (style) {
-      map2[style].forEach(function (alias) {
+    Object.keys(map2).forEach(function(style) {
+      map2[style].forEach(function(alias) {
         result[String(alias)] = style;
       });
     });
@@ -263,7 +263,7 @@ function compileStyleAliases(map2) {
 }
 function Type$1(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function (name) {
+  Object.keys(options).forEach(function(name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -271,10 +271,10 @@ function Type$1(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function () {
+  this.resolve = options["resolve"] || function() {
     return true;
   };
-  this.construct = options["construct"] || function (data) {
+  this.construct = options["construct"] || function(data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -291,9 +291,9 @@ function Type$1(tag, options) {
 var type = Type$1;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function (currentType) {
+  schema2[name].forEach(function(currentType) {
     var newIndex = result.length;
-    result.forEach(function (previousType, previousIndex) {
+    result.forEach(function(previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -344,7 +344,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function (type$1) {
+  implicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -355,7 +355,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function (type$1) {
+  explicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -371,19 +371,19 @@ Schema$1.prototype.extend = function extend2(definition) {
 var schema = Schema$1;
 var str = new type("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : "";
   }
 });
 var seq = new type("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : [];
   }
 });
 var map = new type("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : {};
   }
 });
@@ -411,19 +411,19 @@ var _null = new type("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function () {
+    canonical: function() {
       return "~";
     },
-    lowercase: function () {
+    lowercase: function() {
       return "null";
     },
-    uppercase: function () {
+    uppercase: function() {
       return "NULL";
     },
-    camelcase: function () {
+    camelcase: function() {
       return "Null";
     },
-    empty: function () {
+    empty: function() {
       return "";
     }
   },
@@ -446,13 +446,13 @@ var bool = new type("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function (object) {
+    lowercase: function(object) {
       return object ? "true" : "false";
     },
-    uppercase: function (object) {
+    uppercase: function(object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function (object) {
+    camelcase: function(object) {
       return object ? "True" : "False";
     }
   },
@@ -549,17 +549,17 @@ var int = new type("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function (obj) {
+    binary: function(obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function (obj) {
+    octal: function(obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function (obj) {
+    decimal: function(obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function (obj) {
+    hexadecimal: function(obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -578,8 +578,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-    // Probably should update regexp & check speed
-    data[data.length - 1] === "_") {
+  // Probably should update regexp & check speed
+  data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -2257,7 +2257,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -2283,7 +2283,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = (function () {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2335,7 +2335,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = (function () {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -2659,7 +2659,7 @@ var dumper = {
   dump: dump_1
 };
 function renamed(from, to) {
-  return function () {
+  return function() {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -5589,16 +5589,16 @@ var FoundryThermometerCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -16531,6 +16531,1649 @@ var FoundryTitleEditor = class extends HTMLElement {
 };
 if (!customElements.get("foundry-title-editor")) {
   customElements.define("foundry-title-editor", FoundryTitleEditor);
+}
+
+// src/cards/foundry-bar-chart-card.js
+var FoundryBarChartCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._inspectActive = false;
+    this._inspectBucketIndex = null;
+    this._activeInspectPointerId = null;
+    this._lastInspectPointerType = null;
+    this._inspectGestureMoved = false;
+    this._suppressMoreInfoClickUntil = 0;
+    this._chartBuckets = [];
+    this._chartBucketCount = 0;
+    this._chartGeometry = null;
+    this._chartValueUnit = "";
+    this._boundHandleClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction("tap");
+    };
+    this._boundHandleDblClick = () => {
+      if (Date.now() < this._suppressMoreInfoClickUntil) return;
+      this._handleAction("double_tap");
+    };
+    this._boundHandleContextMenu = (event) => {
+      event.preventDefault();
+      this._handleAction("hold");
+    };
+  }
+  setConfig(config) {
+    this.config = {
+      ...config,
+      chart: { ...config.chart || {} }
+    };
+    const applyDefaultsAndRender = () => {
+      if (!this.config.entity) {
+        throw new Error("Entity is required");
+      }
+      this.config.hours_to_show = this.config.hours_to_show || 24;
+      this.config.update_interval = this.config.update_interval || 60;
+      this.config.bucket_count = this.config.bucket_count || 50;
+      this.config.bucket_minutes = this.config.bucket_minutes || null;
+      this.config.aggregation = this.config.aggregation || "avg";
+      this.config.show_footer = this.config.show_footer !== void 0 ? this.config.show_footer : true;
+      this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
+      this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
+      this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
+      this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
+      this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
+      this.config.bar_range_blend = this.config.bar_range_blend || "single";
+      this.config.ring_style = this.config.ring_style || "brass";
+      this.config.title = this.config.title || "Foundry Bar Chart";
+      this.config.title_font_size = this.config.title_font_size || 14;
+      this.config.title_color = this.config.title_color || "#3e2723";
+      this.config.plate_color = this.config.plate_color || "#f5f5f5";
+      this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+      this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+      this.config.font_color = this.config.font_color || "#000000";
+      this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
+      this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
+      this.config.bar_color = this.config.bar_color || "#d32f2f";
+      this.config.bar_padding = this.config.bar_padding || 2;
+      this.config.fill_under_line = this.config.fill_under_line !== void 0 ? this.config.fill_under_line : false;
+      this.config.grid_minor_color = this.config.grid_minor_color || "#cfead6";
+      this.config.grid_major_color = this.config.grid_major_color || "#8fc79d";
+      this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
+      this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      ensureLedFont();
+      this._rendered = false;
+      if (this._history) {
+        this._renderHistory();
+      } else {
+        this.render();
+      }
+      if (this._interval) clearInterval(this._interval);
+      this._interval = setInterval(
+        () => this._fetchHistory(),
+        this.config.update_interval * 1e3
+      );
+    };
+    if (this.config.theme && this.config.theme !== "none") {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+        }
+        applyDefaultsAndRender();
+      });
+    } else {
+      applyDefaultsAndRender();
+    }
+  }
+  static getStubConfig() {
+    return {
+      entity: "sensor.temperature",
+      title: "Foundry Bar Chart",
+      title_color: "#3e2723",
+      hours_to_show: 24,
+      bucket_count: 50,
+      bucket_minutes: null,
+      update_interval: 60,
+      ring_style: "brass",
+      rivet_color: "#6a5816",
+      plate_color: "#8c7626",
+      plate_transparent: false,
+      font_bg_color: "#ffffff",
+      font_color: "#000000",
+      wear_level: 50,
+      glass_effect_enabled: true,
+      bar_color: "#d32f2f",
+      bar_range_blend: "single",
+      bar_padding: 2,
+      grid_minor_color: "#cfead6",
+      grid_major_color: "#8fc79d",
+      grid_opacity: 0.6,
+      value_precision: 2,
+      aggregation: "avg",
+      show_inspect_value: true,
+      show_x_axis_minmax: false,
+      show_y_axis_minmax: false,
+      segments: [],
+      segment_blend_width: 0
+    };
+  }
+  _normalizeSegments(segments) {
+    if (!Array.isArray(segments)) return [];
+    return segments.map((segment) => ({
+      from: Number(segment?.from),
+      to: Number(segment?.to),
+      color: typeof segment?.color === "string" ? segment.color : null
+    })).filter(
+      (segment) => Number.isFinite(segment.from) && Number.isFinite(segment.to) && segment.to > segment.from && !!segment.color
+    ).sort((a, b) => a.from - b.from);
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    let normalized = hex.trim();
+    if (!normalized.startsWith("#")) return null;
+    normalized = normalized.slice(1);
+    if (normalized.length === 3) {
+      normalized = normalized.split("").map((char) => char + char).join("");
+    }
+    if (normalized.length !== 6) return null;
+    const value = Number.parseInt(normalized, 16);
+    if (!Number.isFinite(value)) return null;
+    return {
+      r: value >> 16 & 255,
+      g: value >> 8 & 255,
+      b: value & 255
+    };
+  }
+  _rgbToHex(rgb) {
+    if (!rgb) return null;
+    const clamp = (value) => Math.max(0, Math.min(255, Math.round(Number(value) || 0)));
+    const r = clamp(rgb.r);
+    const g = clamp(rgb.g);
+    const b = clamp(rgb.b);
+    return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+  }
+  _blendHexColors(colorA, colorB, ratio) {
+    const rgbA = this._hexToRgb(colorA);
+    const rgbB = this._hexToRgb(colorB);
+    if (!rgbA) return colorB;
+    if (!rgbB) return colorA;
+    const t = Math.max(0, Math.min(1, Number(ratio) || 0));
+    return this._rgbToHex({
+      r: rgbA.r + (rgbB.r - rgbA.r) * t,
+      g: rgbA.g + (rgbB.g - rgbA.g) * t,
+      b: rgbA.b + (rgbB.b - rgbA.b) * t
+    });
+  }
+  _getSegmentColorForValue(value, normalizedSegments, blendWidth, fallbackColor) {
+    if (!Number.isFinite(value) || normalizedSegments.length === 0) {
+      return fallbackColor;
+    }
+    const halfBlendWidth = Math.max(0, Number(blendWidth) || 0) / 2;
+    if (halfBlendWidth > 0) {
+      for (let index = 0; index < normalizedSegments.length - 1; index += 1) {
+        const left = normalizedSegments[index];
+        const right = normalizedSegments[index + 1];
+        if (Math.abs(right.from - left.to) > 1e-6) continue;
+        const boundary = left.to;
+        const blendStart = boundary - halfBlendWidth;
+        const blendEnd = boundary + halfBlendWidth;
+        if (value >= blendStart && value <= blendEnd) {
+          const ratio = (value - blendStart) / (blendEnd - blendStart);
+          return this._blendHexColors(left.color, right.color, ratio);
+        }
+      }
+    }
+    const matchedSegment = normalizedSegments.find(
+      (segment) => value >= segment.from && value <= segment.to
+    );
+    return matchedSegment?.color || fallbackColor;
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (!this._lastFetch || /* @__PURE__ */ new Date() - this._lastFetch > this.config.update_interval * 1e3) {
+      this._fetchHistory();
+    } else {
+      this._updateValues();
+    }
+  }
+  disconnectedCallback() {
+    if (this._interval) clearInterval(this._interval);
+  }
+  async _fetchHistory() {
+    if (!this._hass) return;
+    this._lastFetch = /* @__PURE__ */ new Date();
+    const entityId = this.config.entity;
+    const hours = this.config.hours_to_show;
+    const startTime = /* @__PURE__ */ new Date();
+    startTime.setHours(startTime.getHours() - hours);
+    const isoStart = startTime.toISOString();
+    try {
+      const history2 = await this._hass.callApi(
+        "GET",
+        `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${(/* @__PURE__ */ new Date()).toISOString()}`
+      );
+      if (history2 && history2.length > 0) {
+        this._history = history2[0];
+      } else {
+        this._history = [];
+      }
+      this._renderHistory();
+    } catch (e) {
+      console.error("Foundry Bar Chart: Fetch error", e);
+    }
+  }
+  _renderHistory() {
+    this.render();
+    this._updateValues();
+  }
+  _getChartGeometry(chartWidth, chartHeight) {
+    const parsedLineWidth = Number.parseFloat(this.config.bar_padding);
+    const lineWidth = Number.isFinite(parsedLineWidth) && parsedLineWidth > 0 ? parsedLineWidth : 2;
+    const borderStrokeWidth = 1;
+    const safetyPadding = 0.5;
+    const desiredInset = lineWidth / 2 + borderStrokeWidth / 2 + safetyPadding;
+    const maxInset = Math.max(1, Math.min(chartWidth, chartHeight) / 2 - 0.5);
+    const inset = Math.min(desiredInset, maxInset);
+    const plotWidth = Math.max(1, chartWidth - inset * 2);
+    const plotHeight = Math.max(1, chartHeight - inset * 2);
+    return {
+      lineWidth,
+      plotX: inset,
+      plotY: inset,
+      plotWidth,
+      plotHeight,
+      plotBottom: inset + plotHeight,
+      plotRx: Math.max(0, 8 - inset),
+      plotRy: Math.max(0, 8 - inset)
+    };
+  }
+  _getCurrentEntityValue() {
+    const currentState = this._hass?.states?.[this.config.entity];
+    const unit = currentState?.attributes?.unit_of_measurement || "";
+    const parsed = Number.parseFloat(currentState?.state);
+    const value = Number.isFinite(parsed) ? parsed : null;
+    return { value, unit };
+  }
+  _formatValue(value, unit = "") {
+    if (value === null || value === void 0 || !Number.isFinite(value)) {
+      return "--";
+    }
+    return `${value.toFixed(this.config.value_precision)}${unit}`;
+  }
+  _renderChartValueText(currentValue, unit) {
+    const valueEl = this.shadowRoot.getElementById("chart-value");
+    if (!valueEl) return;
+    let text = this._formatValue(currentValue, unit);
+    if (this._inspectActive && this.config.show_inspect_value && Number.isInteger(this._inspectBucketIndex) && this._inspectBucketIndex >= 0 && this._inspectBucketIndex < this._chartBuckets.length) {
+      const bucketValue = this._chartBuckets[this._inspectBucketIndex]?.value;
+      text = this._formatValue(bucketValue, unit);
+    }
+    valueEl.textContent = text;
+    valueEl.setAttribute("fill", this.config.font_color);
+  }
+  _getInspectLineX() {
+    if (!this._chartGeometry || !Number.isInteger(this._inspectBucketIndex) || this._inspectBucketIndex < 0 || this._inspectBucketIndex >= this._chartBucketCount) {
+      return null;
+    }
+    if (this._chartBucketCount <= 1) {
+      return this._chartGeometry.plotX;
+    }
+    const step = this._chartGeometry.plotWidth / (this._chartBucketCount - 1);
+    return this._chartGeometry.plotX + this._inspectBucketIndex * step;
+  }
+  _renderInspectLine() {
+    const inspectLineEl = this.shadowRoot.getElementById("chart-inspect-line");
+    if (!inspectLineEl) return;
+    if (!this._inspectActive || !this.config.show_inspect_value) {
+      inspectLineEl.setAttribute("visibility", "hidden");
+      return;
+    }
+    const x = this._getInspectLineX();
+    if (x === null) {
+      inspectLineEl.setAttribute("visibility", "hidden");
+      return;
+    }
+    inspectLineEl.setAttribute("x1", x);
+    inspectLineEl.setAttribute("x2", x);
+    inspectLineEl.setAttribute("y1", this._chartGeometry.plotY);
+    inspectLineEl.setAttribute("y2", this._chartGeometry.plotBottom);
+    inspectLineEl.setAttribute("stroke", this.config.bar_color);
+    inspectLineEl.setAttribute("visibility", "visible");
+  }
+  _setInspectState(active, bucketIndex = null) {
+    this._inspectActive = active;
+    this._inspectBucketIndex = Number.isInteger(bucketIndex) && bucketIndex >= 0 ? bucketIndex : null;
+    const { value, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(value, unit);
+    this._renderInspectLine();
+  }
+  _updateInspectFromPointerEvent(event, layerEl) {
+    if (!layerEl || !this._chartGeometry || this._chartBucketCount < 1) return;
+    const bounds = layerEl.getBoundingClientRect();
+    if (!bounds.width) return;
+    const clampedX = Math.min(
+      Math.max(event.clientX - bounds.left, 0),
+      bounds.width
+    );
+    const chartX = clampedX / bounds.width * 200;
+    const plotStart = this._chartGeometry.plotX;
+    const plotEnd = this._chartGeometry.plotX + this._chartGeometry.plotWidth;
+    const clampedPlotX = Math.min(Math.max(chartX, plotStart), plotEnd);
+    const index = this._chartBucketCount <= 1 ? 0 : Math.round(
+      (clampedPlotX - plotStart) / this._chartGeometry.plotWidth * (this._chartBucketCount - 1)
+    );
+    this._setInspectState(true, index);
+  }
+  _bindChartInteractions() {
+    const layerEl = this.shadowRoot.getElementById("chart-interaction-layer");
+    if (!layerEl) return;
+    const clearActivePointer = () => {
+      this._activeInspectPointerId = null;
+      this._lastInspectPointerType = null;
+      this._inspectGestureMoved = false;
+    };
+    layerEl.addEventListener("pointermove", (event) => {
+      const isMouseHover = event.pointerType === "mouse" && event.buttons === 0;
+      if (isMouseHover) {
+        this._updateInspectFromPointerEvent(event, layerEl);
+        return;
+      }
+      if (this._activeInspectPointerId === event.pointerId) {
+        this._inspectGestureMoved = true;
+        this._updateInspectFromPointerEvent(event, layerEl);
+      }
+    });
+    layerEl.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      this._activeInspectPointerId = event.pointerId;
+      this._lastInspectPointerType = event.pointerType;
+      this._inspectGestureMoved = false;
+      if (layerEl.setPointerCapture) {
+        layerEl.setPointerCapture(event.pointerId);
+      }
+      this._updateInspectFromPointerEvent(event, layerEl);
+    });
+    const handlePointerEnd = (event) => {
+      if (this._activeInspectPointerId !== event.pointerId) return;
+      if (layerEl.releasePointerCapture) {
+        try {
+          layerEl.releasePointerCapture(event.pointerId);
+        } catch (_e) {
+          this._activeInspectPointerId = null;
+        }
+      }
+      if (this._lastInspectPointerType !== "mouse" && this._inspectGestureMoved) {
+        this._suppressMoreInfoClickUntil = Date.now() + 350;
+      }
+      clearActivePointer();
+      this._setInspectState(false);
+    };
+    layerEl.addEventListener("pointerup", handlePointerEnd);
+    layerEl.addEventListener("pointercancel", handlePointerEnd);
+    layerEl.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse") {
+        this._setInspectState(false);
+      }
+    });
+  }
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.removeEventListener("dblclick", this._boundHandleDblClick);
+    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
+    root.addEventListener("contextmenu", this._boundHandleContextMenu);
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    handleAction(this, this._hass, this.config, actionConfig);
+  }
+  _updateValues() {
+    if (!this.shadowRoot) return;
+    if (!this._history) return;
+    const now = /* @__PURE__ */ new Date();
+    const hours = this.config.hours_to_show;
+    const startTime = new Date(now.getTime() - hours * 3600 * 1e3);
+    const startTs = startTime.getTime();
+    const endTs = now.getTime();
+    const totalDuration = endTs - startTs;
+    const chartWidth = 200;
+    const chartHeight = 60;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
+    const bucketCount = Math.max(
+      10,
+      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.bucket_count || 50
+    );
+    const bucketDur = totalDuration / bucketCount;
+    const segments = [];
+    let currentValue = null;
+    let lastChangeTs = startTs;
+    if (this._history.length > 0) {
+      const sortedHistory = [...this._history].sort(
+        (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+      );
+      for (const entry of sortedHistory) {
+        const t = new Date(entry.last_changed).getTime();
+        const parsed = parseFloat(entry.state);
+        const value = Number.isFinite(parsed) ? parsed : null;
+        if (t <= startTs) {
+          currentValue = value;
+          lastChangeTs = startTs;
+          continue;
+        }
+        if (t > lastChangeTs) {
+          segments.push({ start: lastChangeTs, end: t, value: currentValue });
+        }
+        currentValue = value;
+        lastChangeTs = t;
+      }
+    } else {
+      const currentState = this._hass.states[this.config.entity]?.state;
+      const parsed = parseFloat(currentState);
+      currentValue = Number.isFinite(parsed) ? parsed : null;
+    }
+    if (lastChangeTs < endTs) {
+      segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
+    }
+    const buckets = [];
+    const aggregation = this.config.aggregation || "avg";
+    for (let i = 0; i < bucketCount; i++) {
+      const bStart = startTs + i * bucketDur;
+      const bEnd = bStart + bucketDur;
+      let weightedSum = 0;
+      let weightedDur = 0;
+      let minValue2 = null;
+      let maxValue2 = null;
+      for (const seg of segments) {
+        if (seg.value === null || seg.value === void 0) continue;
+        const overlapStart = Math.max(seg.start, bStart);
+        const overlapEnd = Math.min(seg.end, bEnd);
+        if (overlapEnd > overlapStart) {
+          const dur = overlapEnd - overlapStart;
+          if (aggregation === "min") {
+            minValue2 = minValue2 === null ? seg.value : Math.min(minValue2, seg.value);
+          } else if (aggregation === "max") {
+            maxValue2 = maxValue2 === null ? seg.value : Math.max(maxValue2, seg.value);
+          } else {
+            weightedSum += seg.value * dur;
+            weightedDur += dur;
+          }
+        }
+      }
+      let value = null;
+      if (aggregation === "min") {
+        value = minValue2;
+      } else if (aggregation === "max") {
+        value = maxValue2;
+      } else {
+        value = weightedDur > 0 ? weightedSum / weightedDur : null;
+      }
+      buckets.push({ id: i, value });
+    }
+    const values = buckets.map((b) => b.value).filter((v) => v !== null && v !== void 0);
+    let minValue = this.config.min_value;
+    let maxValue = this.config.max_value;
+    if (minValue === void 0 || minValue === null) {
+      minValue = values.length ? Math.min(...values) : 0;
+    }
+    if (maxValue === void 0 || maxValue === null) {
+      maxValue = values.length ? Math.max(...values) : 1;
+    }
+    if (minValue === maxValue) {
+      minValue -= 1;
+      maxValue += 1;
+    }
+    this._chartBuckets = buckets;
+    this._chartBucketCount = bucketCount;
+    this._chartGeometry = chartGeometry;
+    const { value: currentDisplayValue, unit } = this._getCurrentEntityValue();
+    this._chartValueUnit = unit;
+    this._renderChartValueText(currentDisplayValue, unit);
+    this._renderInspectLine();
+    const xAxisMinEl = this.shadowRoot.getElementById("x-axis-min");
+    const xAxisMaxEl = this.shadowRoot.getElementById("x-axis-max");
+    const yAxisMinEl = this.shadowRoot.getElementById("y-axis-min");
+    const yAxisMaxEl = this.shadowRoot.getElementById("y-axis-max");
+    if (xAxisMinEl && xAxisMaxEl) {
+      if (this.config.show_x_axis_minmax) {
+        xAxisMinEl.textContent = this._formatAxisTime(startTime);
+        xAxisMaxEl.textContent = this._formatAxisTime(now);
+        xAxisMinEl.setAttribute("fill", this.config.font_color);
+        xAxisMaxEl.setAttribute("fill", this.config.font_color);
+        xAxisMinEl.setAttribute("visibility", "visible");
+        xAxisMaxEl.setAttribute("visibility", "visible");
+      } else {
+        xAxisMinEl.setAttribute("visibility", "hidden");
+        xAxisMaxEl.setAttribute("visibility", "hidden");
+      }
+    }
+    if (yAxisMinEl && yAxisMaxEl) {
+      if (this.config.show_y_axis_minmax) {
+        yAxisMinEl.textContent = this._formatValue(minValue, unit);
+        yAxisMaxEl.textContent = this._formatValue(maxValue, unit);
+        yAxisMinEl.setAttribute("fill", this.config.font_color);
+        yAxisMaxEl.setAttribute("fill", this.config.font_color);
+        yAxisMinEl.setAttribute("visibility", "visible");
+        yAxisMaxEl.setAttribute("visibility", "visible");
+      } else {
+        yAxisMinEl.setAttribute("visibility", "hidden");
+        yAxisMaxEl.setAttribute("visibility", "hidden");
+      }
+    }
+    const emptyEl = this.shadowRoot.getElementById("chart-empty");
+    const chartBarsEl = this.shadowRoot.getElementById("chart-bars");
+    const normalizedSegments = this._normalizeSegments(this.config.segments);
+    const useSegmentColors = normalizedSegments.length > 0;
+    const barRangeBlend = this.config.bar_range_blend || "single";
+    const segmentBlendWidth = Number(this.config.segment_blend_width) || 0;
+    if (values.length === 0) {
+      if (emptyEl) emptyEl.setAttribute("visibility", "visible");
+      if (chartBarsEl) chartBarsEl.innerHTML = "";
+    } else {
+      if (emptyEl) emptyEl.setAttribute("visibility", "hidden");
+      const { plotX, plotY, plotWidth, plotHeight } = chartGeometry;
+      const parsedPadding = Number.parseFloat(this.config.bar_padding);
+      const padding = Number.isFinite(parsedPadding) ? parsedPadding : 2;
+      const barTotalWidth = plotWidth / bucketCount;
+      const barWidth = Math.max(0.5, barTotalWidth - padding);
+      if (chartBarsEl) {
+        const gradientDefs = [];
+        const barElements = buckets.map((bucket, index) => {
+          if (bucket.value === null || bucket.value === void 0) {
+            return "";
+          }
+          const x = plotX + index * barTotalWidth + padding / 2;
+          const pct = Math.max(
+            0,
+            Math.min(1, (bucket.value - minValue) / (maxValue - minValue))
+          );
+          const barHeight = Math.max(0, pct * plotHeight);
+          const y = plotY + plotHeight - barHeight;
+          if (useSegmentColors && barRangeBlend === "gradient" && barHeight > 0) {
+            const rangeStart = minValue;
+            const rangeEnd = bucket.value;
+            const range = rangeEnd - rangeStart;
+            if (Number.isFinite(range) && range > 0) {
+              const gradId = `bar-grad-${this._uniqueId}-${index}`;
+              const halfBlendWidth = segmentBlendWidth / 2;
+              const clamp = (value) => Math.min(rangeEnd, Math.max(rangeStart, value));
+              const stopValues = /* @__PURE__ */ new Set([rangeStart, rangeEnd]);
+              normalizedSegments.forEach((segment) => {
+                if (segment.to <= rangeStart || segment.from >= rangeEnd)
+                  return;
+                stopValues.add(clamp(segment.from));
+                stopValues.add(clamp(segment.to));
+              });
+              if (halfBlendWidth > 0) {
+                for (let segIndex = 0; segIndex < normalizedSegments.length - 1; segIndex += 1) {
+                  const left = normalizedSegments[segIndex];
+                  const right = normalizedSegments[segIndex + 1];
+                  if (Math.abs(right.from - left.to) > 1e-6) continue;
+                  const boundary = left.to;
+                  if (boundary < rangeStart || boundary > rangeEnd) continue;
+                  stopValues.add(clamp(boundary - halfBlendWidth));
+                  stopValues.add(clamp(boundary + halfBlendWidth));
+                }
+              }
+              const orderedStops = Array.from(stopValues).filter((value) => Number.isFinite(value)).sort((a, b) => a - b).map((value) => {
+                const offset = Math.min(
+                  1,
+                  Math.max(0, (value - rangeStart) / range)
+                );
+                const color = this._getSegmentColorForValue(
+                  value,
+                  normalizedSegments,
+                  segmentBlendWidth,
+                  this.config.bar_color
+                );
+                return `<stop offset="${offset * 100}%" stop-color="${color}" />`;
+              }).join("");
+              gradientDefs.push(
+                `<linearGradient id="${gradId}" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${plotY + plotHeight}" y2="${y}">${orderedStops}</linearGradient>`
+              );
+              return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="url(#${gradId})" rx="1" ry="1"></rect>`;
+            }
+          }
+          let fillColor = this.config.bar_color;
+          if (useSegmentColors) {
+            fillColor = this._getSegmentColorForValue(
+              bucket.value,
+              normalizedSegments,
+              0,
+              this.config.bar_color
+            );
+          }
+          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${fillColor}" rx="1" ry="1"></rect>`;
+        });
+        const gradientMarkup = gradientDefs.length ? `<defs>${gradientDefs.join("")}</defs>` : "";
+        chartBarsEl.innerHTML = gradientMarkup + barElements.join("");
+      }
+    }
+    if (this.config.show_footer && !this.config.show_x_axis_minmax) {
+      const startEl = this.shadowRoot.getElementById("footer-start");
+      const endEl = this.shadowRoot.getElementById("footer-end");
+      if (startEl && endEl) {
+        startEl.textContent = this._timeAgo(startTime);
+        endEl.textContent = "Now";
+      }
+    }
+  }
+  _timeAgo(date) {
+    const diff = (/* @__PURE__ */ new Date() - date) / 1e3;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+  _formatAxisTime(date) {
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+  render() {
+    if (this._rendered) return;
+    this._rendered = true;
+    const config = this.config;
+    const title = config.title;
+    const uid = this._uniqueId;
+    const fontBgColor = config.font_bg_color;
+    const rimStyle = config.ring_style;
+    const rivetColor = config.rivet_color;
+    const plateColor = config.plate_color;
+    const plateTransparent = config.plate_transparent;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
+    const plateWidth = 280;
+    const plateHeight = 190;
+    const rimWidth = 240;
+    const rimGap = 10;
+    const plateInset = 5;
+    const rivetOffset = 15;
+    const topRivetY = plateInset + rivetOffset;
+    const bottomRivetY = plateHeight - plateInset - rivetOffset;
+    const rimX = (plateWidth - rimWidth) / 2;
+    const rimY = topRivetY + rimGap;
+    const rimHeight = bottomRivetY - rimGap - rimY;
+    const chartWidth = 200;
+    const chartHeight = 60;
+    const axisLabelFontSize = 10;
+    const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
+    const chartX = rimX + (rimWidth - chartWidth) / 2;
+    const chartY = rimY + 32;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; }
+        ha-card { background: transparent; container-type: inline-size; }
+        .card { position: relative; }
+        .container { width: 100%; max-width: 520px; margin: 0 auto; }
+        .vector-svg { width: 100%; height: auto; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3)); }
+        .rivet { fill: ${rivetColor}; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4)); }
+        .screw-detail { stroke: #4a4034; stroke-width: 0.5; fill: none; }
+        .digital-font { font-family: 'ds-digitaldot', monospace; }
+        .label-font { font-family: 'ds-digitaldot', monospace; letter-spacing: 1px; }
+      </style>
+      <ha-card>
+        <div class="card" id="actionRoot">
+          <div class="container">
+            <svg class="vector-svg" viewBox="0 0 ${plateWidth} ${plateHeight}" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                 ${this.renderGradients(uid)}
+                 <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+                   <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                   <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
+                   <feComponentTransfer result="grainTexture">
+                        <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                        <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                        <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                   </feComponentTransfer>
+                   <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
+                 </filter>
+                 <filter id="inner-shadow-${uid}">
+                    <feFlood flood-color="black"/>
+                    <feComposite operator="out" in2="SourceGraphic"/>
+                    <feGaussianBlur stdDeviation="2"/>
+                    <feComposite operator="atop" in2="SourceGraphic"/>
+                 </filter>
+                 <linearGradient id="tubeGlare-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.4)" />
+                    <stop offset="40%" style="stop-color:rgba(255,255,255,0.1)" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0)" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0.2)" />
+                 </linearGradient>
+                 <linearGradient id="screenGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
+                    <stop offset="100%" style="stop-color:#000;stop-opacity:0.2" />
+                 </linearGradient>
+                 
+                 <pattern id="gridMinor-${uid}" width="10" height="10" patternUnits="userSpaceOnUse">
+                   <path d="M10 0 L0 0 0 10" fill="none" stroke="${config.grid_minor_color}" stroke-width="0.5" opacity="${config.grid_opacity}" />
+                 </pattern>
+                 <pattern id="gridMajor-${uid}" width="50" height="50" patternUnits="userSpaceOnUse">
+                   <path d="M50 0 L0 0 0 50" fill="none" stroke="${config.grid_major_color}" stroke-width="0.8" opacity="${config.grid_opacity}" />
+                 </pattern>
+              </defs>
+
+              <rect x="5" y="5" width="${plateWidth - 10}" height="${plateHeight - 10}" rx="20" ry="20" 
+                    fill="${plateTransparent ? "none" : plateColor}" 
+                    filter="${effectiveAgedTexture === "everywhere" && !plateTransparent ? `url(#aged-${uid}) drop-shadow(1px 1px 2px rgba(0,0,0,0.3))` : "drop-shadow(1px 1px 2px rgba(0,0,0,0.3))"}" />
+
+              ${this.renderRivets(plateWidth - 10, plateHeight - 10, 5, 5)}
+
+              ${this.renderSquareRim(rimStyle, uid, fontBgColor, config.glass_effect_enabled, rimX, rimY, rimWidth, rimHeight, agedTextureOnFace)}
+
+              <text id="chart-title" x="${plateWidth / 2}" y="24" text-anchor="middle" font-size="${config.title_font_size}" font-weight="bold" fill="${config.title_color}" style="font-family: Georgia, serif; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);">${title}</text>
+
+              <text id="chart-value" x="${rimX + rimWidth - 24}" y="${rimY + 26}" font-size="13" font-family="ds-digitaldot" text-anchor="end" fill="${config.font_color}" style="letter-spacing:1px;">--</text>
+
+              <g transform="translate(${chartX}, ${chartY})">
+                  <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="${fontBgColor}" />
+                  <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#gridMinor-${uid})" />
+                  <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#gridMajor-${uid})" />
+
+                  <clipPath id="chartClip-${uid}">
+                      <rect x="${chartGeometry.plotX}" y="${chartGeometry.plotY}" width="${chartGeometry.plotWidth}" height="${chartGeometry.plotHeight}" rx="${chartGeometry.plotRx}" ry="${chartGeometry.plotRy}" />
+                  </clipPath>
+
+                  <g clip-path="url(#chartClip-${uid})">
+                      <g id="chart-bars"></g>
+                      <line id="chart-inspect-line" x1="0" y1="${chartGeometry.plotY}" x2="0" y2="${chartGeometry.plotBottom}" stroke="${config.bar_color}" stroke-width="1" opacity="0.95" visibility="hidden" pointer-events="none"></line>
+                  </g>
+
+                  <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="url(#tubeGlare-${uid})" style="pointer-events: none;"/>
+                  <rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" />
+                    <rect id="chart-interaction-layer" x="0" y="0" width="${chartWidth}" height="${chartHeight}" rx="8" ry="8" fill="transparent" style="touch-action: none;" />
+                  <text id="x-axis-min" x="${chartGeometry.plotX}" y="${chartHeight + 10}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="x-axis-max" x="${chartGeometry.plotX + chartGeometry.plotWidth}" y="${chartHeight + 10}" text-anchor="end" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-min" x="3" y="${chartGeometry.plotBottom - 2}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="y-axis-max" x="3" y="${chartGeometry.plotY + 8}" text-anchor="start" font-size="${axisLabelFontSize}" fill="${config.font_color}" class="label-font" visibility="hidden">--</text>
+                  <text id="chart-empty" x="${chartWidth / 2}" y="${chartHeight / 2 + 4}" text-anchor="middle" font-size="12" fill="${config.font_color}" class="label-font" visibility="hidden">No data</text>
+              </g>
+
+              ${config.show_footer && !config.show_x_axis_minmax ? `
+                    <text id="footer-start" x="${rimX + 24}" y="${rimY + rimHeight - 16}" text-anchor="start" font-size="12" fill="${config.font_color}" class="label-font">...</text>
+                    <text id="footer-end" x="${rimX + rimWidth - 24}" y="${rimY + rimHeight - 16}" text-anchor="end" font-size="12" fill="${config.font_color}" class="label-font">Now</text>
+              ` : ""}
+
+              ${this.renderWearMarks(config.wear_level, plateHeight)}
+            </svg>
+          </div>
+        </div>
+      </ha-card>
+    `;
+    const cardEl = this.shadowRoot.querySelector(".card");
+    if (cardEl) {
+      cardEl.style.cursor = "pointer";
+    }
+    this._attachActionListeners();
+    this._bindChartInteractions();
+  }
+  renderRivets(w, h, x, y) {
+    const offset = 15;
+    const rivets = [
+      { cx: x + offset, cy: y + offset },
+      { cx: x + w - offset, cy: y + offset },
+      { cx: x + offset, cy: y + h - offset },
+      { cx: x + w - offset, cy: y + h - offset }
+    ];
+    return rivets.map(
+      (r) => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `
+    ).join("");
+  }
+  renderWearMarks(wearLevel, viewBoxHeight) {
+    if (wearLevel === 0) return "";
+    const baseOpacity = wearLevel / 100 * 0.25;
+    return `
+        <circle cx="50" cy="45" r="2" fill="#8B7355" opacity="${Math.min(0.2 * (wearLevel / 50), 0.25)}"/>
+        <circle cx="210" cy="${viewBoxHeight - 40}" r="1.5" fill="#8B7355" opacity="${Math.min(0.15 * (wearLevel / 50), 0.25)}"/>
+        <path d="M 30 ${viewBoxHeight - 20} Q 40 ${viewBoxHeight - 25} 50 ${viewBoxHeight - 20}" stroke="#8B7355" stroke-width="0.5" fill="none" opacity="${baseOpacity}"/>
+    `;
+  }
+  getRimStyleData(s, uid) {
+    const switchS = {
+      brass: { grad: `brassRim-${uid}`, stroke: "#8B7355" },
+      silver: { grad: `silverRim-${uid}`, stroke: "#999999" },
+      chrome: { grad: `silverRim-${uid}`, stroke: "#999999" },
+      white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
+      black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
+      copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
+      green: { grad: `greenRim-${uid}`, stroke: "#006400" },
+      red: { grad: `redRim-${uid}`, stroke: "#8B0000" }
+    };
+    return switchS[s] || switchS["brass"];
+  }
+  renderSquareRim(ringStyle, uid, bgColor, glassEffectEnabled, x, y, w, h, agedTextureOnFace) {
+    const data = this.getRimStyleData(ringStyle, uid);
+    return `
+       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="20" ry="20" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1" filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="${bgColor}" stroke="none" ${agedTextureOnFace ? `filter="url(#aged-${uid})"` : ""} />
+        <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="url(#screenGrad-${uid})" stroke="none" opacity="0.3" pointer-events="none"/>
+
+       ${glassEffectEnabled ? `<path d="M ${x + 12} ${y + 12} L ${x + w - 12} ${y + 12} L ${x + w - 12} ${y + 12 + (h - 24) * 0.2} Q ${x + w / 2} ${y + 12 + (h - 24) * 0.25} ${x + 12} ${y + 12 + (h - 24) * 0.2} Z" fill="url(#glassGrad-${uid})" clip-path="inset(1px round 9px)" style="pointer-events: none;" />` : ""}
+       <rect x="${x + 12}" y="${y + 12}" width="${w - 24}" height="${h - 24}" rx="10" ry="10" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" style="box-shadow: inset 0 0 10px #000;"/>
+       <rect x="${x + 8}" y="${y + 8}" width="${w - 16}" height="${h - 16}" rx="15" ry="15" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+     `;
+  }
+  renderGradients(uid) {
+    const stops = (c1, c2, c3, c4, c5) => `
+        <stop offset="0%" style="stop-color:${c1};stop-opacity:1" />
+        <stop offset="25%" style="stop-color:${c2};stop-opacity:1" />
+        <stop offset="50%" style="stop-color:${c3};stop-opacity:1" />
+        <stop offset="75%" style="stop-color:${c4};stop-opacity:1" />
+        <stop offset="100%" style="stop-color:${c5};stop-opacity:1" />
+     `;
+    return `
+        <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#c9a961", "#ddc68f", "#b8944d", "#d4b877", "#a68038")}</linearGradient>
+        <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#e8e8e8", "#ffffff", "#c0c0c0", "#e0e0e0", "#b0b0b0")}</linearGradient>
+        <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f6f6f6"/><stop offset="100%" style="stop-color:#cfcfcf"/></linearGradient>
+        <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a3a3a"/><stop offset="100%" style="stop-color:#141414"/></linearGradient>
+        <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#c77c43", "#e1a06a", "#9a5c2a", "#d7925a", "#7b461f")}</linearGradient>
+        <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2a6fdb", "#5ea2ff", "#1f4f9e", "#4f8fe6", "#163b76")}</linearGradient>
+        <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2fbf71", "#6fe0a6", "#1f7a49", "#53cf8e", "#165a36")}</linearGradient>
+        <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#e53935", "#ff6f6c", "#9e1f1c", "#e85a57", "#6f1513")}</linearGradient>
+        <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.3" /><stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" /></linearGradient>
+     `;
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-bar-chart-editor");
+  }
+};
+if (!customElements.get("foundry-bar-chart-card")) {
+  customElements.define("foundry-bar-chart-card", FoundryBarChartCard);
+}
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-bar-chart-card",
+  name: "Foundry Bar Chart",
+  preview: true,
+  description: "A steampunk-styled chart with polygraph paper."
+});
+
+// src/cards/foundry-bar-chart-editor.js
+var fireEvent8 = (node, type2, detail, options) => {
+  options = options || {};
+  detail = detail === null || detail === void 0 ? {} : detail;
+  const event = new Event(type2, {
+    bubbles: options.bubbles === void 0 ? true : options.bubbles,
+    cancelable: Boolean(options.cancelable),
+    composed: options.composed === void 0 ? true : options.composed
+  });
+  event.detail = detail;
+  node.dispatchEvent(event);
+  return event;
+};
+var FoundryBarChartEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._themes = {};
+    this._themesLoaded = false;
+  }
+  setConfig(config) {
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
+    this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      if (this._root && this._root.parentNode) {
+        this._root.parentNode.removeChild(this._root);
+      }
+      this._root = null;
+      this._form1 = null;
+      this._form2 = null;
+      if (!this._advancedMode) {
+        this.render();
+      }
+    } catch (e) {
+      console.error("Error loading themes:", e);
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (!this._root) {
+      this.render();
+      return;
+    }
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      this._root.className = "card-config";
+      const style = document.createElement("style");
+      style.textContent = `
+                .card-config { display: flex; flex-direction: column; gap: 16px; }
+                .segments-section {
+                  margin-top: 4px;
+                  margin-bottom: 4px;
+                  padding: 16px;
+                  background: var(--card-background-color, #fff);
+                  border: 1px solid var(--divider-color, #e0e0e0);
+                  border-radius: 4px;
+                }
+                .section-header {
+                  font-weight: 500;
+                  margin-bottom: 12px;
+                  color: var(--primary-text-color);
+                  font-size: 16px;
+                }
+                .segment-row {
+                  display: flex;
+                  gap: 8px;
+                  align-items: flex-end;
+                  margin-bottom: 12px;
+                  background: var(--secondary-background-color, #f9f9f9);
+                  padding: 10px;
+                  border-radius: 4px;
+                }
+                .input-group {
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                }
+                .input-group label {
+                  font-size: 11px;
+                  color: var(--secondary-text-color);
+                  text-transform: uppercase;
+                  font-weight: 600;
+                }
+                .input-group input {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
+                .input-group select {
+                  width: 100%;
+                  padding: 8px;
+                  box-sizing: border-box;
+                  border: 1px solid var(--divider-color, #ccc);
+                  border-radius: 4px;
+                  background: var(--card-background-color, #fff);
+                  color: var(--primary-text-color);
+                }
+                .input-group input[type='color'] {
+                  height: 36px;
+                  padding: 2px;
+                  cursor: pointer;
+                }
+                .remove-btn {
+                  background: none;
+                  border: none;
+                  color: var(--error-color, #db4437);
+                  cursor: pointer;
+                  padding: 8px;
+                  height: 36px;
+                  display: flex;
+                  align-items: center;
+                }
+                .remove-btn:hover {
+                  background: rgba(219, 68, 55, 0.1);
+                  border-radius: 50%;
+                }
+                .add-btn {
+                  background-color: var(--primary-color, #03a9f4);
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-weight: 500;
+                  font-size: 14px;
+                  margin-top: 4px;
+                }
+                .add-btn:hover {
+                  background-color: var(--primary-color-dark, #0288d1);
+                }
+            `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+      this._form1 = document.createElement("ha-form");
+      this._form1.computeLabel = this._computeLabel;
+      this._form1.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
+      this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
+      this._form2 = document.createElement("ha-form");
+      this._form2.computeLabel = this._computeLabel;
+      this._form2.addEventListener(
+        "value-changed",
+        (ev) => this._handleFormChanged(ev)
+      );
+      this._root.appendChild(this._form2);
+    }
+    const data = this._configToForm(this._config);
+    if (this._form1) {
+      this._form1.hass = this._hass;
+      this._form1.data = data;
+      this._form1.schema = this._getSchemaTop();
+    }
+    if (this._form2) {
+      this._form2.hass = this._hass;
+      this._form2.data = data;
+      this._form2.schema = this._getSchemaBottom(data);
+    }
+    this._renderSegments();
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
+    fireEvent8(this, "config-changed", { config: this._config });
+  }
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+      const themeProperties = [
+        "plate_color",
+        "rivet_color",
+        "title_color",
+        "font_color",
+        "font_bg_color",
+        "ring_style",
+        "plate_transparent",
+        "glass_effect_enabled",
+        "wear_level",
+        "aged_texture",
+        "aged_texture_intensity",
+        "bar_color",
+        "bar_padding",
+        "fill_under_line",
+        "grid_minor_color",
+        "grid_major_color",
+        "grid_opacity"
+      ];
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
+      );
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
+      }
+    }
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._updateConfig(newConfig);
+    }
+  }
+  _computeLabel(schema2) {
+    if (schema2.label) return schema2.label;
+    return schema2.name;
+  }
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = "";
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((segment, index) => {
+      const fromValue = segment.from !== void 0 ? segment.from : 0;
+      const toValue = segment.to !== void 0 ? segment.to : 0;
+      const colorValue = segment.color || "#4CAF50";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromValue}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toValue}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colorValue}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+    const blendWidth = Number(this._config.segment_blend_width) || 0;
+    const barRangeBlend = this._config.bar_range_blend || "single";
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    html += `
+      <div class="segment-row" style="margin-top: 12px;">
+        <div class="input-group">
+          <label>Segment Blend Width</label>
+          <input id="segment-blend-width" type="number" min="0" step="0.1" value="${blendWidth}">
+        </div>
+        <div class="input-group">
+          <label>Bar Range Blend</label>
+          <select id="bar-range-blend">
+            <option value="single" ${barRangeBlend === "single" ? "selected" : ""}>Single Color</option>
+            <option value="gradient" ${barRangeBlend === "gradient" ? "selected" : ""}>Gradient Bar</option>
+          </select>
+        </div>
+      </div>
+    `;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const index = Number.parseInt(event.target.dataset.idx);
+        const key = event.target.dataset.key;
+        let value = event.target.value;
+        if (key !== "color") value = Number(value);
+        this._updateSegment(index, key, value);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const target = event.target.closest(".remove-btn");
+        if (target) {
+          this._removeSegment(Number.parseInt(target.dataset.idx));
+        }
+      });
+    });
+    const addButton = this._segmentsContainer.querySelector("#add-btn");
+    if (addButton) {
+      addButton.addEventListener("click", () => this._addSegment());
+    }
+    const blendWidthInput = this._segmentsContainer.querySelector(
+      "#segment-blend-width"
+    );
+    if (blendWidthInput) {
+      blendWidthInput.addEventListener("change", (event) => {
+        const blendWidth2 = Math.max(0, Number(event.target.value) || 0);
+        this._updateConfig({ segment_blend_width: blendWidth2 });
+      });
+    }
+    const barRangeBlendSelect = this._segmentsContainer.querySelector("#bar-range-blend");
+    if (barRangeBlendSelect) {
+      barRangeBlendSelect.addEventListener("change", (event) => {
+        const barRangeBlend2 = event.target.value || "single";
+        this._updateConfig({ bar_range_blend: barRangeBlend2 });
+      });
+    }
+  }
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const lastSegment = segments[segments.length - 1];
+    const from = Number.isFinite(lastSegment?.to) ? lastSegment.to : 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+  _configToForm(config) {
+    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.theme = sourceConfig.theme ?? "none";
+    data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
+    data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
+    data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
+    data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.actions = {};
+    ["tap", "hold", "double_tap"].forEach((type2) => {
+      const conf = config[`${type2}_action`] || {};
+      data.actions[`${type2}_action_action`] = conf.action || "more-info";
+      data.actions[`${type2}_action_navigation_path`] = conf.navigation_path || "";
+      data.actions[`${type2}_action_service`] = conf.service || "";
+      data.actions[`${type2}_action_target_entity`] = conf.target?.entity_id || "";
+    });
+    if (sourceConfig.font_bg_color)
+      data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
+    if (sourceConfig.font_color)
+      data.font_color = this._hexToRgb(sourceConfig.font_color);
+    if (sourceConfig.title_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_color);
+    else if (sourceConfig.title_font_color)
+      data.title_color = this._hexToRgb(sourceConfig.title_font_color);
+    else data.title_color = [62, 39, 35];
+    if (sourceConfig.plate_color)
+      data.plate_color = this._hexToRgb(sourceConfig.plate_color);
+    if (sourceConfig.rivet_color)
+      data.rivet_color = this._hexToRgb(sourceConfig.rivet_color);
+    if (sourceConfig.bar_color)
+      data.bar_color = this._hexToRgb(sourceConfig.bar_color);
+    if (sourceConfig.grid_minor_color)
+      data.grid_minor_color = this._hexToRgb(sourceConfig.grid_minor_color);
+    if (sourceConfig.grid_major_color)
+      data.grid_major_color = this._hexToRgb(sourceConfig.grid_major_color);
+    return data;
+  }
+  _formToConfig(formData) {
+    const config = { ...this._config };
+    Object.keys(formData).forEach((key) => {
+      if (key === "actions") return;
+      config[key] = formData[key];
+    });
+    const ensureHex = (val) => Array.isArray(val) ? this._rgbToHex(val) : val;
+    if (formData.font_bg_color)
+      config.font_bg_color = ensureHex(formData.font_bg_color);
+    if (formData.font_color) config.font_color = ensureHex(formData.font_color);
+    if (formData.title_color)
+      config.title_color = ensureHex(formData.title_color);
+    if (formData.plate_color)
+      config.plate_color = ensureHex(formData.plate_color);
+    if (formData.rivet_color)
+      config.rivet_color = ensureHex(formData.rivet_color);
+    if (formData.bar_color) config.bar_color = ensureHex(formData.bar_color);
+    if (formData.grid_minor_color)
+      config.grid_minor_color = ensureHex(formData.grid_minor_color);
+    if (formData.grid_major_color)
+      config.grid_major_color = ensureHex(formData.grid_major_color);
+    if (formData.actions) {
+      ["tap", "hold", "double_tap"].forEach((type2) => {
+        const group = formData.actions;
+        const actionType = group[`${type2}_action_action`];
+        const newAction = { action: actionType };
+        if (actionType === "navigate") {
+          newAction.navigation_path = group[`${type2}_action_navigation_path`];
+        } else if (actionType === "call-service") {
+          newAction.service = group[`${type2}_action_service`];
+          const targetEnt = group[`${type2}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type2}_action`] = newAction;
+      });
+    }
+    return config;
+  }
+  _hexToRgb(hex) {
+    if (!hex || typeof hex !== "string") return void 0;
+    if (!hex.startsWith("#")) return void 0;
+    let c = hex.substring(1);
+    if (c.length === 3)
+      c = c.split("").map((s) => s + s).join("");
+    if (c.length !== 6) return void 0;
+    const num = parseInt(c, 16);
+    return [num >> 16, num >> 8 & 255, num & 255];
+  }
+  _rgbToHex(rgb) {
+    if (!Array.isArray(rgb)) return rgb;
+    return "#" + rgb.map((x) => x.toString(16).padStart(2, "0")).join("");
+  }
+  _getSchemaTop() {
+    return [
+      { name: "entity", selector: { entity: {} } },
+      { name: "title", label: "Title", selector: { text: {} } },
+      {
+        name: "",
+        type: "expandable",
+        title: "Chart Settings",
+        schema: [
+          {
+            name: "hours_to_show",
+            label: "Hours to Show",
+            selector: { number: { min: 1, max: 168 } }
+          },
+          {
+            name: "bucket_count",
+            label: "Number of Data Points",
+            selector: { number: { min: 10, max: 200 } }
+          },
+          {
+            name: "bucket_minutes",
+            label: "Bucket Minutes (optional)",
+            selector: { number: { min: 1, max: 180 } }
+          },
+          {
+            name: "update_interval",
+            label: "Update Interval (s)",
+            selector: { number: { min: 10, max: 3600 } }
+          },
+          {
+            name: "min_value",
+            label: "Min Value (optional)",
+            selector: { number: { mode: "box" } }
+          },
+          {
+            name: "max_value",
+            label: "Max Value (optional)",
+            selector: { number: { mode: "box" } }
+          },
+          {
+            name: "value_precision",
+            label: "Value Precision",
+            selector: { number: { min: 0, max: 6, mode: "slider" } }
+          },
+          {
+            name: "bar_padding",
+            label: "Bar Padding",
+            selector: { number: { min: 1, max: 6, mode: "slider" } }
+          },
+          {
+            name: "fill_under_line",
+            label: "Fill Under Line",
+            selector: { boolean: {} }
+          },
+          {
+            name: "aggregation",
+            label: "Aggregation",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "avg", label: "Average" },
+                  { value: "min", label: "Minimum" },
+                  { value: "max", label: "Maximum" }
+                ]
+              }
+            }
+          },
+          {
+            name: "show_footer",
+            label: "Show Footer",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_inspect_value",
+            label: "Show Inspect Y Value",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_x_axis_minmax",
+            label: "Show X Axis Min/Max",
+            selector: { boolean: {} }
+          },
+          {
+            name: "show_y_axis_minmax",
+            label: "Show Y Axis Min/Max",
+            selector: { boolean: {} }
+          }
+        ]
+      }
+    ];
+  }
+  _getSchemaBottom(formData) {
+    const actionData = formData?.actions || {};
+    return [
+      {
+        name: "",
+        type: "expandable",
+        title: "Appearance",
+        schema: [
+          {
+            name: "theme",
+            label: "Theme",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None/Custom" },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1)
+                  }))
+                ]
+              }
+            }
+          },
+          {
+            name: "ring_style",
+            label: "Ring Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "brass", label: "Brass" },
+                  { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
+                  { value: "copper", label: "Copper" },
+                  { value: "black", label: "Black" },
+                  { value: "white", label: "White" },
+                  { value: "blue", label: "Blue" },
+                  { value: "green", label: "Green" },
+                  { value: "red", label: "Red" }
+                ]
+              }
+            }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "font_bg_color",
+            label: "Screen Background",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      {
+        name: "",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_color",
+                label: "Title Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "font_color",
+                label: "Digital Font Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "title_font_size",
+                label: "Title Font Size",
+                selector: { number: { mode: "box", min: 6, max: 48 } }
+              },
+              {
+                name: "bar_color",
+                label: "Bar Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "grid_minor_color",
+                label: "Grid Minor Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "grid_major_color",
+                label: "Grid Major Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "grid_opacity",
+            label: "Grid Opacity",
+            selector: { number: { min: 0.1, max: 1, step: 0.1 } }
+          }
+        ]
+      },
+      {
+        name: "actions",
+        type: "expandable",
+        title: "Actions",
+        schema: [
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
+        ]
+      }
+    ];
+  }
+  _getActionSchema(type2, label, actionData) {
+    const actionKey = `${type2}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : "more-info";
+    const schema2 = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "more-info", label: "More Info" },
+              { value: "toggle", label: "Toggle" },
+              { value: "navigate", label: "Navigate" },
+              { value: "call-service", label: "Call Service" },
+              { value: "none", label: "None" }
+            ]
+          }
+        }
+      }
+    ];
+    if (currentAction === "navigate") {
+      schema2.push({
+        name: `${type2}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "call-service") {
+      schema2.push({
+        name: `${type2}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema2.push({
+        name: `${type2}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
+    }
+    return schema2;
+  }
+};
+if (!customElements.get("foundry-bar-chart-editor")) {
+  customElements.define("foundry-bar-chart-editor", FoundryBarChartEditor);
 }
 
 // src/cards/foundry-analog-meter-card.js

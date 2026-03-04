@@ -37,6 +37,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
    - [Foundry Chart Card](#foundry-chart-card)
+  - [Foundry Bar Chart Card](#foundry-bar-chart-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
    - [Foundry Slider Card](#foundry-slider-card)
    - [Foundry Title Card](#foundry-title-card)
@@ -139,6 +140,17 @@ A steampunk-styled line chart for entity history:
 - Optional min/max scale and filled area
 - Theme-aware styling with grid overlays
 - Footer start/end labels
+
+<a name="foundry-bar-chart-card"></a>
+
+### 📊 Foundry Bar Chart Card
+
+A steampunk-styled bar chart for entity history:
+
+- Configurable time range and data-point density
+- Segment-based bar coloring with optional gradient blending
+- Theme-aware styling with grid overlays
+- Inspectable values and optional axis min/max labels
 
 <a name="foundry-home-thermostat"></a>
 

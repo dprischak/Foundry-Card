@@ -20,6 +20,8 @@ import './cards/foundry-chart-card.js';
 import './cards/foundry-chart-editor.js';
 import './cards/foundry-title-card.js';
 import './cards/foundry-title-editor.js';
+import './cards/foundry-bar-chart-card.js';
+import './cards/foundry-bar-chart-editor.js';
 import './cards/foundry-analog-meter-card.js';
 import './cards/foundry-analog-meter-editor.js';
 
