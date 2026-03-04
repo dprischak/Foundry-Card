@@ -37,7 +37,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Entities Card](#foundry-entities-card)
    - [Foundry Uptime Card](#foundry-uptime-card)
    - [Foundry Chart Card](#foundry-chart-card)
-  - [Foundry Bar Chart Card](#foundry-bar-chart-card)
+   - [Foundry Bar Chart Card](#foundry-bar-chart-card)
    - [Foundry Home Thermostat](#foundry-home-thermostat)
    - [Foundry Slider Card](#foundry-slider-card)
    - [Foundry Title Card](#foundry-title-card)
