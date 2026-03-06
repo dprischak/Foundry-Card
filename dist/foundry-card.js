@@ -4854,14 +4854,14 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
         248,
         248,
         240
-      ],
+      ]
+    };
+    data.colors_typography = {
       needle_color: this._hexToRgb(sourceConfig.needle_color ?? "#C41E3A") ?? [
         196,
         30,
         58
-      ]
-    };
-    data.style_fonts_ticks = {
+      ],
       number_color: this._hexToRgb(sourceConfig.number_color ?? "#3e2723") ?? [
         62,
         39,
@@ -4872,9 +4872,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       ) ?? [62, 39, 35],
       secondary_tick_color: this._hexToRgb(
         sourceConfig.secondary_tick_color ?? "#5d4e37"
-      ) ?? [93, 78, 55]
-    };
-    data.layout = {
+      ) ?? [93, 78, 55],
       title_font_size: sourceConfig.title_font_size,
       odometer_font_size: sourceConfig.odometer_font_size,
       odometer_vertical_position: sourceConfig.odometer_vertical_position,
@@ -4890,6 +4888,31 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       high_needle_duration: sourceConfig.high_needle_duration,
       high_needle_length: sourceConfig.high_needle_length
     };
+    delete data.theme;
+    delete data.ring_style;
+    delete data.rivet_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.wear_level;
+    delete data.glass_effect_enabled;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.needle_color;
+    delete data.number_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
+    delete data.odometer_font_size;
+    delete data.odometer_vertical_position;
+    delete data.start_angle;
+    delete data.end_angle;
+    delete data.animation_duration;
+    delete data.high_needle_enabled;
+    delete data.high_needle_color;
+    delete data.high_needle_duration;
+    delete data.high_needle_length;
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
       const conf = config[`${type2}_action`] || {};
@@ -4914,21 +4937,16 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       background_style: this._config?.background_style ?? "gradient"
     };
     Object.keys(formData).forEach((key) => {
-      if ([
-        "appearance",
-        "layout",
-        "high_needle",
-        "style_fonts_ticks",
-        "actions"
-      ].includes(key))
+      if (["appearance", "high_needle", "colors_typography", "actions"].includes(
+        key
+      ))
         return;
       config[key] = formData[key];
     });
     if (formData.appearance) Object.assign(config, formData.appearance);
-    if (formData.layout) Object.assign(config, formData.layout);
     if (formData.high_needle) Object.assign(config, formData.high_needle);
-    if (formData.style_fonts_ticks)
-      Object.assign(config, formData.style_fonts_ticks);
+    if (formData.colors_typography)
+      Object.assign(config, formData.colors_typography);
     const rc = this._rgbToHex(config.rivet_color);
     if (rc) config.rivet_color = rc;
     else config.rivet_color = defaults.rivet_color;
@@ -4953,6 +4971,9 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     const ndlz = this._rgbToHex(config.needle_color);
     if (ndlz) config.needle_color = ndlz;
     else config.needle_color = defaults.needle_color;
+    delete config.appearance;
+    delete config.colors_typography;
+    delete config.high_needle;
     if (formData.actions) {
       ["tap", "hold", "double_tap"].forEach((type2) => {
         const group = formData.actions;
@@ -8557,17 +8578,19 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
         38
       ],
       plate_transparent: sourceConfig.plate_transparent,
-      wear_level: sourceConfig.wear_level,
-      glass_effect_enabled: sourceConfig.glass_effect_enabled,
-      aged_texture: sourceConfig.aged_texture,
-      aged_texture_intensity: sourceConfig.aged_texture_intensity,
-      second_hand_enabled: sourceConfig.second_hand_enabled,
       background_style: sourceConfig.background_style,
       face_color: this._hexToRgb(sourceConfig.face_color ?? "#f8f8f0") ?? [
         248,
         248,
         240
       ],
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      wear_level: sourceConfig.wear_level,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity
+    };
+    data.colors_typography = {
+      second_hand_enabled: sourceConfig.second_hand_enabled,
       hour_hand_color: this._hexToRgb(
         sourceConfig.hour_hand_color ?? "#3e2723"
       ) ?? [62, 39, 35],
@@ -8576,9 +8599,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       ) ?? [62, 39, 35],
       second_hand_color: this._hexToRgb(
         sourceConfig.second_hand_color ?? "#C41E3A"
-      ) ?? [196, 30, 58]
-    };
-    data.style_fonts_ticks = {
+      ) ?? [196, 30, 58],
       number_color: this._hexToRgb(sourceConfig.number_color ?? "#3e2723") ?? [
         62,
         39,
@@ -8589,11 +8610,28 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       ) ?? [62, 39, 35],
       secondary_tick_color: this._hexToRgb(
         sourceConfig.secondary_tick_color ?? "#5d4e37"
-      ) ?? [93, 78, 55]
-    };
-    data.layout = {
+      ) ?? [93, 78, 55],
       title_font_size: sourceConfig.title_font_size
     };
+    delete data.theme;
+    delete data.ring_style;
+    delete data.rivet_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.glass_effect_enabled;
+    delete data.wear_level;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.second_hand_enabled;
+    delete data.hour_hand_color;
+    delete data.minute_hand_color;
+    delete data.second_hand_color;
+    delete data.number_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
       const conf = config[`${type2}_action`] || {};
@@ -8618,14 +8656,12 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       second_hand_color: this._config?.second_hand_color ?? "#C41E3A"
     };
     Object.keys(formData).forEach((key) => {
-      if (["appearance", "layout", "actions", "style_fonts_ticks"].includes(key))
-        return;
+      if (["appearance", "colors_typography", "actions"].includes(key)) return;
       config[key] = formData[key];
     });
     if (formData.appearance) Object.assign(config, formData.appearance);
-    if (formData.layout) Object.assign(config, formData.layout);
-    if (formData.style_fonts_ticks)
-      Object.assign(config, formData.style_fonts_ticks);
+    if (formData.colors_typography)
+      Object.assign(config, formData.colors_typography);
     const rc = this._rgbToHex(config.rivet_color);
     if (rc) config.rivet_color = rc;
     else config.rivet_color = defaults.rivet_color;
@@ -8653,6 +8689,8 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     const shc = this._rgbToHex(config.second_hand_color);
     if (shc) config.second_hand_color = shc;
     else config.second_hand_color = defaults.second_hand_color;
+    delete config.appearance;
+    delete config.colors_typography;
     if (formData.actions) {
       ["tap", "hold", "double_tap"].forEach((type2) => {
         const group = formData.actions;
@@ -11125,15 +11163,29 @@ var FoundrySliderEditor = class extends HTMLElement {
         118,
         38
       ],
-      number_color: this._hexToRgb(
-        sourceConfig.number_color ?? sourceConfig.title_color ?? "#3e2723"
-      ) ?? [62, 39, 35],
       plate_transparent: sourceConfig.plate_transparent ?? false,
+      font_bg_color: this._hexToRgb(
+        sourceConfig.font_bg_color ?? "#ffffff"
+      ) ?? [255, 255, 255],
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
         88,
         22
       ],
+      wear_level: sourceConfig.wear_level ?? 50,
+      aged_texture: sourceConfig.aged_texture ?? "glass_only",
+      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50
+    };
+    data.colors_typography = {
+      show_value: sourceConfig.show_value ?? true,
+      font_color: this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [
+        0,
+        0,
+        0
+      ],
+      number_color: this._hexToRgb(
+        sourceConfig.number_color ?? sourceConfig.title_color ?? "#3e2723"
+      ) ?? [62, 39, 35],
       slider_color: this._hexToRgb(sourceConfig.slider_color ?? "#444444") ?? [
         68,
         68,
@@ -11144,7 +11196,9 @@ var FoundrySliderEditor = class extends HTMLElement {
       ) ?? [0, 0, 0],
       secondary_tick_color: this._colorToRgb(
         sourceConfig.secondary_tick_color ?? "#000000"
-      ) ?? [0, 0, 0]
+      ) ?? [0, 0, 0],
+      title_font_size: sourceConfig.title_font_size ?? 14,
+      value_font_size: sourceConfig.value_font_size ?? 36
     };
     data.knob_settings = {
       knob_shape: sourceConfig.knob_shape ?? "square",
@@ -11155,30 +11209,37 @@ var FoundrySliderEditor = class extends HTMLElement {
         97
       ]
     };
-    data.led_settings = {
-      show_value: sourceConfig.show_value ?? true,
-      font_bg_color: this._hexToRgb(
-        sourceConfig.font_bg_color ?? "#ffffff"
-      ) ?? [255, 255, 255],
-      font_color: this._hexToRgb(sourceConfig.font_color ?? "#000000") ?? [
-        0,
-        0,
-        0
-      ],
-      title_font_size: sourceConfig.title_font_size ?? 14,
-      value_font_size: sourceConfig.value_font_size ?? 36
-    };
-    data.effects = {
-      wear_level: sourceConfig.wear_level ?? 50,
-      aged_texture: sourceConfig.aged_texture ?? "glass_only",
-      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50
-    };
+    delete data.theme;
+    delete data.ring_style;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.font_bg_color;
+    delete data.rivet_color;
+    delete data.wear_level;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.show_value;
+    delete data.font_color;
+    delete data.number_color;
+    delete data.slider_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
+    delete data.value_font_size;
+    delete data.knob_shape;
+    delete data.knob_size;
+    delete data.knob_color;
+    delete data.background_color;
+    delete data.title_color;
+    delete data.slider_background_color;
     return data;
   }
   _formToConfig(formData) {
     const config = { ...this._config };
     Object.keys(formData).forEach((k) => {
-      if (["appearance", "knob_settings", "led_settings", "effects"].includes(k))
+      if (["appearance", "colors_typography", "knob_settings"].includes(k))
         return;
       config[k] = formData[k];
     });
@@ -11187,9 +11248,14 @@ var FoundrySliderEditor = class extends HTMLElement {
       config.face_color = this._rgbToHex(config.face_color);
       delete config.background_color;
       config.plate_color = this._rgbToHex(config.plate_color);
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    }
+    if (formData.colors_typography) {
+      Object.assign(config, formData.colors_typography);
+      config.font_color = this._rgbToHex(config.font_color);
       config.number_color = this._rgbToHex(config.number_color);
       delete config.title_color;
-      config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
       config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
@@ -11198,14 +11264,9 @@ var FoundrySliderEditor = class extends HTMLElement {
       Object.assign(config, formData.knob_settings);
       config.knob_color = this._rgbToHex(config.knob_color);
     }
-    if (formData.led_settings) {
-      Object.assign(config, formData.led_settings);
-      config.font_bg_color = this._rgbToHex(config.font_bg_color);
-      config.font_color = this._rgbToHex(config.font_color);
-    }
-    if (formData.effects) {
-      Object.assign(config, formData.effects);
-    }
+    delete config.appearance;
+    delete config.colors_typography;
+    delete config.knob_settings;
     return config;
   }
   _getSchema() {

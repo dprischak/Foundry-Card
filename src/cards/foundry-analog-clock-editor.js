@@ -253,6 +253,7 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
       : { ...config };
     const data = { ...sourceConfig };
 
+    // Group: Appearance
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
       ring_style: sourceConfig.ring_style,
@@ -263,15 +264,19 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
         140, 118, 38,
       ],
       plate_transparent: sourceConfig.plate_transparent,
-      wear_level: sourceConfig.wear_level,
-      glass_effect_enabled: sourceConfig.glass_effect_enabled,
-      aged_texture: sourceConfig.aged_texture,
-      aged_texture_intensity: sourceConfig.aged_texture_intensity,
-      second_hand_enabled: sourceConfig.second_hand_enabled,
       background_style: sourceConfig.background_style,
       face_color: this._hexToRgb(sourceConfig.face_color ?? '#f8f8f0') ?? [
         248, 248, 240,
       ],
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      wear_level: sourceConfig.wear_level,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+    };
+
+    // Group: Colors & Typography (must match schema name 'colors_typography')
+    data.colors_typography = {
+      second_hand_enabled: sourceConfig.second_hand_enabled,
       hour_hand_color: this._hexToRgb(
         sourceConfig.hour_hand_color ?? '#3e2723'
       ) ?? [62, 39, 35],
@@ -281,9 +286,6 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
       second_hand_color: this._hexToRgb(
         sourceConfig.second_hand_color ?? '#C41E3A'
       ) ?? [196, 30, 58],
-    };
-
-    data.style_fonts_ticks = {
       number_color: this._hexToRgb(sourceConfig.number_color ?? '#3e2723') ?? [
         62, 39, 35,
       ],
@@ -293,11 +295,29 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
       secondary_tick_color: this._hexToRgb(
         sourceConfig.secondary_tick_color ?? '#5d4e37'
       ) ?? [93, 78, 55],
-    };
-
-    data.layout = {
       title_font_size: sourceConfig.title_font_size,
     };
+
+    // Clean up leaked flat keys
+    delete data.theme;
+    delete data.ring_style;
+    delete data.rivet_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.glass_effect_enabled;
+    delete data.wear_level;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.second_hand_enabled;
+    delete data.hour_hand_color;
+    delete data.minute_hand_color;
+    delete data.second_hand_color;
+    delete data.number_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
 
     data.actions = {};
     ['tap', 'hold', 'double_tap'].forEach((type) => {
@@ -329,17 +349,13 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     };
 
     Object.keys(formData).forEach((key) => {
-      if (
-        ['appearance', 'layout', 'actions', 'style_fonts_ticks'].includes(key)
-      )
-        return;
+      if (['appearance', 'colors_typography', 'actions'].includes(key)) return;
       config[key] = formData[key];
     });
 
     if (formData.appearance) Object.assign(config, formData.appearance);
-    if (formData.layout) Object.assign(config, formData.layout);
-    if (formData.style_fonts_ticks)
-      Object.assign(config, formData.style_fonts_ticks);
+    if (formData.colors_typography)
+      Object.assign(config, formData.colors_typography);
 
     const rc = this._rgbToHex(config.rivet_color);
     if (rc) config.rivet_color = rc;
@@ -376,6 +392,10 @@ class FoundryAnalogClockCardEditor extends HTMLElement {
     const shc = this._rgbToHex(config.second_hand_color);
     if (shc) config.second_hand_color = shc;
     else config.second_hand_color = defaults.second_hand_color;
+
+    // Remove group keys that might have leaked into config
+    delete config.appearance;
+    delete config.colors_typography;
 
     if (formData.actions) {
       ['tap', 'hold', 'double_tap'].forEach((type) => {
