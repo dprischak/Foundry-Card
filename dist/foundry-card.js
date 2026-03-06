@@ -2981,7 +2981,7 @@ var FoundryGaugeCard = class extends HTMLElement {
     if (config.aged_texture_intensity !== void 0) {
       const intensity = parseFloat(config.aged_texture_intensity);
       if (isNaN(intensity)) {
-        this.config.aged_texture_intensity = 50;
+        this.config.aged_texture_intensity = 20;
       } else {
         this.config.aged_texture_intensity = Math.max(
           0,
@@ -3037,7 +3037,7 @@ var FoundryGaugeCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -3303,7 +3303,69 @@ var FoundryGaugeCard = class extends HTMLElement {
 				  <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
 				  <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
 				</linearGradient>
-								
+
+				<!-- Purple rim -->
+				<linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#9c27b0;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#ce93d8;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#6a1b9a;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#ba68c8;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Orange rim -->
+				<linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#ef6c00;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#ffb74d;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#e65100;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#ffa726;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Yellow rim -->
+				<linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#f9a825;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#fff176;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#f57f17;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#ffee58;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Teal rim -->
+				<linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#00897b;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#4db6ac;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#00695c;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#26a69a;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Gold rim -->
+				<linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#d4a017;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#f0d060;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#b8860b;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#e8c840;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Titanium rim -->
+				<linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#6e7b8b;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#94a3b3;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#546e7a;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#88979e;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+				</linearGradient>
+
+				<!-- Carbon rim -->
+				<linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+				  <stop offset="0%"   style="stop-color:#1a1a1a;stop-opacity:1" />
+				  <stop offset="25%"  style="stop-color:#333333;stop-opacity:1" />
+				  <stop offset="50%"  style="stop-color:#0d0d0d;stop-opacity:1" />
+				  <stop offset="75%"  style="stop-color:#2a2a2a;stop-opacity:1" />
+				  <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+				</linearGradient>								
                 
                 <!-- Shadow filter -->
                 <filter id="innerShadow-${uid}">
@@ -3601,6 +3663,20 @@ var FoundryGaugeCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#c77c43" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       default:
         return null;
     }
@@ -4362,7 +4438,7 @@ var FoundryGaugeCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       segments: [
         { from: 0, to: 33, color: "#4CAF50" },
         { from: 33, to: 66, color: "#FFC107" },
@@ -5089,6 +5165,13 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -5390,6 +5473,13 @@ var FoundryThermometerCard = class extends HTMLElement {
       silver: { grad: `silverRim-${uid}`, stroke: "#999999" },
       chrome: { grad: `silverRim-${uid}`, stroke: "#999999" },
       copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      purple: { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" },
+      orange: { grad: `orangeRim-${uid}`, stroke: "#e65100" },
+      yellow: { grad: `yellowRim-${uid}`, stroke: "#f57f17" },
+      teal: { grad: `tealRim-${uid}`, stroke: "#00695c" },
+      gold: { grad: `goldRim-${uid}`, stroke: "#b8860b" },
+      titanium: { grad: `titaniumRim-${uid}`, stroke: "#546e7a" },
+      carbon: { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" },
       black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
       white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
       blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
@@ -5429,6 +5519,55 @@ var FoundryThermometerCard = class extends HTMLElement {
           <stop offset="50%"  style="stop-color:#9a5c2a;stop-opacity:1" />
           <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
         </linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
@@ -5471,7 +5610,7 @@ var FoundryThermometerCard = class extends HTMLElement {
     let faceFill = backgroundStyle === "solid" ? faceColor : `url(#thermometerFace-${uid})`;
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = config.plate_transparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -6326,6 +6465,13 @@ var FoundryThermometerEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -6510,7 +6656,7 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -7241,6 +7387,55 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
           <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
         </linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+        </linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
           <stop offset="25%"  style="stop-color:#5ea2ff;stop-opacity:1" />
@@ -7325,6 +7520,20 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       case "blue":
         return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
       case "green":
@@ -7591,6 +7800,13 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -7873,7 +8089,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -7999,6 +8215,69 @@ var FoundryAnalogClockCard = class extends HTMLElement {
                   <stop offset="50%"  style="stop-color:#9a5c2a;stop-opacity:1" />
                   <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
                   <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Purple -->
+                <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Orange -->
+                <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Yellow -->
+                <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Teal -->
+                <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Gold -->
+                <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Titanium -->
+                <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Carbon -->
+                <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
                 </linearGradient>
                 
                 <!-- Aged texture -->
@@ -8155,6 +8434,20 @@ var FoundryAnalogClockCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8b5a2b" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       default:
         return null;
     }
@@ -8341,7 +8634,7 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       second_hand_enabled: true,
       background_style: "gradient",
       face_color: "#f8f8f0",
@@ -8822,6 +9115,13 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -9054,7 +9354,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this.render();
@@ -9136,7 +9436,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -9412,6 +9712,62 @@ var FoundryDigitalClockCard = class extends HTMLElement {
           <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
         </linearGradient>
+        <!-- Purple -->
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+        </linearGradient>
+        <!-- Orange -->
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+        </linearGradient>
+        <!-- Yellow -->
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+        </linearGradient>
+        <!-- Teal -->
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+        </linearGradient>
+        <!-- Gold -->
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+        </linearGradient>
+        <!-- Titanium -->
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+        </linearGradient>
+        <!-- Carbon -->
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+        </linearGradient>
         <!-- Blue -->
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
@@ -9479,6 +9835,20 @@ var FoundryDigitalClockCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       case "blue":
         return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
       case "green":
@@ -9537,7 +9907,7 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50
+      aged_texture_intensity: 20
     };
   }
 };
@@ -9873,6 +10243,13 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -10012,7 +10389,7 @@ var FoundrySliderCard = class extends HTMLElement {
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "glass_only";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       ensureLedFont();
       this.render();
       this._updateValueDisplay(this.config.value);
@@ -10440,6 +10817,62 @@ var FoundrySliderCard = class extends HTMLElement {
         <stop offset="75%" style="stop-color:#d7925a;stop-opacity:1" />
         <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
       </linearGradient>
+      <!-- Purple -->
+      <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+      </linearGradient>
+      <!-- Orange -->
+      <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+      </linearGradient>
+      <!-- Yellow -->
+      <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+      </linearGradient>
+      <!-- Teal -->
+      <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+      </linearGradient>
+      <!-- Gold -->
+      <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+      </linearGradient>
+      <!-- Titanium -->
+      <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+      </linearGradient>
+      <!-- Carbon -->
+      <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+        <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+        <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+      </linearGradient>
       <!-- Blue -->
       <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" style="stop-color:#2a6fdb;stop-opacity:1" />
@@ -10510,6 +10943,20 @@ var FoundrySliderCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       case "blue":
         return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
       case "green":
@@ -10957,7 +11404,7 @@ var FoundrySliderCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50
+      aged_texture_intensity: 20
     };
   }
 };
@@ -11317,6 +11764,13 @@ var FoundrySliderEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -11593,7 +12047,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this.render();
@@ -11716,7 +12170,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -11949,6 +12403,20 @@ var FoundryEntitiesCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       case "blue":
         return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
       case "green":
@@ -11989,6 +12457,55 @@ var FoundryEntitiesCard = class extends HTMLElement {
           <stop offset="50%"  style="stop-color:#9a5c2a;stop-opacity:1" />
           <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
         </linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
@@ -12038,7 +12555,7 @@ var FoundryEntitiesCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50
+      aged_texture_intensity: 20
     };
   }
 };
@@ -12604,6 +13121,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -12735,7 +13259,7 @@ var FoundryButtonCard = class extends HTMLElement {
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this.config.icon_color = this.config.icon_color || "var(--primary-text-color)";
       if (!this.config.tap_action) {
         this.config.tap_action = { action: "more-info" };
@@ -12844,7 +13368,7 @@ var FoundryButtonCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -13060,6 +13584,20 @@ var FoundryButtonCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#8B4513" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       case "blue":
         return { grad: `blueRim-${uid}`, stroke: "#104E8B" };
       case "green":
@@ -13100,6 +13638,55 @@ var FoundryButtonCard = class extends HTMLElement {
           <stop offset="50%"  style="stop-color:#9a5c2a;stop-opacity:1" />
           <stop offset="75%"  style="stop-color:#d7925a;stop-opacity:1" />
           <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
         </linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   style="stop-color:#2a6fdb;stop-opacity:1" />
@@ -13156,7 +13743,7 @@ var FoundryButtonCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       card_width: 240
     };
   }
@@ -13438,6 +14025,13 @@ var FoundryButtonEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -13671,7 +14265,7 @@ var FoundryUptimeCard = class extends HTMLElement {
       this.config.wear_level = this.config.wear_level !== void 0 ? this.config.wear_level : 50;
       this.config.glass_effect_enabled = this.config.glass_effect_enabled !== void 0 ? this.config.glass_effect_enabled : true;
       this.config.aged_texture = this.config.aged_texture || "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this.config.color.none = this.config.color.none || "transparent";
       this.config.segments = this.config.segments || void 0;
       this.config.color_thresholds = this.config.color_thresholds || [
@@ -13969,7 +14563,7 @@ var FoundryUptimeCard = class extends HTMLElement {
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -14154,6 +14748,13 @@ var FoundryUptimeCard = class extends HTMLElement {
       white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
       black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
       copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      purple: { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" },
+      orange: { grad: `orangeRim-${uid}`, stroke: "#e65100" },
+      yellow: { grad: `yellowRim-${uid}`, stroke: "#f57f17" },
+      teal: { grad: `tealRim-${uid}`, stroke: "#00695c" },
+      gold: { grad: `goldRim-${uid}`, stroke: "#b8860b" },
+      titanium: { grad: `titaniumRim-${uid}`, stroke: "#546e7a" },
+      carbon: { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" },
       blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
       green: { grad: `greenRim-${uid}`, stroke: "#006400" },
       red: { grad: `redRim-${uid}`, stroke: "#8B0000" }
@@ -14187,6 +14788,13 @@ var FoundryUptimeCard = class extends HTMLElement {
         <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f6f6f6"/><stop offset="100%" style="stop-color:#cfcfcf"/></linearGradient>
         <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a3a3a"/><stop offset="100%" style="stop-color:#141414"/></linearGradient>
         <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#c77c43", "#e1a06a", "#9a5c2a", "#d7925a", "#7b461f")}</linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#9c27b0", "#ce93d8", "#6a1b9a", "#ba68c8", "#4a148c")}</linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#ef6c00", "#ffb74d", "#e65100", "#ffa726", "#bf360c")}</linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#f9a825", "#fff176", "#f57f17", "#ffee58", "#e65100")}</linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#00897b", "#4db6ac", "#00695c", "#26a69a", "#004d40")}</linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#d4a017", "#f0d060", "#b8860b", "#e8c840", "#8b6914")}</linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#6e7b8b", "#94a3b3", "#546e7a", "#88979e", "#455a64")}</linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#1a1a1a", "#333333", "#0d0d0d", "#2a2a2a", "#050505")}</linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2a6fdb", "#5ea2ff", "#1f4f9e", "#4f8fe6", "#163b76")}</linearGradient>
         <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2fbf71", "#6fe0a6", "#1f7a49", "#53cf8e", "#165a36")}</linearGradient>
         <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#e53935", "#ff6f6c", "#9e1f1c", "#e85a57", "#6f1513")}</linearGradient>
@@ -14641,6 +15249,13 @@ var FoundryUptimeEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -15387,7 +16002,7 @@ var FoundryChartCard = class extends HTMLElement {
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -15558,6 +16173,13 @@ var FoundryChartCard = class extends HTMLElement {
       white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
       black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
       copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      purple: { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" },
+      orange: { grad: `orangeRim-${uid}`, stroke: "#e65100" },
+      yellow: { grad: `yellowRim-${uid}`, stroke: "#f57f17" },
+      teal: { grad: `tealRim-${uid}`, stroke: "#00695c" },
+      gold: { grad: `goldRim-${uid}`, stroke: "#b8860b" },
+      titanium: { grad: `titaniumRim-${uid}`, stroke: "#546e7a" },
+      carbon: { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" },
       blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
       green: { grad: `greenRim-${uid}`, stroke: "#006400" },
       red: { grad: `redRim-${uid}`, stroke: "#8B0000" }
@@ -15590,6 +16212,13 @@ var FoundryChartCard = class extends HTMLElement {
         <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f6f6f6"/><stop offset="100%" style="stop-color:#cfcfcf"/></linearGradient>
         <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a3a3a"/><stop offset="100%" style="stop-color:#141414"/></linearGradient>
         <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#c77c43", "#e1a06a", "#9a5c2a", "#d7925a", "#7b461f")}</linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#9c27b0", "#ce93d8", "#6a1b9a", "#ba68c8", "#4a148c")}</linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#ef6c00", "#ffb74d", "#e65100", "#ffa726", "#bf360c")}</linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#f9a825", "#fff176", "#f57f17", "#ffee58", "#e65100")}</linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#00897b", "#4db6ac", "#00695c", "#26a69a", "#004d40")}</linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#d4a017", "#f0d060", "#b8860b", "#e8c840", "#8b6914")}</linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#6e7b8b", "#94a3b3", "#546e7a", "#88979e", "#455a64")}</linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#1a1a1a", "#333333", "#0d0d0d", "#2a2a2a", "#050505")}</linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2a6fdb", "#5ea2ff", "#1f4f9e", "#4f8fe6", "#163b76")}</linearGradient>
         <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2fbf71", "#6fe0a6", "#1f7a49", "#53cf8e", "#165a36")}</linearGradient>
         <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#e53935", "#ff6f6c", "#9e1f1c", "#e85a57", "#6f1513")}</linearGradient>
@@ -16164,6 +16793,13 @@ var FoundryChartEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -16276,7 +16912,7 @@ var FoundryTitleCard = class extends HTMLElement {
       this.config.plate_transparent = this.config.plate_transparent !== void 0 ? this.config.plate_transparent : false;
       this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
-      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
+      this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 20;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       this.render();
     };
@@ -16303,7 +16939,7 @@ var FoundryTitleCard = class extends HTMLElement {
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const applyAgedToPlate = !plateTransparent && agedTexture === "everywhere";
     const titleFontFamily = "Georgia, serif";
@@ -16428,7 +17064,7 @@ var FoundryTitleCard = class extends HTMLElement {
       rivet_color: "#6a5816",
       plate_transparent: false,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       theme: "industrial",
       grid_options: {
         columns: 12,
@@ -17362,7 +17998,7 @@ var FoundryBarChartCard = class extends HTMLElement {
     const plateColor = config.plate_color;
     const plateTransparent = config.plate_transparent;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "everywhere";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -17526,6 +18162,13 @@ var FoundryBarChartCard = class extends HTMLElement {
       white: { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" },
       black: { grad: `blackRim-${uid}`, stroke: "#2b2b2b" },
       copper: { grad: `copperRim-${uid}`, stroke: "#8B4513" },
+      purple: { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" },
+      orange: { grad: `orangeRim-${uid}`, stroke: "#e65100" },
+      yellow: { grad: `yellowRim-${uid}`, stroke: "#f57f17" },
+      teal: { grad: `tealRim-${uid}`, stroke: "#00695c" },
+      gold: { grad: `goldRim-${uid}`, stroke: "#b8860b" },
+      titanium: { grad: `titaniumRim-${uid}`, stroke: "#546e7a" },
+      carbon: { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" },
       blue: { grad: `blueRim-${uid}`, stroke: "#104E8B" },
       green: { grad: `greenRim-${uid}`, stroke: "#006400" },
       red: { grad: `redRim-${uid}`, stroke: "#8B0000" }
@@ -17558,6 +18201,13 @@ var FoundryBarChartCard = class extends HTMLElement {
         <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f6f6f6"/><stop offset="100%" style="stop-color:#cfcfcf"/></linearGradient>
         <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a3a3a"/><stop offset="100%" style="stop-color:#141414"/></linearGradient>
         <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#c77c43", "#e1a06a", "#9a5c2a", "#d7925a", "#7b461f")}</linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#9c27b0", "#ce93d8", "#6a1b9a", "#ba68c8", "#4a148c")}</linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#ef6c00", "#ffb74d", "#e65100", "#ffa726", "#bf360c")}</linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#f9a825", "#fff176", "#f57f17", "#ffee58", "#e65100")}</linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#00897b", "#4db6ac", "#00695c", "#26a69a", "#004d40")}</linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#d4a017", "#f0d060", "#b8860b", "#e8c840", "#8b6914")}</linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#6e7b8b", "#94a3b3", "#546e7a", "#88979e", "#455a64")}</linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#1a1a1a", "#333333", "#0d0d0d", "#2a2a2a", "#050505")}</linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2a6fdb", "#5ea2ff", "#1f4f9e", "#4f8fe6", "#163b76")}</linearGradient>
         <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#2fbf71", "#6fe0a6", "#1f7a49", "#53cf8e", "#165a36")}</linearGradient>
         <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops("#e53935", "#ff6f6c", "#9e1f1c", "#e85a57", "#6f1513")}</linearGradient>
@@ -18157,6 +18807,13 @@ var FoundryBarChartEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
@@ -18433,7 +19090,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
     if (config.aged_texture_intensity !== void 0) {
       const intensity = parseFloat(config.aged_texture_intensity);
       if (isNaN(intensity)) {
-        this.config.aged_texture_intensity = 50;
+        this.config.aged_texture_intensity = 20;
       } else {
         this.config.aged_texture_intensity = Math.max(
           0,
@@ -18463,7 +19120,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
     const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
     const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
     const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
-    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 50;
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
     const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
     const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
     const agedTextureEnabled = effectiveAgedTexture === "glass_only";
@@ -18619,6 +19276,55 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
                   <stop offset="50%" style="stop-color:#9a5c2a;stop-opacity:1" />
                   <stop offset="75%" style="stop-color:#d7925a;stop-opacity:1" />
                   <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
                 </linearGradient>
                 
                 <!-- Shadow filter -->
@@ -18913,6 +19619,20 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
         return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
       case "copper":
         return { grad: `copperRim-${uid}`, stroke: "#c77c43" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
       default:
         return null;
     }
@@ -19285,7 +20005,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
       wear_level: 50,
       glass_effect_enabled: true,
       aged_texture: "everywhere",
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       segments: [{ from: 80, to: 100, color: "#F44336" }],
       background_style: "gradient",
       face_color: "#f8f8f0",
@@ -19881,6 +20601,13 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
                   { value: "silver", label: "Silver" },
                   { value: "chrome", label: "Chrome" },
                   { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
                   { value: "black", label: "Black" },
                   { value: "white", label: "White" },
                   { value: "blue", label: "Blue" },
