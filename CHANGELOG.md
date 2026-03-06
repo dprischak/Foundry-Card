@@ -1,12 +1,15 @@
 ## v26.3.2
 
 ### 🛠️ Improvements
+- **Issue #92:** - Added additional themes
 
 ### 🚀 New Cards
 
 ### 🐛 Defect Fixes
 - **Issue #93:** - Colors and Typography are not saving correctly in the yaml for slider, analog clock, and gauge cards.
 - **Issue #96:** - Button card is missing actions in the editor.
+- **Issue #94:** - Pink theme is missing chart options
+- **Issue #95:** - Aged intensity reduced for a few themes
 
 
 
