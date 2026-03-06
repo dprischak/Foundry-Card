@@ -31,7 +31,7 @@ class FoundryTitleCard extends HTMLElement {
       this.config.aged_texture_intensity =
         this.config.aged_texture_intensity !== undefined
           ? this.config.aged_texture_intensity
-          : 50;
+          : 20;
 
       this._uniqueId =
         this._uniqueId || Math.random().toString(36).substr(2, 9);
@@ -70,7 +70,7 @@ class FoundryTitleCard extends HTMLElement {
     const agedTextureIntensity =
       config.aged_texture_intensity !== undefined
         ? config.aged_texture_intensity
-        : 50;
+        : 20;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
 
     // When transparent, "everywhere" doesn't make sense — skip filter on plate
@@ -208,7 +208,7 @@ class FoundryTitleCard extends HTMLElement {
       rivet_color: '#6a5816',
       plate_transparent: false,
       aged_texture: 'everywhere',
-      aged_texture_intensity: 50,
+      aged_texture_intensity: 20,
       theme: 'industrial',
       grid_options: {
         columns: 12,

@@ -80,7 +80,7 @@ class FoundryUptimeCard extends HTMLElement {
       this.config.aged_texture_intensity =
         this.config.aged_texture_intensity !== undefined
           ? this.config.aged_texture_intensity
-          : 50;
+          : 20;
 
       // State Colors: REMOVED user config for simple ok/ko colors, relying on thresholds + red default
       this.config.color.none = this.config.color.none || 'transparent';
@@ -478,7 +478,7 @@ class FoundryUptimeCard extends HTMLElement {
     const agedTextureIntensity =
       config.aged_texture_intensity !== undefined
         ? config.aged_texture_intensity
-        : 50;
+        : 20;
     const agedTextureOpacity = ((100 - agedTextureIntensity) / 100) * 1.0;
     const effectiveAgedTexture =
       plateTransparent && agedTexture === 'everywhere'
@@ -700,6 +700,13 @@ class FoundryUptimeCard extends HTMLElement {
       white: { grad: `whiteRim-${uid}`, stroke: '#cfcfcf' },
       black: { grad: `blackRim-${uid}`, stroke: '#2b2b2b' },
       copper: { grad: `copperRim-${uid}`, stroke: '#8B4513' },
+      purple: { grad: `purpleRim-${uid}`, stroke: '#6a1b9a' },
+      orange: { grad: `orangeRim-${uid}`, stroke: '#e65100' },
+      yellow: { grad: `yellowRim-${uid}`, stroke: '#f57f17' },
+      teal: { grad: `tealRim-${uid}`, stroke: '#00695c' },
+      gold: { grad: `goldRim-${uid}`, stroke: '#b8860b' },
+      titanium: { grad: `titaniumRim-${uid}`, stroke: '#546e7a' },
+      carbon: { grad: `carbonRim-${uid}`, stroke: '#1a1a1a' },
       blue: { grad: `blueRim-${uid}`, stroke: '#104E8B' },
       green: { grad: `greenRim-${uid}`, stroke: '#006400' },
       red: { grad: `redRim-${uid}`, stroke: '#8B0000' },
@@ -747,6 +754,13 @@ class FoundryUptimeCard extends HTMLElement {
         <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f6f6f6"/><stop offset="100%" style="stop-color:#cfcfcf"/></linearGradient>
         <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a3a3a"/><stop offset="100%" style="stop-color:#141414"/></linearGradient>
         <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#c77c43', '#e1a06a', '#9a5c2a', '#d7925a', '#7b461f')}</linearGradient>
+        <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#9c27b0', '#ce93d8', '#6a1b9a', '#ba68c8', '#4a148c')}</linearGradient>
+        <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#ef6c00', '#ffb74d', '#e65100', '#ffa726', '#bf360c')}</linearGradient>
+        <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#f9a825', '#fff176', '#f57f17', '#ffee58', '#e65100')}</linearGradient>
+        <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#00897b', '#4db6ac', '#00695c', '#26a69a', '#004d40')}</linearGradient>
+        <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#d4a017', '#f0d060', '#b8860b', '#e8c840', '#8b6914')}</linearGradient>
+        <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#6e7b8b', '#94a3b3', '#546e7a', '#88979e', '#455a64')}</linearGradient>
+        <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#1a1a1a', '#333333', '#0d0d0d', '#2a2a2a', '#050505')}</linearGradient>
         <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#2a6fdb', '#5ea2ff', '#1f4f9e', '#4f8fe6', '#163b76')}</linearGradient>
         <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#2fbf71', '#6fe0a6', '#1f7a49', '#53cf8e', '#165a36')}</linearGradient>
         <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">${stops('#e53935', '#ff6f6c', '#9e1f1c', '#e85a57', '#6f1513')}</linearGradient>
