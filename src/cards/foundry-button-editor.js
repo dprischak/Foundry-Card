@@ -190,11 +190,36 @@ class FoundryButtonEditor extends HTMLElement {
     data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
 
+    // Group: Actions
+    data.actions = {};
+    ['tap', 'hold', 'double_tap'].forEach((type) => {
+      const conf = config[`${type}_action`] || {};
+      data.actions[`${type}_action_action`] = conf.action || 'more-info';
+      data.actions[`${type}_action_navigation_path`] =
+        conf.navigation_path || '';
+      data.actions[`${type}_action_url_path`] = conf.url_path || '';
+      data.actions[`${type}_action_service`] =
+        conf.service || conf.perform_action || '';
+      data.actions[`${type}_action_target_entity`] =
+        conf.target?.entity_id || '';
+    });
+
+    // Clean up leaked flat action keys
+    delete data.tap_action;
+    delete data.hold_action;
+    delete data.double_tap_action;
+
     return data;
   }
 
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+
+    // Copy flat form data, skipping grouped keys
+    Object.keys(formData).forEach((key) => {
+      if (key === 'actions') return;
+      config[key] = formData[key];
+    });
 
     // Convert Colors back to Hex
     if (config.plate_color)
@@ -204,10 +229,39 @@ class FoundryButtonEditor extends HTMLElement {
     if (config.font_color)
       config.font_color = this._rgbToHex(config.font_color);
 
+    // Unmarshal actions group back to config
+    if (formData.actions) {
+      ['tap', 'hold', 'double_tap'].forEach((type) => {
+        const group = formData.actions;
+        const actionType = group[`${type}_action_action`];
+        const newAction = { action: actionType };
+
+        if (actionType === 'navigate') {
+          newAction.navigation_path = group[`${type}_action_navigation_path`];
+        } else if (actionType === 'url') {
+          newAction.url_path = group[`${type}_action_url_path`];
+        } else if (
+          actionType === 'call-service' ||
+          actionType === 'perform-action'
+        ) {
+          newAction.service = group[`${type}_action_service`];
+          const targetEnt = group[`${type}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type}_action`] = newAction;
+      });
+    }
+
+    // Remove group keys that might have leaked into config
+    delete config.actions;
+
     return config;
   }
 
   _getSchema() {
+    const formData = this._form ? this._form.data : {};
+    const actionData = formData?.actions || {};
+
     return [
       {
         name: 'entity',
@@ -215,29 +269,9 @@ class FoundryButtonEditor extends HTMLElement {
         selector: { entity: {} },
       },
       {
-        type: 'grid',
-        name: '',
-        schema: [
-          { name: 'icon', label: 'Icon', selector: { icon: {} } },
-          {
-            name: 'tap_action',
-            label: 'Tap Action',
-            selector: {
-              ui_action: {
-                actions: [
-                  'more-info',
-                  'toggle',
-                  'navigate',
-                  'url',
-                  'call-service',
-                  'perform-action',
-                  'assist',
-                  'none',
-                ],
-              },
-            },
-          },
-        ],
+        name: 'icon',
+        label: 'Icon',
+        selector: { icon: {} },
       },
       {
         name: '',
@@ -377,6 +411,17 @@ class FoundryButtonEditor extends HTMLElement {
           },
         ],
       },
+      // Actions
+      {
+        name: 'actions',
+        type: 'expandable',
+        title: 'Actions',
+        schema: [
+          ...this._getActionSchema('tap', 'Tap', actionData),
+          ...this._getActionSchema('hold', 'Hold', actionData),
+          ...this._getActionSchema('double_tap', 'Double Tap', actionData),
+        ],
+      },
     ];
   }
 
@@ -404,6 +449,67 @@ class FoundryButtonEditor extends HTMLElement {
     );
     const toHex = (n) => n.toString(16).padStart(2, '0');
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  _getActionSchema(type, label, actionData) {
+    const actionKey = `${type}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : 'more-info';
+
+    const schema = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: 'dropdown',
+            options: [
+              { value: 'more-info', label: 'More Info' },
+              { value: 'toggle', label: 'Toggle' },
+              { value: 'navigate', label: 'Navigate' },
+              { value: 'url', label: 'URL' },
+              { value: 'call-service', label: 'Call Service' },
+              { value: 'perform-action', label: 'Perform Action' },
+              { value: 'assist', label: 'Assist' },
+              { value: 'none', label: 'None' },
+            ],
+          },
+        },
+      },
+    ];
+
+    if (currentAction === 'navigate') {
+      schema.push({
+        name: `${type}_action_navigation_path`,
+        label: 'Navigation Path',
+        selector: { text: {} },
+      });
+    }
+
+    if (currentAction === 'url') {
+      schema.push({
+        name: `${type}_action_url_path`,
+        label: 'URL Path',
+        selector: { text: {} },
+      });
+    }
+
+    if (
+      currentAction === 'call-service' ||
+      currentAction === 'perform-action'
+    ) {
+      schema.push({
+        name: `${type}_action_service`,
+        label: 'Service',
+        selector: { text: {} },
+      });
+      schema.push({
+        name: `${type}_action_target_entity`,
+        label: 'Target Entity',
+        selector: { entity: {} },
+      });
+    }
+
+    return schema;
   }
 
   _computeLabel(schema) {
