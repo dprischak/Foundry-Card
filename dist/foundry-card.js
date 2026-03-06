@@ -16650,13 +16650,13 @@ var FoundryChartEditor = class extends HTMLElement {
         schema: [
           {
             name: "hours_to_show",
-            label: "Hours to Show",
-            selector: { number: { min: 1, max: 168 } }
+            label: "Hours to Show (type in for a higher value)",
+            selector: { number: { min: 1, max: 336 } }
           },
           {
             name: "bucket_count",
             label: "Number of Data Points",
-            selector: { number: { min: 10, max: 200 } }
+            selector: { number: { min: 10, max: 336 } }
           },
           {
             name: "bucket_minutes",
@@ -18690,18 +18690,13 @@ var FoundryBarChartEditor = class extends HTMLElement {
         schema: [
           {
             name: "hours_to_show",
-            label: "Hours to Show",
-            selector: { number: { min: 1, max: 168 } }
+            label: "Hours to Show (type in for a higher value)",
+            selector: { number: { min: 1, max: 336 } }
           },
           {
             name: "bucket_count",
             label: "Number of Data Points",
-            selector: { number: { min: 10, max: 200 } }
-          },
-          {
-            name: "bucket_minutes",
-            label: "Bucket Minutes (optional)",
-            selector: { number: { min: 1, max: 180 } }
+            selector: { number: { min: 10, max: 336 } }
           },
           {
             name: "update_interval",
