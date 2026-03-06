@@ -12711,6 +12711,12 @@ var FoundryButtonCard = class extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._subscribedTemplates = /* @__PURE__ */ new Map();
+    this._boundHandleClick = () => this._handleAction("tap");
+    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleContextMenu = (e) => {
+      e.preventDefault();
+      this._handleAction("hold");
+    };
   }
   // ... (existing code)
   setConfig(config) {
@@ -12731,6 +12737,9 @@ var FoundryButtonCard = class extends HTMLElement {
       this.config.aged_texture = this.config.aged_texture !== void 0 ? this.config.aged_texture : "everywhere";
       this.config.aged_texture_intensity = this.config.aged_texture_intensity !== void 0 ? this.config.aged_texture_intensity : 50;
       this.config.icon_color = this.config.icon_color || "var(--primary-text-color)";
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       if (this.shadowRoot) {
@@ -12947,17 +12956,34 @@ var FoundryButtonCard = class extends HTMLElement {
         </div>
       </ha-card>
     `;
-    const card = this.shadowRoot.querySelector("ha-card");
-    card.addEventListener("click", this._handleTap.bind(this));
+    this._attachActionListeners();
   }
-  _handleTap(e) {
-    if (e) {
-      e.stopPropagation();
-    }
-    const config = this.config;
-    if (!config || !config.tap_action) return;
-    if (config.tap_action.action === "none") return;
-    handleAction(this, this._hass, config, config.tap_action);
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.removeEventListener("dblclick", this._boundHandleDblClick);
+    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
+    root.addEventListener("contextmenu", this._boundHandleContextMenu);
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    if (!actionConfig || actionConfig.action === "none") return;
+    handleAction(this, this._hass, this.config, actionConfig);
   }
   updateContent() {
     const pText = this.shadowRoot.getElementById("primary-text");
@@ -13292,19 +13318,55 @@ var FoundryButtonEditor = class extends HTMLElement {
     data.glass_effect_enabled = sourceConfig.glass_effect_enabled ?? true;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.actions = {};
+    ["tap", "hold", "double_tap"].forEach((type2) => {
+      const conf = config[`${type2}_action`] || {};
+      data.actions[`${type2}_action_action`] = conf.action || "more-info";
+      data.actions[`${type2}_action_navigation_path`] = conf.navigation_path || "";
+      data.actions[`${type2}_action_url_path`] = conf.url_path || "";
+      data.actions[`${type2}_action_service`] = conf.service || conf.perform_action || "";
+      data.actions[`${type2}_action_target_entity`] = conf.target?.entity_id || "";
+    });
+    delete data.tap_action;
+    delete data.hold_action;
+    delete data.double_tap_action;
     return data;
   }
   _formToConfig(formData) {
-    const config = { ...this._config, ...formData };
+    const config = { ...this._config };
+    Object.keys(formData).forEach((key) => {
+      if (key === "actions") return;
+      config[key] = formData[key];
+    });
     if (config.plate_color)
       config.plate_color = this._rgbToHex(config.plate_color);
     if (config.font_bg_color)
       config.font_bg_color = this._rgbToHex(config.font_bg_color);
     if (config.font_color)
       config.font_color = this._rgbToHex(config.font_color);
+    if (formData.actions) {
+      ["tap", "hold", "double_tap"].forEach((type2) => {
+        const group = formData.actions;
+        const actionType = group[`${type2}_action_action`];
+        const newAction = { action: actionType };
+        if (actionType === "navigate") {
+          newAction.navigation_path = group[`${type2}_action_navigation_path`];
+        } else if (actionType === "url") {
+          newAction.url_path = group[`${type2}_action_url_path`];
+        } else if (actionType === "call-service" || actionType === "perform-action") {
+          newAction.service = group[`${type2}_action_service`];
+          const targetEnt = group[`${type2}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type2}_action`] = newAction;
+      });
+    }
+    delete config.actions;
     return config;
   }
   _getSchema() {
+    const formData = this._form ? this._form.data : {};
+    const actionData = formData?.actions || {};
     return [
       {
         name: "entity",
@@ -13312,29 +13374,9 @@ var FoundryButtonEditor = class extends HTMLElement {
         selector: { entity: {} }
       },
       {
-        type: "grid",
-        name: "",
-        schema: [
-          { name: "icon", label: "Icon", selector: { icon: {} } },
-          {
-            name: "tap_action",
-            label: "Tap Action",
-            selector: {
-              ui_action: {
-                actions: [
-                  "more-info",
-                  "toggle",
-                  "navigate",
-                  "url",
-                  "call-service",
-                  "perform-action",
-                  "assist",
-                  "none"
-                ]
-              }
-            }
-          }
-        ]
+        name: "icon",
+        label: "Icon",
+        selector: { icon: {} }
       },
       {
         name: "",
@@ -13473,6 +13515,17 @@ var FoundryButtonEditor = class extends HTMLElement {
             selector: { number: { min: 100, max: 500, mode: "box" } }
           }
         ]
+      },
+      // Actions
+      {
+        name: "actions",
+        type: "expandable",
+        title: "Actions",
+        schema: [
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
+        ]
       }
     ];
   }
@@ -13499,6 +13552,58 @@ var FoundryButtonEditor = class extends HTMLElement {
     );
     const toHex = (n) => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  _getActionSchema(type2, label, actionData) {
+    const actionKey = `${type2}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : "more-info";
+    const schema2 = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "more-info", label: "More Info" },
+              { value: "toggle", label: "Toggle" },
+              { value: "navigate", label: "Navigate" },
+              { value: "url", label: "URL" },
+              { value: "call-service", label: "Call Service" },
+              { value: "perform-action", label: "Perform Action" },
+              { value: "assist", label: "Assist" },
+              { value: "none", label: "None" }
+            ]
+          }
+        }
+      }
+    ];
+    if (currentAction === "navigate") {
+      schema2.push({
+        name: `${type2}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "url") {
+      schema2.push({
+        name: `${type2}_action_url_path`,
+        label: "URL Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "call-service" || currentAction === "perform-action") {
+      schema2.push({
+        name: `${type2}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema2.push({
+        name: `${type2}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
+    }
+    return schema2;
   }
   _computeLabel(schema2) {
     if (schema2.label) return schema2.label;

@@ -6,6 +6,7 @@
 
 ### 🐛 Defect Fixes
 - **Issue #93:** - Colors and Typography are not saving correctly in the yaml for slider, analog clock, and gauge cards.
+- **Issue #96:** - Button card is missing actions in the editor.
 
 
 

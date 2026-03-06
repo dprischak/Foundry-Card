@@ -1,4 +1,4 @@
-import { handleAction } from './utils.js';
+import { handleAction, getActionConfig } from './utils.js';
 import { ensureLedFont } from './fonts.js';
 import { loadThemes, applyTheme } from './themes.js';
 
@@ -7,6 +7,13 @@ class FoundryButtonCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this._subscribedTemplates = new Map();
+
+    this._boundHandleClick = () => this._handleAction('tap');
+    this._boundHandleDblClick = () => this._handleAction('double_tap');
+    this._boundHandleContextMenu = (e) => {
+      e.preventDefault();
+      this._handleAction('hold');
+    };
   }
 
   // ... (existing code)
@@ -51,6 +58,11 @@ class FoundryButtonCard extends HTMLElement {
 
       this.config.icon_color =
         this.config.icon_color || 'var(--primary-text-color)';
+
+      // Default action
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: 'more-info' };
+      }
 
       this._uniqueId =
         this._uniqueId || Math.random().toString(36).substr(2, 9);
@@ -314,21 +326,46 @@ class FoundryButtonCard extends HTMLElement {
       </ha-card>
     `;
 
-    // Bind click for tap action
-    const card = this.shadowRoot.querySelector('ha-card');
-    card.addEventListener('click', this._handleTap.bind(this));
+    // Bind action listeners
+    this._attachActionListeners();
   }
 
-  _handleTap(e) {
-    if (e) {
-      e.stopPropagation();
-    }
-    const config = this.config;
-    if (!config || !config.tap_action) return;
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById('actionRoot');
+    if (!root) return;
 
-    if (config.tap_action.action === 'none') return;
+    // Remove old listeners (renderSkeleton can run many times)
+    root.removeEventListener('click', this._boundHandleClick);
+    root.removeEventListener('dblclick', this._boundHandleDblClick);
+    root.removeEventListener('contextmenu', this._boundHandleContextMenu);
 
-    handleAction(this, this._hass, config, config.tap_action);
+    // Add listeners
+    root.addEventListener('click', this._boundHandleClick, { passive: true });
+    root.addEventListener('dblclick', this._boundHandleDblClick, {
+      passive: true,
+    });
+    root.addEventListener('contextmenu', this._boundHandleContextMenu);
+  }
+
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+
+    const tap = getActionConfig(this.config, 'tap_action', {
+      action: 'more-info',
+    });
+    const hold = getActionConfig(this.config, 'hold_action', {
+      action: 'more-info',
+    });
+    const dbl = getActionConfig(this.config, 'double_tap_action', {
+      action: 'more-info',
+    });
+
+    const actionConfig =
+      kind === 'hold' ? hold : kind === 'double_tap' ? dbl : tap;
+
+    if (!actionConfig || actionConfig.action === 'none') return;
+
+    handleAction(this, this._hass, this.config, actionConfig);
   }
 
   updateContent() {
