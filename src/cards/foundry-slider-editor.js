@@ -226,6 +226,8 @@ class FoundrySliderEditor extends HTMLElement {
       ? applyTheme({ ...config }, themeData)
       : { ...config };
     const data = { ...sourceConfig };
+
+    // Group: Appearance
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
       ring_style: sourceConfig.ring_style ?? 'brass',
@@ -240,13 +242,27 @@ class FoundrySliderEditor extends HTMLElement {
       plate_color: this._hexToRgb(sourceConfig.plate_color ?? '#8c7626') ?? [
         140, 118, 38,
       ],
-      number_color: this._hexToRgb(
-        sourceConfig.number_color ?? sourceConfig.title_color ?? '#3e2723'
-      ) ?? [62, 39, 35],
       plate_transparent: sourceConfig.plate_transparent ?? false,
+      font_bg_color: this._hexToRgb(
+        sourceConfig.font_bg_color ?? '#ffffff'
+      ) ?? [255, 255, 255],
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? '#6a5816') ?? [
         106, 88, 22,
       ],
+      wear_level: sourceConfig.wear_level ?? 50,
+      aged_texture: sourceConfig.aged_texture ?? 'glass_only',
+      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50,
+    };
+
+    // Group: Colors & Typography (must match schema name 'colors_typography')
+    data.colors_typography = {
+      show_value: sourceConfig.show_value ?? true,
+      font_color: this._hexToRgb(sourceConfig.font_color ?? '#000000') ?? [
+        0, 0, 0,
+      ],
+      number_color: this._hexToRgb(
+        sourceConfig.number_color ?? sourceConfig.title_color ?? '#3e2723'
+      ) ?? [62, 39, 35],
       slider_color: this._hexToRgb(sourceConfig.slider_color ?? '#444444') ?? [
         68, 68, 68,
       ],
@@ -256,7 +272,11 @@ class FoundrySliderEditor extends HTMLElement {
       secondary_tick_color: this._colorToRgb(
         sourceConfig.secondary_tick_color ?? '#000000'
       ) ?? [0, 0, 0],
+      title_font_size: sourceConfig.title_font_size ?? 14,
+      value_font_size: sourceConfig.value_font_size ?? 36,
     };
+
+    // Group: Knob Settings
     data.knob_settings = {
       knob_shape: sourceConfig.knob_shape ?? 'square',
       knob_size: sourceConfig.knob_size ?? 100,
@@ -264,33 +284,43 @@ class FoundrySliderEditor extends HTMLElement {
         201, 169, 97,
       ],
     };
-    data.led_settings = {
-      show_value: sourceConfig.show_value ?? true,
-      font_bg_color: this._hexToRgb(
-        sourceConfig.font_bg_color ?? '#ffffff'
-      ) ?? [255, 255, 255],
-      font_color: this._hexToRgb(sourceConfig.font_color ?? '#000000') ?? [
-        0, 0, 0,
-      ],
-      title_font_size: sourceConfig.title_font_size ?? 14,
-      value_font_size: sourceConfig.value_font_size ?? 36,
-    };
-    data.effects = {
-      wear_level: sourceConfig.wear_level ?? 50,
-      aged_texture: sourceConfig.aged_texture ?? 'glass_only',
-      aged_texture_intensity: sourceConfig.aged_texture_intensity ?? 50,
-    };
+
+    // Clean up leaked flat keys so they don't persist as nested objects or RGB arrays
+    delete data.theme;
+    delete data.ring_style;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.font_bg_color;
+    delete data.rivet_color;
+    delete data.wear_level;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.show_value;
+    delete data.font_color;
+    delete data.number_color;
+    delete data.slider_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
+    delete data.value_font_size;
+    delete data.knob_shape;
+    delete data.knob_size;
+    delete data.knob_color;
+    delete data.background_color;
+    delete data.title_color;
+    delete data.slider_background_color;
+
     return data;
   }
 
   _formToConfig(formData) {
     const config = { ...this._config };
 
-    // Copy top-level fields
+    // Copy top-level fields (skip group keys)
     Object.keys(formData).forEach((k) => {
-      if (
-        ['appearance', 'knob_settings', 'led_settings', 'effects'].includes(k)
-      )
+      if (['appearance', 'colors_typography', 'knob_settings'].includes(k))
         return;
       config[k] = formData[k];
     });
@@ -301,9 +331,16 @@ class FoundrySliderEditor extends HTMLElement {
       config.face_color = this._rgbToHex(config.face_color);
       delete config.background_color;
       config.plate_color = this._rgbToHex(config.plate_color);
+      config.rivet_color = this._rgbToHex(config.rivet_color);
+      config.font_bg_color = this._rgbToHex(config.font_bg_color);
+    }
+
+    // Merge colors & typography settings
+    if (formData.colors_typography) {
+      Object.assign(config, formData.colors_typography);
+      config.font_color = this._rgbToHex(config.font_color);
       config.number_color = this._rgbToHex(config.number_color);
       delete config.title_color;
-      config.rivet_color = this._rgbToHex(config.rivet_color);
       config.slider_color = this._rgbToHex(config.slider_color);
       config.primary_tick_color = this._rgbToHex(config.primary_tick_color);
       config.secondary_tick_color = this._rgbToHex(config.secondary_tick_color);
@@ -315,17 +352,10 @@ class FoundrySliderEditor extends HTMLElement {
       config.knob_color = this._rgbToHex(config.knob_color);
     }
 
-    // Merge LED settings
-    if (formData.led_settings) {
-      Object.assign(config, formData.led_settings);
-      config.font_bg_color = this._rgbToHex(config.font_bg_color);
-      config.font_color = this._rgbToHex(config.font_color);
-    }
-
-    // Merge effects
-    if (formData.effects) {
-      Object.assign(config, formData.effects);
-    }
+    // Remove any group keys that might have leaked into config
+    delete config.appearance;
+    delete config.colors_typography;
+    delete config.knob_settings;
 
     return config;
   }

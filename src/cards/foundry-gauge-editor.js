@@ -550,6 +550,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
       : { ...config };
     const data = { ...sourceConfig };
 
+    // Group: Appearance
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
       ring_style: sourceConfig.ring_style,
@@ -568,12 +569,13 @@ class FoundryGaugeCardEditor extends HTMLElement {
       face_color: this._hexToRgb(sourceConfig.face_color ?? '#f8f8f0') ?? [
         248, 248, 240,
       ],
+    };
+
+    // Group: Colors & Typography (must match schema name 'colors_typography')
+    data.colors_typography = {
       needle_color: this._hexToRgb(sourceConfig.needle_color ?? '#C41E3A') ?? [
         196, 30, 58,
       ],
-    };
-
-    data.style_fonts_ticks = {
       number_color: this._hexToRgb(sourceConfig.number_color ?? '#3e2723') ?? [
         62, 39, 35,
       ],
@@ -583,9 +585,6 @@ class FoundryGaugeCardEditor extends HTMLElement {
       secondary_tick_color: this._hexToRgb(
         sourceConfig.secondary_tick_color ?? '#5d4e37'
       ) ?? [93, 78, 55],
-    };
-
-    data.layout = {
       title_font_size: sourceConfig.title_font_size,
       odometer_font_size: sourceConfig.odometer_font_size,
       odometer_vertical_position: sourceConfig.odometer_vertical_position,
@@ -594,6 +593,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
       animation_duration: sourceConfig.animation_duration,
     };
 
+    // Group: High Value Needle
     data.high_needle = {
       high_needle_enabled: sourceConfig.high_needle_enabled,
       high_needle_color: this._hexToRgb(
@@ -602,6 +602,33 @@ class FoundryGaugeCardEditor extends HTMLElement {
       high_needle_duration: sourceConfig.high_needle_duration,
       high_needle_length: sourceConfig.high_needle_length,
     };
+
+    // Clean up leaked flat keys
+    delete data.theme;
+    delete data.ring_style;
+    delete data.rivet_color;
+    delete data.plate_color;
+    delete data.plate_transparent;
+    delete data.wear_level;
+    delete data.glass_effect_enabled;
+    delete data.aged_texture;
+    delete data.aged_texture_intensity;
+    delete data.background_style;
+    delete data.face_color;
+    delete data.needle_color;
+    delete data.number_color;
+    delete data.primary_tick_color;
+    delete data.secondary_tick_color;
+    delete data.title_font_size;
+    delete data.odometer_font_size;
+    delete data.odometer_vertical_position;
+    delete data.start_angle;
+    delete data.end_angle;
+    delete data.animation_duration;
+    delete data.high_needle_enabled;
+    delete data.high_needle_color;
+    delete data.high_needle_duration;
+    delete data.high_needle_length;
 
     data.actions = {};
     ['tap', 'hold', 'double_tap'].forEach((type) => {
@@ -635,23 +662,18 @@ class FoundryGaugeCardEditor extends HTMLElement {
 
     Object.keys(formData).forEach((key) => {
       if (
-        [
-          'appearance',
-          'layout',
-          'high_needle',
-          'style_fonts_ticks',
-          'actions',
-        ].includes(key)
+        ['appearance', 'high_needle', 'colors_typography', 'actions'].includes(
+          key
+        )
       )
         return;
       config[key] = formData[key];
     });
 
     if (formData.appearance) Object.assign(config, formData.appearance);
-    if (formData.layout) Object.assign(config, formData.layout);
     if (formData.high_needle) Object.assign(config, formData.high_needle);
-    if (formData.style_fonts_ticks)
-      Object.assign(config, formData.style_fonts_ticks);
+    if (formData.colors_typography)
+      Object.assign(config, formData.colors_typography);
 
     // Only overwrite if conversion succeeds; otherwise keep existing hex
     const rc = this._rgbToHex(config.rivet_color);
@@ -685,6 +707,11 @@ class FoundryGaugeCardEditor extends HTMLElement {
     const ndlz = this._rgbToHex(config.needle_color);
     if (ndlz) config.needle_color = ndlz;
     else config.needle_color = defaults.needle_color;
+
+    // Remove group keys that might have leaked into config
+    delete config.appearance;
+    delete config.colors_typography;
+    delete config.high_needle;
 
     if (formData.actions) {
       ['tap', 'hold', 'double_tap'].forEach((type) => {
