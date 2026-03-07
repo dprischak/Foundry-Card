@@ -230,6 +230,11 @@ class FoundryEntitiesEditor extends HTMLElement {
                 },
               },
             },
+            {
+              name: 'decimals',
+              label: 'Decimal Places',
+              selector: { number: { min: 0, max: 6, mode: 'box' } },
+            },
           ],
         },
       ];
@@ -239,6 +244,10 @@ class FoundryEntitiesEditor extends HTMLElement {
         name: typeof entity === 'object' ? entity.name : '',
         secondary_info:
           typeof entity === 'object' ? entity.secondary_info : 'none',
+        decimals:
+          typeof entity === 'object' && entity.decimals !== undefined
+            ? entity.decimals
+            : '',
       };
 
       form.schema = schema;
@@ -356,16 +365,30 @@ class FoundryEntitiesEditor extends HTMLElement {
     // Check if we need to convert string to object or update object
     const newName = value.name;
     const newInfo = value.secondary_info;
+    const newDecimals =
+      value.decimals !== '' &&
+      value.decimals !== undefined &&
+      value.decimals !== null
+        ? parseInt(value.decimals, 10)
+        : undefined;
 
-    // If both empty/default, revert to string
-    if ((!newName || newName === '') && (!newInfo || newInfo === 'none')) {
+    // If all empty/default, revert to string
+    if (
+      (!newName || newName === '') &&
+      (!newInfo || newInfo === 'none') &&
+      newDecimals === undefined
+    ) {
       entities[index] = currentEntityId;
     } else {
-      entities[index] = {
+      const entityObj = {
         entity: currentEntityId,
         name: newName,
         secondary_info: newInfo,
       };
+      if (newDecimals !== undefined) {
+        entityObj.decimals = newDecimals;
+      }
+      entities[index] = entityObj;
     }
 
     const newConfig = { ...this._config, entities };

@@ -139,6 +139,15 @@ class FoundryEntitiesCard extends HTMLElement {
             // Standard state display
             stateStr = stateObj.state;
             unit = stateObj.attributes.unit_of_measurement || '';
+            if (
+              typeof entityConf === 'object' &&
+              entityConf.decimals !== undefined
+            ) {
+              const parsed = parseFloat(stateStr);
+              if (!isNaN(parsed)) {
+                stateStr = parsed.toFixed(entityConf.decimals);
+              }
+            }
           }
         }
 

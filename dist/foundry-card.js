@@ -12111,6 +12111,12 @@ var FoundryEntitiesCard = class extends HTMLElement {
           } else {
             stateStr = stateObj.state;
             unit = stateObj.attributes.unit_of_measurement || "";
+            if (typeof entityConf === "object" && entityConf.decimals !== void 0) {
+              const parsed = parseFloat(stateStr);
+              if (!isNaN(parsed)) {
+                stateStr = parsed.toFixed(entityConf.decimals);
+              }
+            }
           }
         }
         stateEl.textContent = `${stateStr}${unit ? " " + unit : ""}`;
@@ -12773,13 +12779,19 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                   ]
                 }
               }
+            },
+            {
+              name: "decimals",
+              label: "Decimal Places",
+              selector: { number: { min: 0, max: 6, mode: "box" } }
             }
           ]
         }
       ];
       const data = {
         name: typeof entity === "object" ? entity.name : "",
-        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : ""
       };
       form.schema = schema2;
       form.data = data;
@@ -12868,14 +12880,19 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const currentEntityId = typeof currentEntity === "string" ? currentEntity : currentEntity.entity;
     const newName = value.name;
     const newInfo = value.secondary_info;
-    if ((!newName || newName === "") && (!newInfo || newInfo === "none")) {
+    const newDecimals = value.decimals !== "" && value.decimals !== void 0 && value.decimals !== null ? parseInt(value.decimals, 10) : void 0;
+    if ((!newName || newName === "") && (!newInfo || newInfo === "none") && newDecimals === void 0) {
       entities[index] = currentEntityId;
     } else {
-      entities[index] = {
+      const entityObj = {
         entity: currentEntityId,
         name: newName,
         secondary_info: newInfo
       };
+      if (newDecimals !== void 0) {
+        entityObj.decimals = newDecimals;
+      }
+      entities[index] = entityObj;
     }
     const newConfig = { ...this._config, entities };
     this._config = newConfig;
