@@ -2,6 +2,7 @@
 
 ### 🛠️ Improvements
 - **Issue #92:** - Added additional themes
+- **Issue #NA:** - Created a python script to create our GIF we use in our readme file.
 
 ### 🚀 New Cards
 
