@@ -1,0 +1,12 @@
+Gauge
+Analog Meter
+Thermostat
+Thermometer
+Entities
+Uptime
+Chart
+Button
+Slider
+Analog Clock
+Digital Clock
+Title

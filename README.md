@@ -1423,3 +1423,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Created by [dprischak](https://github.com/dprischak) and [KeithSobo](https://github.com/KeithSobo)
 
 If you find this project useful, consider giving it a ⭐ on GitHub!
+
+Support the development of this project:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/keithsobo)
+
+Even a symbolic gesture makes a difference. Thank you so much for your support ❤️

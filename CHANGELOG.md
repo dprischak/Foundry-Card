@@ -2,6 +2,9 @@
 
 ### 🛠️ Improvements
 - **Issue #92:** - Added additional themes
+- **Issue #NA:** - Created a python script to create our GIF we use in our readme file.
+- **Issue #100:** - Updated the themes to include the clock hands.
+
 
 ### 🚀 New Cards
 

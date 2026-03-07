@@ -23,6 +23,9 @@ industrial:
   face_color: '#929090'
   background_style: 'gradient'
   knob_color: '#7a5a2a'
+  hour_hand_color: '#3e2723'
+  minute_hand_color: '#3e2723'
+  second_hand_color: '#C41E3A'
 
 racing:
   plate_color: '#929090'
@@ -49,6 +52,9 @@ racing:
   face_color: '#929090'
   background_style: 'gradient'
   knob_color: '#2e2e2e'
+  hour_hand_color: '#000000'
+  minute_hand_color: '#000000'
+  second_hand_color: '#C41E3A'
 
 warm:
   plate_color: '#f5e6d3'
@@ -75,6 +81,9 @@ warm:
   face_color: '#f5e6d3'
   background_style: 'gradient'
   knob_color: '#b36b2c'
+  hour_hand_color: '#5c4033'
+  minute_hand_color: '#5c4033'
+  second_hand_color: '#cd5c5c'
 
 cool:
   plate_color: '#e0f7fa'
@@ -101,6 +110,9 @@ cool:
   face_color: '#d1eae5'
   background_style: 'solid'
   knob_color: '#3b8fa5'
+  hour_hand_color: '#006064'
+  minute_hand_color: '#006064'
+  second_hand_color: '#00acc1'
 
 vintage:
   plate_color: '#d4c5a9'
@@ -127,6 +139,9 @@ vintage:
   face_color: '#f5e6d3'
   background_style: 'gradient'
   knob_color: '#8f6f3f'
+  hour_hand_color: '#4a3728'
+  minute_hand_color: '#4a3728'
+  second_hand_color: '#8b4513'
 
 midnight:
   plate_color: '#1a1a2e'
@@ -153,6 +168,9 @@ midnight:
   face_color: '#0f3460'
   background_style: 'solid'
   knob_color: '#00c853'
+  hour_hand_color: '#eee'
+  minute_hand_color: '#eee'
+  second_hand_color: '#00ff41'
 
 steampunk:
   plate_color: '#8b4513'
@@ -179,6 +197,9 @@ steampunk:
   face_color: '#d2691e'
   background_style: 'gradient'
   knob_color: '#a65b2b'
+  hour_hand_color: '#000000'
+  minute_hand_color: '#000000'
+  second_hand_color: '#ff6347'
 
 military:
   plate_color: '#4a5240'
@@ -205,6 +226,9 @@ military:
   face_color: '#5a6352'
   background_style: 'solid'
   knob_color: '#5a6b3f'
+  hour_hand_color: '#d4d4aa'
+  minute_hand_color: '#d4d4aa'
+  second_hand_color: '#ff6b35'
 
 retro:
   plate_color: '#d4a574'
@@ -231,6 +255,9 @@ retro:
   face_color: '#f4a460'
   background_style: 'gradient'
   knob_color: '#c27b3a'
+  hour_hand_color: '#3e2723'
+  minute_hand_color: '#3e2723'
+  second_hand_color: '#ff6347'
 
 arctic:
   plate_color: '#f0f8ff'
@@ -257,6 +284,9 @@ arctic:
   face_color: '#e6f2ff'
   background_style: 'gradient'
   knob_color: '#6fb7d6'
+  hour_hand_color: '#2c3e50'
+  minute_hand_color: '#2c3e50'
+  second_hand_color: '#4682b4'
 
 copper:
   plate_color: '#b87333'
@@ -283,6 +313,9 @@ copper:
   face_color: '#d2691e'
   background_style: 'gradient'
   knob_color: '#c46a2a'
+  hour_hand_color: '#000000'
+  minute_hand_color: '#000000'
+  second_hand_color: '#40e0d0'
 
 neon:
   plate_color: '#0a0a0a'
@@ -309,6 +342,9 @@ neon:
   face_color: '#1a1a1a'
   background_style: 'solid'
   knob_color: '#00e5ff'
+  hour_hand_color: '#ff00ff'
+  minute_hand_color: '#ff00ff'
+  second_hand_color: '#ff00ff'
 
 pink:
   plate_color: '#fea4a4'
@@ -335,6 +371,9 @@ pink:
   grid_minor_color: '#ed1d1d'
   grid_major_color: '#f58f8f'
   grid_opacity: 0.6
+  hour_hand_color: '#000000'
+  minute_hand_color: '#000000'
+  second_hand_color: '#f7879a'
 
 blue:
   plate_color: '#2b00ff'
@@ -361,6 +400,9 @@ blue:
   grid_minor_color: '#0b0198'
   grid_major_color: '#0b0198'
   grid_opacity: 0.6
+  hour_hand_color: '#0b0198'
+  minute_hand_color: '#0b0198'
+  second_hand_color: '#0b0198'
 
 green:
   plate_color: '#00b850'
@@ -387,6 +429,9 @@ green:
   grid_minor_color: '#00b850'
   grid_major_color: '#00b850'
   grid_opacity: 0.6
+  hour_hand_color: '#005c17'
+  minute_hand_color: '#005c17'
+  second_hand_color: '#005c17'
 
 spring:
   plate_color: '#c8e6c9'
@@ -413,6 +458,9 @@ spring:
   face_color: '#f1f8e9'
   background_style: 'gradient'
   knob_color: '#c0a33a'
+  hour_hand_color: '#2e7d32'
+  minute_hand_color: '#2e7d32'
+  second_hand_color: '#e91e63'
 
 summer:
   plate_color: '#fff3e0'
@@ -439,6 +487,9 @@ summer:
   face_color: '#fffde7'
   background_style: 'gradient'
   knob_color: '#d4a017'
+  hour_hand_color: '#e65100'
+  minute_hand_color: '#e65100'
+  second_hand_color: '#ff5722'
 
 autumn:
   plate_color: '#bf6e2e'
@@ -465,6 +516,9 @@ autumn:
   face_color: '#f5e0c3'
   background_style: 'gradient'
   knob_color: '#a65b2b'
+  hour_hand_color: '#4e342e'
+  minute_hand_color: '#4e342e'
+  second_hand_color: '#d84315'
 
 winter:
   plate_color: '#cfd8dc'
@@ -491,6 +545,9 @@ winter:
   face_color: '#eceff1'
   background_style: 'gradient'
   knob_color: '#78909c'
+  hour_hand_color: '#263238'
+  minute_hand_color: '#263238'
+  second_hand_color: '#42a5f5'
 
 purple:
   plate_color: '#7b1fa2'
@@ -517,6 +574,9 @@ purple:
   face_color: '#e1bee7'
   background_style: 'solid'
   knob_color: '#9c27b0'
+  hour_hand_color: '#4a0072'
+  minute_hand_color: '#4a0072'
+  second_hand_color: '#e040fb'
 
 orange:
   plate_color: '#ff8f00'
@@ -543,6 +603,9 @@ orange:
   face_color: '#ffe0b2'
   background_style: 'solid'
   knob_color: '#ef6c00'
+  hour_hand_color: '#e65100'
+  minute_hand_color: '#e65100'
+  second_hand_color: '#ff3d00'
 
 yellow:
   plate_color: '#fdd835'
@@ -569,6 +632,9 @@ yellow:
   face_color: '#fff9c4'
   background_style: 'solid'
   knob_color: '#f9a825'
+  hour_hand_color: '#f57f17'
+  minute_hand_color: '#f57f17'
+  second_hand_color: '#ff6f00'
 
 teal:
   plate_color: '#00897b'
@@ -595,6 +661,9 @@ teal:
   face_color: '#b2dfdb'
   background_style: 'solid'
   knob_color: '#00897b'
+  hour_hand_color: '#004d40'
+  minute_hand_color: '#004d40'
+  second_hand_color: '#00bfa5'
 
 aerospace:
   plate_color: '#37474f'
@@ -621,6 +690,9 @@ aerospace:
   face_color: '#263238'
   background_style: 'solid'
   knob_color: '#6e7b8b'
+  hour_hand_color: '#b0bec5'
+  minute_hand_color: '#b0bec5'
+  second_hand_color: '#ff3d00'
 
 cherry_blossom:
   plate_color: '#fce4ec'
@@ -647,6 +719,9 @@ cherry_blossom:
   face_color: '#fce4ec'
   background_style: 'gradient'
   knob_color: '#d4a017'
+  hour_hand_color: '#880e4f'
+  minute_hand_color: '#880e4f'
+  second_hand_color: '#e91e63'
 
 deep_sea:
   plate_color: '#0d1b2a'
@@ -673,6 +748,9 @@ deep_sea:
   face_color: '#0a1929'
   background_style: 'solid'
   knob_color: '#00838f'
+  hour_hand_color: '#4fc3f7'
+  minute_hand_color: '#4fc3f7'
+  second_hand_color: '#76ff03'
 
 mediterranean:
   plate_color: '#d4803a'
@@ -699,6 +777,9 @@ mediterranean:
   face_color: '#fbe9d7'
   background_style: 'gradient'
   knob_color: '#c46a2a'
+  hour_hand_color: '#3e2723'
+  minute_hand_color: '#3e2723'
+  second_hand_color: '#00838f'
 
 stealth_black:
   plate_color: '#121212'
@@ -725,12 +806,15 @@ stealth_black:
   face_color: '#1a1a1a'
   background_style: 'solid'
   knob_color: '#333333'
+  hour_hand_color: '#757575'
+  minute_hand_color: '#757575'
+  second_hand_color: '#f44336'
 
 pine_forest:
   plate_color: '#2e5339'
   rivet_color: '#1b3a26'
-  title_color: '#c8e6c9'
-  font_color: '#c8e6c9'
+  title_color: '#f1f8e9'
+  font_color: '#f1f8e9'
   font_bg_color: '#1a3a25'
   line_color: '#81c784'
   line_width: 2
@@ -739,9 +823,9 @@ pine_forest:
   grid_major_color: '#c8e6c9'
   grid_opacity: 0.6
   ring_style: 'titanium'
-  number_color: '#c8e6c9'
-  primary_tick_color: '#c8e6c9'
-  secondary_tick_color: '#4caf50'
+  number_color: "#264601"
+  primary_tick_color: "#315b01"
+  secondary_tick_color: "#6b7b6b"
   needle_color: '#ff9800'
   plate_transparent: false
   glass_effect_enabled: true
@@ -751,4 +835,7 @@ pine_forest:
   face_color: '#2e4a36'
   background_style: 'gradient'
   knob_color: '#6e7b8b'
+  hour_hand_color: '#c8e6c9'
+  minute_hand_color: '#c8e6c9'
+  second_hand_color: '#ff9800'
   
