@@ -142,6 +142,9 @@ export function applyTheme(config, theme) {
     'grid_minor_color',
     'grid_major_color',
     'grid_opacity',
+    'hour_hand_color',
+    'minute_hand_color',
+    'second_hand_color',
   ];
 
   for (const key of themeProperties) {
