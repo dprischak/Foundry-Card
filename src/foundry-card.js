@@ -25,7 +25,7 @@ import './cards/foundry-bar-chart-editor.js';
 import './cards/foundry-analog-meter-card.js';
 import './cards/foundry-analog-meter-editor.js';
 
-const FOUNDRY_CARDS_VERSION = '26.3.2.dan';
+const FOUNDRY_CARDS_VERSION = '26.3.3';
 
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
