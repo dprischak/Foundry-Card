@@ -1495,6 +1495,7 @@ Future cards planned for the Foundry Card collection:
 
 2023.3.2
 - Bar Chart
+
 2023.3.3
 - Digital VU Meter
 
