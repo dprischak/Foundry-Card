@@ -9,6 +9,15 @@
 
 ### 🚀 New Cards
 
+#### 📊 Foundry Bar Chart Card
+
+A steampunk-styled bar chart for entity history:
+
+- Configurable time range and data-point density
+- Segment-based bar coloring with optional gradient blending
+- Theme-aware styling with grid overlays
+- Inspectable values and optional axis min/max labels
+
 ### 🐛 Defect Fixes
 - **Issue #93:** - Colors and Typography are not saving correctly in the yaml for slider, analog clock, and gauge cards.
 - **Issue #96:** - Button card is missing actions in the editor.
