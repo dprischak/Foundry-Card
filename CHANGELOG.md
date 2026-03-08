@@ -1,21 +1,11 @@
-## v26.3.3
-
-### 🛠️ Improvements
-- **Issue #88:** - Entities Card: Added option for date/time entities to allow for duration display.  Ex. showing "8 hours" instead of 3/7/2026 4:00:00.
-- **Issue #103:** - Entities, chart and barchart card: Added `clock_format` option (`local`, `12h`, `24h`) to control hour display for date/time timestamp entities.
-
-### 🚀 New Cards
-
-### 🐛 Defect Fixes
-
-
 ## v26.3.2
 
 ### 🛠️ Improvements
 - **Issue #92:** - Added additional themes
 - **Issue #NA:** - Created a python script to create our GIF we use in our readme file.
 - **Issue #100:** - Updated the themes to include the clock hands.
-
+- **Issue #103:** - Entities, chart and barchart card: Added `clock_format` option (`local`, `12h`, `24h`) to control hour display for date/time timestamp entities.
+- **Issue #86:** - Added multipler to the analog meter card for the units
 
 ### 🚀 New Cards
 
@@ -24,6 +14,8 @@
 - **Issue #96:** - Button card is missing actions in the editor.
 - **Issue #94:** - Pink theme is missing chart options
 - **Issue #95:** - Aged intensity reduced for a few themes
+- **Issue #88:** - Entities Card: Added option for date/time entities to allow for duration display.  Ex. showing "8 hours" instead of 3/7/2026 4:00:00.
+- **Issue #87:** - Added units the analog meter card
 
 
 
