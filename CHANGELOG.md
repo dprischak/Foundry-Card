@@ -1,3 +1,17 @@
+## v26.3.3
+
+### 🛠️ Improvements
+- **Issue #88:** - Entities Card: Added option for date/time entities to allow for duration display.  Ex. showing "8 hours" instead of 3/7/2026 4:00:00.
+- **Issue #103:** - Entities, chart and barchart card: Added `clock_format` option (`local`, `12h`, `24h`) to control hour display for date/time timestamp entities.
+- **Issue #89:** - Entities Card: Added per-entity `decimals` option (0–6) to control the number of decimal places shown for numeric sensor values. Non-numeric states are unaffected. 
+- **Issue #106:** - Bar Chart & Chart Card: Replaced "Number of Data Points" (`bucket_count`) in the visual editor with a new `points_per_hour` field ("Data Points per Hour"). The old `bucket_count` YAML field remains fully supported for backward compatibility.
+- **Issue #106:** - Bar Chart & Chart Card: Moved the Aggregation dropdown to appear directly below Data Points per Hour in the visual editor.
+
+### 🚀 New Cards
+
+### 🐛 Defect Fixes
+
+
 ## v26.3.2
 
 ### 🛠️ Improvements

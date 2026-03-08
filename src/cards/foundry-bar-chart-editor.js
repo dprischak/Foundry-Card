@@ -539,9 +539,25 @@ class FoundryBarChartEditor extends HTMLElement {
             selector: { number: { min: 1, max: 336 } },
           },
           {
-            name: 'bucket_count',
-            label: 'Number of Data Points',
-            selector: { number: { min: 10, max: 336 } },
+            name: 'points_per_hour',
+            label: 'Data Points per Hour',
+            selector: {
+              number: { min: 1, max: 60, step: 1, mode: 'slider' },
+            },
+          },
+          {
+            name: 'aggregation',
+            label: 'Aggregation',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'avg', label: 'Average' },
+                  { value: 'min', label: 'Minimum' },
+                  { value: 'max', label: 'Maximum' },
+                ],
+              },
+            },
           },
           {
             name: 'update_interval',
@@ -572,20 +588,6 @@ class FoundryBarChartEditor extends HTMLElement {
             name: 'fill_under_line',
             label: 'Fill Under Line',
             selector: { boolean: {} },
-          },
-          {
-            name: 'aggregation',
-            label: 'Aggregation',
-            selector: {
-              select: {
-                mode: 'dropdown',
-                options: [
-                  { value: 'avg', label: 'Average' },
-                  { value: 'min', label: 'Minimum' },
-                  { value: 'max', label: 'Maximum' },
-                ],
-              },
-            },
           },
           {
             name: 'show_footer',

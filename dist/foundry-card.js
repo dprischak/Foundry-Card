@@ -15913,8 +15913,8 @@ var FoundryChartCard = class extends HTMLElement {
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const bucketCount = Math.max(
-      10,
-      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.bucket_count || 50
+      1,
+      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * hours) : this.config.bucket_count || 50
     );
     const bucketDur = totalDuration / bucketCount;
     const segments = [];
@@ -16834,9 +16834,25 @@ var FoundryChartEditor = class extends HTMLElement {
             selector: { number: { min: 1, max: 336 } }
           },
           {
-            name: "bucket_count",
-            label: "Number of Data Points",
-            selector: { number: { min: 10, max: 336 } }
+            name: "points_per_hour",
+            label: "Data Points per Hour",
+            selector: {
+              number: { min: 1, max: 60, step: 1, mode: "slider" }
+            }
+          },
+          {
+            name: "aggregation",
+            label: "Aggregation",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "avg", label: "Average" },
+                  { value: "min", label: "Minimum" },
+                  { value: "max", label: "Maximum" }
+                ]
+              }
+            }
           },
           {
             name: "bucket_minutes",
@@ -16862,20 +16878,6 @@ var FoundryChartEditor = class extends HTMLElement {
             name: "value_precision",
             label: "Value Precision",
             selector: { number: { min: 0, max: 6, mode: "slider" } }
-          },
-          {
-            name: "aggregation",
-            label: "Aggregation",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: "avg", label: "Average" },
-                  { value: "min", label: "Minimum" },
-                  { value: "max", label: "Maximum" }
-                ]
-              }
-            }
           },
           {
             name: "show_footer",
@@ -17953,8 +17955,8 @@ var FoundryBarChartCard = class extends HTMLElement {
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const bucketCount = Math.max(
-      10,
-      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.bucket_count || 50
+      1,
+      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * hours) : this.config.bucket_count || 50
     );
     const bucketDur = totalDuration / bucketCount;
     const segments = [];
@@ -18892,9 +18894,25 @@ var FoundryBarChartEditor = class extends HTMLElement {
             selector: { number: { min: 1, max: 336 } }
           },
           {
-            name: "bucket_count",
-            label: "Number of Data Points",
-            selector: { number: { min: 10, max: 336 } }
+            name: "points_per_hour",
+            label: "Data Points per Hour",
+            selector: {
+              number: { min: 1, max: 60, step: 1, mode: "slider" }
+            }
+          },
+          {
+            name: "aggregation",
+            label: "Aggregation",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "avg", label: "Average" },
+                  { value: "min", label: "Minimum" },
+                  { value: "max", label: "Maximum" }
+                ]
+              }
+            }
           },
           {
             name: "update_interval",
@@ -18925,20 +18943,6 @@ var FoundryBarChartEditor = class extends HTMLElement {
             name: "fill_under_line",
             label: "Fill Under Line",
             selector: { boolean: {} }
-          },
-          {
-            name: "aggregation",
-            label: "Aggregation",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: "avg", label: "Average" },
-                  { value: "min", label: "Minimum" },
-                  { value: "max", label: "Maximum" }
-                ]
-              }
-            }
           },
           {
             name: "show_footer",

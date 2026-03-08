@@ -518,10 +518,12 @@ class FoundryChartCard extends HTMLElement {
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
     const bucketCount = Math.max(
-      10,
+      1,
       this.config.bucket_minutes
         ? Math.round((hours * 60) / this.config.bucket_minutes)
-        : this.config.bucket_count || 50
+        : this.config.points_per_hour
+          ? Math.round(this.config.points_per_hour * hours)
+          : this.config.bucket_count || 50
     );
     const bucketDur = totalDuration / bucketCount;
 
