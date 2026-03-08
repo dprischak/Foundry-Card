@@ -61,6 +61,8 @@ class FoundryBarChartCard extends HTMLElement {
         this.config.show_y_axis_minmax !== undefined
           ? this.config.show_y_axis_minmax
           : false;
+      this.config.x_axis_time_format =
+        this.config.x_axis_time_format || 'local';
       this.config.segments = Array.isArray(this.config.segments)
         ? this.config.segments
         : [];
@@ -159,6 +161,7 @@ class FoundryBarChartCard extends HTMLElement {
       show_inspect_value: true,
       show_x_axis_minmax: false,
       show_y_axis_minmax: false,
+      x_axis_time_format: 'local',
       segments: [],
       segment_blend_width: 0,
     };
@@ -847,10 +850,11 @@ class FoundryBarChartCard extends HTMLElement {
   }
 
   _formatAxisTime(date) {
-    return date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const fmt = this.config.x_axis_time_format;
+    const opts = { hour: '2-digit', minute: '2-digit' };
+    if (fmt === '12h') opts.hour12 = true;
+    else if (fmt === '24h') opts.hour12 = false;
+    return date.toLocaleTimeString([], opts);
   }
 
   render() {

@@ -1,3 +1,14 @@
+## v26.3.3
+
+### 🛠️ Improvements
+- **Issue #88:** - Entities Card: Added option for date/time entities to allow for duration display.  Ex. showing "8 hours" instead of 3/7/2026 4:00:00.
+- **Issue #103:** - Entities, chart and barchart card: Added `clock_format` option (`local`, `12h`, `24h`) to control hour display for date/time timestamp entities.
+
+### 🚀 New Cards
+
+### 🐛 Defect Fixes
+
+
 ## v26.3.2
 
 ### 🛠️ Improvements

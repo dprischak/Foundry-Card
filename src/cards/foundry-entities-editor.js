@@ -206,6 +206,8 @@ class FoundryEntitiesEditor extends HTMLElement {
 
       // Schema for this single entity
       const entName = typeof entity === 'string' ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema = [
         {
           name: '',
@@ -230,6 +232,60 @@ class FoundryEntitiesEditor extends HTMLElement {
                 },
               },
             },
+            ...(isNumeric
+              ? [
+                  {
+                    name: 'decimals',
+                    label: 'Decimal Places',
+                    selector: { number: { min: 0, max: 6, mode: 'box' } },
+                  },
+                ]
+              : []),
+            ...(isDateTime
+              ? [
+                  {
+                    name: 'time_format',
+                    label: 'Time Format',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'default', label: 'Date / Time' },
+                          {
+                            value: 'time_since',
+                            label: 'Time Since (short: "5m ago")',
+                          },
+                          {
+                            value: 'time_since_verbose',
+                            label: 'Time Since (verbose: "5 minutes ago")',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
+            ...(isDateTime &&
+            (typeof entity !== 'object' ||
+              !entity.time_format ||
+              entity.time_format === 'default')
+              ? [
+                  {
+                    name: 'clock_format',
+                    label: 'Clock Display',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'local', label: 'Local Time (default)' },
+                          { value: '12h', label: '12 Hour' },
+                          { value: '24h', label: '24 Hour' },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -239,6 +295,18 @@ class FoundryEntitiesEditor extends HTMLElement {
         name: typeof entity === 'object' ? entity.name : '',
         secondary_info:
           typeof entity === 'object' ? entity.secondary_info : 'none',
+        decimals:
+          typeof entity === 'object' && entity.decimals !== undefined
+            ? entity.decimals
+            : '',
+        time_format:
+          typeof entity === 'object' && entity.time_format
+            ? entity.time_format
+            : 'default',
+        clock_format:
+          typeof entity === 'object' && entity.clock_format
+            ? entity.clock_format
+            : 'local',
       };
 
       form.schema = schema;
@@ -270,6 +338,8 @@ class FoundryEntitiesEditor extends HTMLElement {
       if (!form) return;
 
       const entName = typeof entity === 'string' ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
 
       // Update Schema (Title might change if reordered)
       const schema = [
@@ -296,6 +366,60 @@ class FoundryEntitiesEditor extends HTMLElement {
                 },
               },
             },
+            ...(isNumeric
+              ? [
+                  {
+                    name: 'decimals',
+                    label: 'Decimal Places',
+                    selector: { number: { min: 0, max: 6, mode: 'box' } },
+                  },
+                ]
+              : []),
+            ...(isDateTime
+              ? [
+                  {
+                    name: 'time_format',
+                    label: 'Time Format',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'default', label: 'Date / Time' },
+                          {
+                            value: 'time_since',
+                            label: 'Time Since (short: "5m ago")',
+                          },
+                          {
+                            value: 'time_since_verbose',
+                            label: 'Time Since (verbose: "5 minutes ago")',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
+            ...(isDateTime &&
+            (typeof entity !== 'object' ||
+              !entity.time_format ||
+              entity.time_format === 'default')
+              ? [
+                  {
+                    name: 'clock_format',
+                    label: 'Clock Display',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'local', label: 'Local Time (default)' },
+                          { value: '12h', label: '12 Hour' },
+                          { value: '24h', label: '24 Hour' },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -305,6 +429,18 @@ class FoundryEntitiesEditor extends HTMLElement {
         name: typeof entity === 'object' ? entity.name : '',
         secondary_info:
           typeof entity === 'object' ? entity.secondary_info : 'none',
+        decimals:
+          typeof entity === 'object' && entity.decimals !== undefined
+            ? entity.decimals
+            : '',
+        time_format:
+          typeof entity === 'object' && entity.time_format
+            ? entity.time_format
+            : 'default',
+        clock_format:
+          typeof entity === 'object' && entity.clock_format
+            ? entity.clock_format
+            : 'local',
       };
 
       form.schema = schema;
@@ -327,6 +463,25 @@ class FoundryEntitiesEditor extends HTMLElement {
         downBtn.style.opacity = index === entities.length - 1 ? '0.3' : '1';
       }
     });
+  }
+
+  _isNumericEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const state = stateObj.state;
+    return !isNaN(parseFloat(state)) && isFinite(state);
+  }
+
+  _isDateTimeEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const dc = stateObj.attributes.device_class;
+    if (dc === 'timestamp' || dc === 'date' || dc === 'time') return true;
+    // Also detect if the state string is a parseable ISO date
+    const d = new Date(stateObj.state);
+    return !isNaN(d.getTime()) && stateObj.state.includes('-');
   }
 
   _moveEntity(index, direction) {
@@ -356,16 +511,49 @@ class FoundryEntitiesEditor extends HTMLElement {
     // Check if we need to convert string to object or update object
     const newName = value.name;
     const newInfo = value.secondary_info;
+    const newDecimals =
+      value.decimals !== '' &&
+      value.decimals !== undefined &&
+      value.decimals !== null
+        ? parseInt(value.decimals, 10)
+        : undefined;
+    const newTimeFormat =
+      value.time_format && value.time_format !== 'default'
+        ? value.time_format
+        : undefined;
+    // clock_format only applies when showing date/time (not time_since variants)
+    const newClockFormat =
+      newTimeFormat === undefined &&
+      value.clock_format &&
+      value.clock_format !== 'local'
+        ? value.clock_format
+        : undefined;
 
-    // If both empty/default, revert to string
-    if ((!newName || newName === '') && (!newInfo || newInfo === 'none')) {
+    // If all empty/default, revert to string
+    if (
+      (!newName || newName === '') &&
+      (!newInfo || newInfo === 'none') &&
+      newDecimals === undefined &&
+      newTimeFormat === undefined &&
+      newClockFormat === undefined
+    ) {
       entities[index] = currentEntityId;
     } else {
-      entities[index] = {
+      const entityObj = {
         entity: currentEntityId,
         name: newName,
         secondary_info: newInfo,
       };
+      if (newDecimals !== undefined) {
+        entityObj.decimals = newDecimals;
+      }
+      if (newTimeFormat !== undefined) {
+        entityObj.time_format = newTimeFormat;
+      }
+      if (newClockFormat !== undefined) {
+        entityObj.clock_format = newClockFormat;
+      }
+      entities[index] = entityObj;
     }
 
     const newConfig = { ...this._config, entities };

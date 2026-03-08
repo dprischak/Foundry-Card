@@ -12087,7 +12087,18 @@ var FoundryEntitiesCard = class extends HTMLElement {
           if (stateObj.attributes.device_class === "timestamp") {
             const date = new Date(stateObj.state);
             if (!isNaN(date.getTime())) {
-              stateStr = date.toLocaleString();
+              const timeFormat = typeof entityConf === "object" ? entityConf.time_format : void 0;
+              if (timeFormat === "time_since") {
+                stateStr = this._timeSince(date, false);
+              } else if (timeFormat === "time_since_verbose") {
+                stateStr = this._timeSince(date, true);
+              } else {
+                const clockFmt = typeof entityConf === "object" ? entityConf.clock_format : void 0;
+                const localeOpts = {};
+                if (clockFmt === "12h") localeOpts.hour12 = true;
+                else if (clockFmt === "24h") localeOpts.hour12 = false;
+                stateStr = date.toLocaleString([], localeOpts);
+              }
             } else {
               stateStr = stateObj.state;
             }
@@ -12114,6 +12125,12 @@ var FoundryEntitiesCard = class extends HTMLElement {
           } else {
             stateStr = stateObj.state;
             unit = stateObj.attributes.unit_of_measurement || "";
+            if (typeof entityConf === "object" && entityConf.decimals !== void 0) {
+              const parsed = parseFloat(stateStr);
+              if (!isNaN(parsed)) {
+                stateStr = parsed.toFixed(entityConf.decimals);
+              }
+            }
           }
         }
         stateEl.textContent = `${stateStr}${unit ? " " + unit : ""}`;
@@ -12149,7 +12166,10 @@ var FoundryEntitiesCard = class extends HTMLElement {
       const s = this._hass.states[eid];
       return s && s.attributes.finishes_at && new Date(s.attributes.finishes_at) > now;
     });
-    if (hasActiveTimer) {
+    const hasTimeSince = this.config.entities.some(
+      (e) => typeof e === "object" && (e.time_format === "time_since" || e.time_format === "time_since_verbose")
+    );
+    if (hasActiveTimer || hasTimeSince) {
       if (!this._timerInterval) {
         this._timerInterval = setInterval(() => this._updateValues(), 1e3);
       }
@@ -12157,6 +12177,30 @@ var FoundryEntitiesCard = class extends HTMLElement {
       clearInterval(this._timerInterval);
       this._timerInterval = null;
     }
+  }
+  _timeSince(date, verbose) {
+    const now = /* @__PURE__ */ new Date();
+    const diffSeconds = Math.round((now - date) / 1e3);
+    const future = diffSeconds < 0;
+    const abs = Math.abs(diffSeconds);
+    let value, unit;
+    if (abs < 60) {
+      value = abs;
+      unit = verbose ? abs === 1 ? "second" : "seconds" : "s";
+    } else if (abs < 3600) {
+      value = Math.floor(abs / 60);
+      unit = verbose ? value === 1 ? "minute" : "minutes" : "m";
+    } else if (abs < 86400) {
+      value = Math.floor(abs / 3600);
+      unit = verbose ? value === 1 ? "hour" : "hours" : "h";
+    } else {
+      value = Math.floor(abs / 86400);
+      unit = verbose ? value === 1 ? "day" : "days" : "d";
+    }
+    if (verbose) {
+      return future ? `in ${value} ${unit}` : `${value} ${unit} ago`;
+    }
+    return future ? `in ${value}${unit}` : `${value}${unit} ago`;
   }
   render() {
     const config = this.config;
@@ -12752,6 +12796,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       form.hass = this._hass;
       form.computeLabel = this._computeLabel;
       const entName = typeof entity === "string" ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12776,13 +12822,61 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                   ]
                 }
               }
-            }
+            },
+            ...isNumeric ? [
+              {
+                name: "decimals",
+                label: "Decimal Places",
+                selector: { number: { min: 0, max: 6, mode: "box" } }
+              }
+            ] : [],
+            ...isDateTime ? [
+              {
+                name: "time_format",
+                label: "Time Format",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "default", label: "Date / Time" },
+                      {
+                        value: "time_since",
+                        label: 'Time Since (short: "5m ago")'
+                      },
+                      {
+                        value: "time_since_verbose",
+                        label: 'Time Since (verbose: "5 minutes ago")'
+                      }
+                    ]
+                  }
+                }
+              }
+            ] : [],
+            ...isDateTime && (typeof entity !== "object" || !entity.time_format || entity.time_format === "default") ? [
+              {
+                name: "clock_format",
+                label: "Clock Display",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "local", label: "Local Time (default)" },
+                      { value: "12h", label: "12 Hour" },
+                      { value: "24h", label: "24 Hour" }
+                    ]
+                  }
+                }
+              }
+            ] : []
           ]
         }
       ];
       const data = {
         name: typeof entity === "object" ? entity.name : "",
-        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : "",
+        time_format: typeof entity === "object" && entity.time_format ? entity.time_format : "default",
+        clock_format: typeof entity === "object" && entity.clock_format ? entity.clock_format : "local"
       };
       form.schema = schema2;
       form.data = data;
@@ -12808,6 +12902,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       const form = row.querySelector("ha-form");
       if (!form) return;
       const entName = typeof entity === "string" ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12831,13 +12927,61 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                   ]
                 }
               }
-            }
+            },
+            ...isNumeric ? [
+              {
+                name: "decimals",
+                label: "Decimal Places",
+                selector: { number: { min: 0, max: 6, mode: "box" } }
+              }
+            ] : [],
+            ...isDateTime ? [
+              {
+                name: "time_format",
+                label: "Time Format",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "default", label: "Date / Time" },
+                      {
+                        value: "time_since",
+                        label: 'Time Since (short: "5m ago")'
+                      },
+                      {
+                        value: "time_since_verbose",
+                        label: 'Time Since (verbose: "5 minutes ago")'
+                      }
+                    ]
+                  }
+                }
+              }
+            ] : [],
+            ...isDateTime && (typeof entity !== "object" || !entity.time_format || entity.time_format === "default") ? [
+              {
+                name: "clock_format",
+                label: "Clock Display",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "local", label: "Local Time (default)" },
+                      { value: "12h", label: "12 Hour" },
+                      { value: "24h", label: "24 Hour" }
+                    ]
+                  }
+                }
+              }
+            ] : []
           ]
         }
       ];
       const data = {
         name: typeof entity === "object" ? entity.name : "",
-        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : "",
+        time_format: typeof entity === "object" && entity.time_format ? entity.time_format : "default",
+        clock_format: typeof entity === "object" && entity.clock_format ? entity.clock_format : "local"
       };
       form.schema = schema2;
       form.data = data;
@@ -12851,6 +12995,22 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         downBtn.style.opacity = index === entities.length - 1 ? "0.3" : "1";
       }
     });
+  }
+  _isNumericEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const state = stateObj.state;
+    return !isNaN(parseFloat(state)) && isFinite(state);
+  }
+  _isDateTimeEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const dc = stateObj.attributes.device_class;
+    if (dc === "timestamp" || dc === "date" || dc === "time") return true;
+    const d = new Date(stateObj.state);
+    return !isNaN(d.getTime()) && stateObj.state.includes("-");
   }
   _moveEntity(index, direction) {
     const newIndex = index + direction;
@@ -12871,14 +13031,27 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const currentEntityId = typeof currentEntity === "string" ? currentEntity : currentEntity.entity;
     const newName = value.name;
     const newInfo = value.secondary_info;
-    if ((!newName || newName === "") && (!newInfo || newInfo === "none")) {
+    const newDecimals = value.decimals !== "" && value.decimals !== void 0 && value.decimals !== null ? parseInt(value.decimals, 10) : void 0;
+    const newTimeFormat = value.time_format && value.time_format !== "default" ? value.time_format : void 0;
+    const newClockFormat = newTimeFormat === void 0 && value.clock_format && value.clock_format !== "local" ? value.clock_format : void 0;
+    if ((!newName || newName === "") && (!newInfo || newInfo === "none") && newDecimals === void 0 && newTimeFormat === void 0 && newClockFormat === void 0) {
       entities[index] = currentEntityId;
     } else {
-      entities[index] = {
+      const entityObj = {
         entity: currentEntityId,
         name: newName,
         secondary_info: newInfo
       };
+      if (newDecimals !== void 0) {
+        entityObj.decimals = newDecimals;
+      }
+      if (newTimeFormat !== void 0) {
+        entityObj.time_format = newTimeFormat;
+      }
+      if (newClockFormat !== void 0) {
+        entityObj.clock_format = newClockFormat;
+      }
+      entities[index] = entityObj;
     }
     const newConfig = { ...this._config, entities };
     this._config = newConfig;
@@ -15389,6 +15562,7 @@ var FoundryChartCard = class extends HTMLElement {
       this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
       this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
       this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
+      this.config.x_axis_time_format = this.config.x_axis_time_format || "local";
       this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
       this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
       this.config.ring_style = this.config.ring_style || "brass";
@@ -15461,6 +15635,7 @@ var FoundryChartCard = class extends HTMLElement {
       show_inspect_value: true,
       show_x_axis_minmax: false,
       show_y_axis_minmax: false,
+      x_axis_time_format: "local",
       segments: [],
       segment_blend_width: 0
     };
@@ -15988,10 +16163,11 @@ var FoundryChartCard = class extends HTMLElement {
     return `${Math.floor(diff / 86400)}d ago`;
   }
   _formatAxisTime(date) {
-    return date.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    const fmt = this.config.x_axis_time_format;
+    const opts = { hour: "2-digit", minute: "2-digit" };
+    if (fmt === "12h") opts.hour12 = true;
+    else if (fmt === "24h") opts.hour12 = false;
+    return date.toLocaleTimeString([], opts);
   }
   render() {
     if (this._rendered) return;
@@ -16588,6 +16764,7 @@ var FoundryChartEditor = class extends HTMLElement {
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.x_axis_time_format = sourceConfig.x_axis_time_format ?? "local";
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -16714,6 +16891,20 @@ var FoundryChartEditor = class extends HTMLElement {
             name: "show_x_axis_minmax",
             label: "Show X Axis Min/Max",
             selector: { boolean: {} }
+          },
+          {
+            name: "x_axis_time_format",
+            label: "X Axis Time Format",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "local", label: "Local Time (default)" },
+                  { value: "12h", label: "12 Hour" },
+                  { value: "24h", label: "24 Hour" }
+                ]
+              }
+            }
           },
           {
             name: "show_y_axis_minmax",
@@ -17384,6 +17575,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.show_inspect_value = this.config.show_inspect_value !== void 0 ? this.config.show_inspect_value : true;
       this.config.show_x_axis_minmax = this.config.show_x_axis_minmax !== void 0 ? this.config.show_x_axis_minmax : false;
       this.config.show_y_axis_minmax = this.config.show_y_axis_minmax !== void 0 ? this.config.show_y_axis_minmax : false;
+      this.config.x_axis_time_format = this.config.x_axis_time_format || "local";
       this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
       this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
       this.config.bar_range_blend = this.config.bar_range_blend || "single";
@@ -17457,6 +17649,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       show_inspect_value: true,
       show_x_axis_minmax: false,
       show_y_axis_minmax: false,
+      x_axis_time_format: "local",
       segments: [],
       segment_blend_width: 0
     };
@@ -17984,10 +18177,11 @@ var FoundryBarChartCard = class extends HTMLElement {
     return `${Math.floor(diff / 86400)}d ago`;
   }
   _formatAxisTime(date) {
-    return date.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    const fmt = this.config.x_axis_time_format;
+    const opts = { hour: "2-digit", minute: "2-digit" };
+    if (fmt === "12h") opts.hour12 = true;
+    else if (fmt === "24h") opts.hour12 = false;
+    return date.toLocaleTimeString([], opts);
   }
   render() {
     if (this._rendered) return;
@@ -18601,6 +18795,7 @@ var FoundryBarChartEditor = class extends HTMLElement {
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.x_axis_time_format = sourceConfig.x_axis_time_format ?? "local";
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
       const conf = config[`${type2}_action`] || {};
@@ -18759,6 +18954,20 @@ var FoundryBarChartEditor = class extends HTMLElement {
             name: "show_x_axis_minmax",
             label: "Show X Axis Min/Max",
             selector: { boolean: {} }
+          },
+          {
+            name: "x_axis_time_format",
+            label: "X Axis Time Format",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "local", label: "Local Time (default)" },
+                  { value: "12h", label: "12 Hour" },
+                  { value: "24h", label: "24 Hour" }
+                ]
+              }
+            }
           },
           {
             name: "show_y_axis_minmax",
@@ -20800,7 +21009,7 @@ if (!customElements.get("foundry-analog-meter-card-editor")) {
 }
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "26.3.2";
+var FOUNDRY_CARDS_VERSION = "26.3.2.dan";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",

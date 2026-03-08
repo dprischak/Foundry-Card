@@ -115,6 +115,9 @@ An industrial liquid thermometer card:
 A digital list display for multiple entities:
 
 - Supports secondary info (last-updated, last-changed, etc.)
+- Configurable decimal places for numeric entities
+- `time_since` / `time_since_verbose` display for timestamp entities
+- Configurable 12-hour / 24-hour clock display for timestamp entities
 - Vintage digital VFD/LCD aesthetic
 - Customizable fonts and colors
 - Same industrial casing options
@@ -777,6 +780,12 @@ A digital display for a list of entities.
 | Option                   | Type    | Required | Default                 | Description                                                                         |
 | ------------------------ | ------- | -------- | ----------------------- | ----------------------------------------------------------------------------------- |
 | `entities`               | array   | **Yes**  | -                       | List of entities to display. Can be strings or objects.                             |
+| `entities[].entity`      | string  | **Yes**  | -                       | Entity ID                                                                           |
+| `entities[].name`        | string  | No       | -                       | Override the display name for this entity                                           |
+| `entities[].secondary_info` | string | No    | `'none'`                | Secondary info shown below the value: `'none'`, `'entity-id'`, `'state'`, `'last-updated'`, `'last-changed'` |
+| `entities[].decimals`    | number  | No       | -                       | Number of decimal places to show for numeric entities (0–6). Hidden for non-numeric entities. |
+| `entities[].time_format` | string  | No       | -                       | Display format for `timestamp` device-class entities: `'time_since'` (e.g. `5m ago`), `'time_since_verbose'` (e.g. `5 minutes ago`), or omit for the default locale date/time string. |
+| `entities[].clock_format` | string | No       | `'local'`               | Hour format for date/time display (only when `time_format` is not a `time_since` variant): `'local'` (browser default), `'12h'` (force AM/PM), `'24h'` (force 24-hour). |
 | `title`                  | string  | No       | "Entities"              | Card title                                                                          |
 | `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                        |
 | `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                             |
@@ -801,9 +810,11 @@ entities:
   - entity: input_number.testlargenumber1
     name: Large Number
     secondary_info: none
+    decimals: 1
   - entity: input_number.testlargenumber2
     name: Large Number 2
     secondary_info: none
+    decimals: 2
 title: Entities
 title_font_size: 14
 ring_style: brass
@@ -908,6 +919,7 @@ Show entity history in a compact chart:
 | `show_inspect_value`     | boolean | No       | true            | During inspect, replace current value with inspected Y and show inspect bar |
 | `show_x_axis_minmax`     | boolean | No       | false           | Show X-axis min/max labels under chart (auto-hides footer start/Now labels) |
 | `show_y_axis_minmax`     | boolean | No       | false           | Show Y-axis min/max value labels on the chart axis                          |
+| `x_axis_time_format`     | string  | No       | `'local'`       | Hour format for X-axis time labels: `'local'` (browser default), `'12h'` (force AM/PM), `'24h'` (force 24-hour). |
 | `segments`               | array   | No       | []              | Value color ranges (`from`, `to`, `color`) for line/fill coloring           |
 | `segment_blend_width`    | number  | No       | 0               | Total blend width around each touching range boundary (value units)         |
 | `line_color`             | string  | No       | '#d32f2f'       | Line color                                                                  |
@@ -966,6 +978,96 @@ rivet_color: '#6d5d4b'
 font_bg_color: '#ffffff'
 font_color: '#000000'
 title_color: '#3e2723'
+wear_level: 50
+glass_effect_enabled: true
+aged_texture: everywhere
+aged_texture_intensity: 50
+```
+
+</details>
+
+### Foundry Bar Chart Card
+
+Show entity history as a segmented bar chart:
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default              | Description                                                                 |
+| ------------------------ | ------- | -------- | -------------------- | --------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -                    | Entity ID to chart                                                          |
+| `title`                  | string  | No       | "Foundry Bar Chart"  | Card title                                                                  |
+| `hours_to_show`          | number  | No       | 24                   | Number of history hours to include                                          |
+| `bucket_count`           | number  | No       | 50                   | Number of bars returned for the chart                                       |
+| `bucket_minutes`         | number  | No       | null                 | Bar interval in minutes (overrides bucket count when set)                   |
+| `update_interval`        | number  | No       | 60                   | Refresh interval in seconds                                                 |
+| `aggregation`            | string  | No       | `'avg'`              | Aggregation per bar: `'avg'`, `'min'`, or `'max'`                           |
+| `min_value`              | number  | No       | auto                 | Minimum value for the chart scale                                           |
+| `max_value`              | number  | No       | auto                 | Maximum value for the chart scale                                           |
+| `value_precision`        | number  | No       | 2                    | Decimal places for the current value display                                |
+| `show_footer`            | boolean | No       | true                 | Show start/end time labels                                                  |
+| `show_inspect_value`     | boolean | No       | true                 | During inspect, replace current value with inspected Y and show inspect bar |
+| `show_x_axis_minmax`     | boolean | No       | false                | Show X-axis min/max labels under chart                                      |
+| `show_y_axis_minmax`     | boolean | No       | false                | Show Y-axis min/max value labels on the chart axis                          |
+| `x_axis_time_format`     | string  | No       | `'local'`            | Hour format for X-axis time labels: `'local'`, `'12h'`, or `'24h'`         |
+| `bar_color`              | string  | No       | `'#d32f2f'`          | Default bar color (used when no segments are defined)                       |
+| `bar_padding`            | number  | No       | 2                    | Pixel gap between bars                                                      |
+| `bar_range_blend`        | string  | No       | `'single'`           | How bar color is determined across segments: `'single'` or `'blend'`        |
+| `segments`               | array   | No       | []                   | Value color ranges (`from`, `to`, `color`) for bar coloring                 |
+| `segment_blend_width`    | number  | No       | 0                    | Total blend width around each touching range boundary (value units)         |
+| `grid_minor_color`       | string  | No       | `'#cfead6'`          | Minor grid color                                                            |
+| `grid_major_color`       | string  | No       | `'#8fc79d'`          | Major grid color                                                            |
+| `grid_opacity`           | number  | No       | 0.6                  | Grid opacity                                                                |
+| `ring_style`             | string  | No       | `'brass'`            | Casing style: `'brass'`, `'silver'`, `'chrome'`, `'copper'`, `'black'`, `'white'`, etc. |
+| `plate_color`            | string  | No       | `'#f5f5f5'`          | Background plate color                                                      |
+| `plate_transparent`      | boolean | No       | false                | Make the plate transparent                                                  |
+| `rivet_color`            | string  | No       | `'#6d5d4b'`          | Color of rivets                                                             |
+| `font_bg_color`          | string  | No       | `'#ffffff'`          | Background color of the chart screen                                        |
+| `font_color`             | string  | No       | `'#000000'`          | Color of the digital text                                                   |
+| `wear_level`             | number  | No       | 50                   | Intensity of wear marks (0-100)                                             |
+| `glass_effect_enabled`   | boolean | No       | true                 | Enable glass effect overlay                                                 |
+| `aged_texture`           | string  | No       | `'everywhere'`       | Aged texture mode: `'none'`, `'glass_only'`, `'everywhere'`                 |
+| `aged_texture_intensity` | number  | No       | 50                   | Intensity of aged texture effect (0-100)                                    |
+| `tap_action`             | object  | No       | `{action: 'more-info'}` | Action to perform on tap                                                 |
+| `hold_action`            | object  | No       | `{action: 'more-info'}` | Action to perform on hold                                                |
+| `double_tap_action`      | object  | No       | `{action: 'more-info'}` | Action to perform on double tap                                          |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-bar-chart-card
+entity: sensor.outside_temperature
+title: Outside Temp
+hours_to_show: 24
+bucket_count: 60
+update_interval: 60
+aggregation: avg
+show_inspect_value: true
+show_x_axis_minmax: false
+show_y_axis_minmax: false
+x_axis_time_format: local
+segment_blend_width: 4
+segments:
+  - from: 10
+    to: 20
+    color: '#F44336'
+  - from: 20
+    to: 30
+    color: '#4CAF50'
+  - from: 30
+    to: 60
+    color: '#2196F3'
+bar_color: '#d32f2f'
+bar_padding: 2
+bar_range_blend: single
+grid_minor_color: '#cfead6'
+grid_major_color: '#8fc79d'
+grid_opacity: 0.6
+ring_style: brass
+plate_color: '#f5f5f5'
+rivet_color: '#6d5d4b'
+font_bg_color: '#ffffff'
+font_color: '#000000'
 wear_level: 50
 glass_effect_enabled: true
 aged_texture: everywhere
