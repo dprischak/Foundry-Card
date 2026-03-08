@@ -20932,7 +20932,6 @@ if (!customElements.get("foundry-analog-meter-card-editor")) {
 
 // src/foundry-card.js
 var FOUNDRY_CARDS_VERSION = "26.3.2.dan";
-var FOUNDRY_CARDS_VERSION = "26.3.2.dan";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
