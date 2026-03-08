@@ -206,6 +206,7 @@ class FoundryEntitiesEditor extends HTMLElement {
 
       // Schema for this single entity
       const entName = typeof entity === 'string' ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
       const schema = [
         {
           name: '',
@@ -230,11 +231,15 @@ class FoundryEntitiesEditor extends HTMLElement {
                 },
               },
             },
-            {
-              name: 'decimals',
-              label: 'Decimal Places',
-              selector: { number: { min: 0, max: 6, mode: 'box' } },
-            },
+            ...(isNumeric
+              ? [
+                  {
+                    name: 'decimals',
+                    label: 'Decimal Places',
+                    selector: { number: { min: 0, max: 6, mode: 'box' } },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -279,6 +284,7 @@ class FoundryEntitiesEditor extends HTMLElement {
       if (!form) return;
 
       const entName = typeof entity === 'string' ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
 
       // Update Schema (Title might change if reordered)
       const schema = [
@@ -305,6 +311,15 @@ class FoundryEntitiesEditor extends HTMLElement {
                 },
               },
             },
+            ...(isNumeric
+              ? [
+                  {
+                    name: 'decimals',
+                    label: 'Decimal Places',
+                    selector: { number: { min: 0, max: 6, mode: 'box' } },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -314,6 +329,10 @@ class FoundryEntitiesEditor extends HTMLElement {
         name: typeof entity === 'object' ? entity.name : '',
         secondary_info:
           typeof entity === 'object' ? entity.secondary_info : 'none',
+        decimals:
+          typeof entity === 'object' && entity.decimals !== undefined
+            ? entity.decimals
+            : '',
       };
 
       form.schema = schema;
@@ -336,6 +355,14 @@ class FoundryEntitiesEditor extends HTMLElement {
         downBtn.style.opacity = index === entities.length - 1 ? '0.3' : '1';
       }
     });
+  }
+
+  _isNumericEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const state = stateObj.state;
+    return !isNaN(parseFloat(state)) && isFinite(state);
   }
 
   _moveEntity(index, direction) {
