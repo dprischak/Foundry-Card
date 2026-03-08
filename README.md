@@ -115,6 +115,7 @@ An industrial liquid thermometer card:
 A digital list display for multiple entities:
 
 - Supports secondary info (last-updated, last-changed, etc.)
+- Configurable decimal places for numeric entities
 - Vintage digital VFD/LCD aesthetic
 - Customizable fonts and colors
 - Same industrial casing options
@@ -777,6 +778,10 @@ A digital display for a list of entities.
 | Option                   | Type    | Required | Default                 | Description                                                                         |
 | ------------------------ | ------- | -------- | ----------------------- | ----------------------------------------------------------------------------------- |
 | `entities`               | array   | **Yes**  | -                       | List of entities to display. Can be strings or objects.                             |
+| `entities[].entity`      | string  | **Yes**  | -                       | Entity ID                                                                           |
+| `entities[].name`        | string  | No       | -                       | Override the display name for this entity                                           |
+| `entities[].secondary_info` | string | No    | `'none'`                | Secondary info shown below the value: `'none'`, `'entity-id'`, `'state'`, `'last-updated'`, `'last-changed'` |
+| `entities[].decimals`    | number  | No       | -                       | Number of decimal places to show for numeric entities (0–6). Hidden for non-numeric entities. |
 | `title`                  | string  | No       | "Entities"              | Card title                                                                          |
 | `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                        |
 | `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                             |
@@ -801,9 +806,11 @@ entities:
   - entity: input_number.testlargenumber1
     name: Large Number
     secondary_info: none
+    decimals: 1
   - entity: input_number.testlargenumber2
     name: Large Number 2
     secondary_info: none
+    decimals: 2
 title: Entities
 title_font_size: 14
 ring_style: brass
