@@ -19320,6 +19320,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
     const uid = this._uniqueId;
     const animationDuration = config.animation_duration !== void 0 ? config.animation_duration : 1.2;
     const titleFontSize = config.title_font_size !== void 0 ? config.title_font_size : 12;
+    const unit = config.unit !== void 0 ? config.unit : "";
     const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
     const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
     const plateColor = config.plate_color !== void 0 ? config.plate_color : "transparent";
@@ -19349,6 +19350,25 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
       { from: -20, to: 0, color: "#3e2723" },
       { from: 0, to: 3, color: "#F44336" }
     ];
+    const tickStep = (max - min) / 10;
+    let multiplier = 1;
+    let multiplierSuffix = "";
+    if (tickStep >= 1e4) {
+      multiplier = 1e4;
+      multiplierSuffix = "x10k";
+    } else if (tickStep >= 1e3) {
+      multiplier = 1e3;
+      multiplierSuffix = "x1k";
+    } else if (tickStep >= 100) {
+      multiplier = 100;
+      multiplierSuffix = "x100";
+    }
+    let displayUnit = unit;
+    if (multiplierSuffix && unit) {
+      displayUnit = `${unit} ${multiplierSuffix}`;
+    } else if (multiplierSuffix && !unit) {
+      displayUnit = multiplierSuffix;
+    }
     const plateX = 5;
     const plateY = 5;
     const plateW = vbWidth - 10;
@@ -19605,6 +19625,9 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
               <!-- Title text (VU label) -->
               ${title ? this.renderTitleText(title, titleFontSize, config.number_color, cx, cy) : ""}
               
+              <!-- Unit / Multiplier text -->
+              ${displayUnit ? this.renderUnitText(displayUnit, titleFontSize * 0.7, config.number_color, cx, cy, title) : ""}
+              
               <!-- PEAK indicator -->
               <g id="peakGroup" transform="translate(${faceX + faceW - 25}, ${faceY + faceH - 20})">
                 <circle id="peakLed" cx="0" cy="0" r="5" fill="#666" opacity="0.3" stroke="#4a4034" stroke-width="0.5"/>
@@ -19649,7 +19672,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
     `;
     this._attachActionListeners();
     this.drawSegments(segments, min, max);
-    this.drawTicks(min, max, config);
+    this.drawTicks(min, max, config, multiplier);
     this.drawStoppers();
   }
   renderRivets(w, h, x, y) {
@@ -19807,6 +19830,14 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
       return `<text x="${cx}" y="${y}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">${line}</text>`;
     }).join("\n");
   }
+  renderUnitText(unitText, fontSize, color = "#3e2723", cx = 150, cy = 155, hasTitle) {
+    const titleLines = hasTitle ? hasTitle.split("\n").slice(0, 3).length : 0;
+    const titleFontSize = fontSize / 0.7;
+    const titleTotalHeight = (titleLines - 1 > 0 ? titleLines - 1 : 0) * (titleFontSize * 1.2);
+    const startY = cy - 55 - titleTotalHeight / 2;
+    const unitY = startY - titleFontSize;
+    return `<text x="${cx}" y="${unitY}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" opacity="0.8">${unitText}</text>`;
+  }
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
       case "brass":
@@ -19929,7 +19960,7 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
       segmentsGroup.appendChild(pathElement);
     });
   }
-  drawTicks(min, max, config) {
+  drawTicks(min, max, config, multiplier = 1) {
     const ticksGroup = this.shadowRoot.getElementById("ticks");
     const numbersGroup = this.shadowRoot.getElementById("numbers");
     const cx = this._cx;
@@ -19993,7 +20024,8 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
       text.setAttribute("font-weight", "bold");
       text.setAttribute("fill", config.number_color || "#3e2723");
       text.setAttribute("font-family", "Georgia, serif");
-      const displayValue = max - min <= 10 ? value.toFixed(1) : Math.round(value);
+      const scaledValue = value / multiplier;
+      const displayValue = max < 10 ? parseFloat(scaledValue.toFixed(1)) : Math.round(scaledValue);
       text.textContent = displayValue;
       numbersGroup.appendChild(text);
       if (i < numTicks) {
