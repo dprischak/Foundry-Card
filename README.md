@@ -3,6 +3,10 @@
 [![forum][forum-badge]][forum-url]
 [![Stable][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
+![Latest Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/latest/foundry-card.js)
+![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.1/foundry-card.js)
+
+
 
 <!--Badges-->
 
@@ -16,6 +20,8 @@
 [forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
 [releases-shield]: https://img.shields.io/github/release/dprischak/Foundry-Card.svg
 [license-shield]: https://img.shields.io/github/license/dprischak/Foundry-Card.svg
+
+
 
 # 🏭Foundry Card
 
@@ -1534,3 +1540,4 @@ Support the development of this project:
 [![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/keithsobo)
 
 Even a symbolic gesture makes a difference. Thank you so much for your support ❤️
+
