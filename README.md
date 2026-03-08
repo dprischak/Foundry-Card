@@ -139,7 +139,7 @@ A vintage uptime monitor:
 
 A steampunk-styled line chart for entity history:
 
-- Configurable time range and data-point density
+- Configurable time range and per-hour data-point density
 - Optional min/max scale and filled area
 - Theme-aware styling with grid overlays
 - Footer start/end labels
@@ -150,7 +150,7 @@ A steampunk-styled line chart for entity history:
 
 A steampunk-styled bar chart for entity history:
 
-- Configurable time range and data-point density
+- Configurable time range and per-hour data-point density
 - Segment-based bar coloring with optional gradient blending
 - Theme-aware styling with grid overlays
 - Inspectable values and optional axis min/max labels
@@ -908,8 +908,9 @@ Show entity history in a compact chart:
 | `entity`                 | string  | **Yes**  | -               | Entity ID to chart                                                          |
 | `title`                  | string  | No       | "Foundry Chart" | Card title                                                                  |
 | `hours_to_show`          | number  | No       | 24              | Number of history hours to include                                          |
-| `bucket_count`           | number  | No       | 50              | Number of data points returned for the chart                                |
-| `bucket_minutes`         | number  | No       | null            | Data point interval in minutes (overrides the bucket count when set)        |
+| `points_per_hour`        | number  | No       | -               | Number of data points per hour (e.g. `2` = one point every 30 min). Takes priority over `bucket_count` when set. |
+| `bucket_count`           | number  | No       | 50              | Total number of data points for the chart (legacy; use `points_per_hour` instead) |
+| `bucket_minutes`         | number  | No       | null            | Data point interval in minutes (overrides both `points_per_hour` and `bucket_count` when set) |
 | `update_interval`        | number  | No       | 60              | Refresh interval in seconds                                                 |
 | `aggregation`            | string  | No       | 'avg'           | Aggregation: 'avg', 'min', or 'max'                                         |
 | `min_value`              | number  | No       | auto            | Minimum value for the chart scale                                           |
@@ -997,8 +998,9 @@ Show entity history as a segmented bar chart:
 | `entity`                 | string  | **Yes**  | -                    | Entity ID to chart                                                          |
 | `title`                  | string  | No       | "Foundry Bar Chart"  | Card title                                                                  |
 | `hours_to_show`          | number  | No       | 24                   | Number of history hours to include                                          |
-| `bucket_count`           | number  | No       | 50                   | Number of bars returned for the chart                                       |
-| `bucket_minutes`         | number  | No       | null                 | Bar interval in minutes (overrides bucket count when set)                   |
+| `points_per_hour`        | number  | No       | -                    | Number of bars per hour (e.g. `4` = one bar every 15 min). Takes priority over `bucket_count` when set. |
+| `bucket_count`           | number  | No       | 50                   | Total number of bars for the chart (legacy; use `points_per_hour` instead)  |
+| `bucket_minutes`         | number  | No       | null                 | Bar interval in minutes (overrides both `points_per_hour` and `bucket_count` when set) |
 | `update_interval`        | number  | No       | 60                   | Refresh interval in seconds                                                 |
 | `aggregation`            | string  | No       | `'avg'`              | Aggregation per bar: `'avg'`, `'min'`, or `'max'`                           |
 | `min_value`              | number  | No       | auto                 | Minimum value for the chart scale                                           |
