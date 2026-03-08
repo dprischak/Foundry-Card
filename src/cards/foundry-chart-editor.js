@@ -399,6 +399,7 @@ class FoundryChartEditor extends HTMLElement {
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
+    data.x_axis_time_format = sourceConfig.x_axis_time_format ?? 'local';
 
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
@@ -536,6 +537,20 @@ class FoundryChartEditor extends HTMLElement {
             name: 'show_x_axis_minmax',
             label: 'Show X Axis Min/Max',
             selector: { boolean: {} },
+          },
+          {
+            name: 'x_axis_time_format',
+            label: 'X Axis Time Format',
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'local', label: 'Local Time (default)' },
+                  { value: '12h', label: '12 Hour' },
+                  { value: '24h', label: '24 Hour' },
+                ],
+              },
+            },
           },
           {
             name: 'show_y_axis_minmax',

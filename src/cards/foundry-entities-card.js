@@ -111,7 +111,14 @@ class FoundryEntitiesCard extends HTMLElement {
               } else if (timeFormat === 'time_since_verbose') {
                 stateStr = this._timeSince(date, true);
               } else {
-                stateStr = date.toLocaleString();
+                const clockFmt =
+                  typeof entityConf === 'object'
+                    ? entityConf.clock_format
+                    : undefined;
+                const localeOpts = {};
+                if (clockFmt === '12h') localeOpts.hour12 = true;
+                else if (clockFmt === '24h') localeOpts.hour12 = false;
+                stateStr = date.toLocaleString([], localeOpts);
               }
             } else {
               stateStr = stateObj.state;

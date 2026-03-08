@@ -265,6 +265,27 @@ class FoundryEntitiesEditor extends HTMLElement {
                   },
                 ]
               : []),
+            ...(isDateTime &&
+            (typeof entity !== 'object' ||
+              !entity.time_format ||
+              entity.time_format === 'default')
+              ? [
+                  {
+                    name: 'clock_format',
+                    label: 'Clock Display',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'local', label: 'Local Time (default)' },
+                          { value: '12h', label: '12 Hour' },
+                          { value: '24h', label: '24 Hour' },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -282,6 +303,10 @@ class FoundryEntitiesEditor extends HTMLElement {
           typeof entity === 'object' && entity.time_format
             ? entity.time_format
             : 'default',
+        clock_format:
+          typeof entity === 'object' && entity.clock_format
+            ? entity.clock_format
+            : 'local',
       };
 
       form.schema = schema;
@@ -374,6 +399,27 @@ class FoundryEntitiesEditor extends HTMLElement {
                   },
                 ]
               : []),
+            ...(isDateTime &&
+            (typeof entity !== 'object' ||
+              !entity.time_format ||
+              entity.time_format === 'default')
+              ? [
+                  {
+                    name: 'clock_format',
+                    label: 'Clock Display',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'local', label: 'Local Time (default)' },
+                          { value: '12h', label: '12 Hour' },
+                          { value: '24h', label: '24 Hour' },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -391,6 +437,10 @@ class FoundryEntitiesEditor extends HTMLElement {
           typeof entity === 'object' && entity.time_format
             ? entity.time_format
             : 'default',
+        clock_format:
+          typeof entity === 'object' && entity.clock_format
+            ? entity.clock_format
+            : 'local',
       };
 
       form.schema = schema;
@@ -471,13 +521,21 @@ class FoundryEntitiesEditor extends HTMLElement {
       value.time_format && value.time_format !== 'default'
         ? value.time_format
         : undefined;
+    // clock_format only applies when showing date/time (not time_since variants)
+    const newClockFormat =
+      newTimeFormat === undefined &&
+      value.clock_format &&
+      value.clock_format !== 'local'
+        ? value.clock_format
+        : undefined;
 
     // If all empty/default, revert to string
     if (
       (!newName || newName === '') &&
       (!newInfo || newInfo === 'none') &&
       newDecimals === undefined &&
-      newTimeFormat === undefined
+      newTimeFormat === undefined &&
+      newClockFormat === undefined
     ) {
       entities[index] = currentEntityId;
     } else {
@@ -491,6 +549,9 @@ class FoundryEntitiesEditor extends HTMLElement {
       }
       if (newTimeFormat !== undefined) {
         entityObj.time_format = newTimeFormat;
+      }
+      if (newClockFormat !== undefined) {
+        entityObj.clock_format = newClockFormat;
       }
       entities[index] = entityObj;
     }
