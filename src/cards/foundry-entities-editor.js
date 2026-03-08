@@ -207,6 +207,7 @@ class FoundryEntitiesEditor extends HTMLElement {
       // Schema for this single entity
       const entName = typeof entity === 'string' ? entity : entity.entity;
       const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema = [
         {
           name: '',
@@ -240,6 +241,30 @@ class FoundryEntitiesEditor extends HTMLElement {
                   },
                 ]
               : []),
+            ...(isDateTime
+              ? [
+                  {
+                    name: 'time_format',
+                    label: 'Time Format',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'default', label: 'Date / Time' },
+                          {
+                            value: 'time_since',
+                            label: 'Time Since (short: "5m ago")',
+                          },
+                          {
+                            value: 'time_since_verbose',
+                            label: 'Time Since (verbose: "5 minutes ago")',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -253,6 +278,10 @@ class FoundryEntitiesEditor extends HTMLElement {
           typeof entity === 'object' && entity.decimals !== undefined
             ? entity.decimals
             : '',
+        time_format:
+          typeof entity === 'object' && entity.time_format
+            ? entity.time_format
+            : 'default',
       };
 
       form.schema = schema;
@@ -285,6 +314,7 @@ class FoundryEntitiesEditor extends HTMLElement {
 
       const entName = typeof entity === 'string' ? entity : entity.entity;
       const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
 
       // Update Schema (Title might change if reordered)
       const schema = [
@@ -320,6 +350,30 @@ class FoundryEntitiesEditor extends HTMLElement {
                   },
                 ]
               : []),
+            ...(isDateTime
+              ? [
+                  {
+                    name: 'time_format',
+                    label: 'Time Format',
+                    selector: {
+                      select: {
+                        mode: 'dropdown',
+                        options: [
+                          { value: 'default', label: 'Date / Time' },
+                          {
+                            value: 'time_since',
+                            label: 'Time Since (short: "5m ago")',
+                          },
+                          {
+                            value: 'time_since_verbose',
+                            label: 'Time Since (verbose: "5 minutes ago")',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ];
@@ -333,6 +387,10 @@ class FoundryEntitiesEditor extends HTMLElement {
           typeof entity === 'object' && entity.decimals !== undefined
             ? entity.decimals
             : '',
+        time_format:
+          typeof entity === 'object' && entity.time_format
+            ? entity.time_format
+            : 'default',
       };
 
       form.schema = schema;
@@ -363,6 +421,17 @@ class FoundryEntitiesEditor extends HTMLElement {
     if (!stateObj) return false;
     const state = stateObj.state;
     return !isNaN(parseFloat(state)) && isFinite(state);
+  }
+
+  _isDateTimeEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const dc = stateObj.attributes.device_class;
+    if (dc === 'timestamp' || dc === 'date' || dc === 'time') return true;
+    // Also detect if the state string is a parseable ISO date
+    const d = new Date(stateObj.state);
+    return !isNaN(d.getTime()) && stateObj.state.includes('-');
   }
 
   _moveEntity(index, direction) {
@@ -398,12 +467,17 @@ class FoundryEntitiesEditor extends HTMLElement {
       value.decimals !== null
         ? parseInt(value.decimals, 10)
         : undefined;
+    const newTimeFormat =
+      value.time_format && value.time_format !== 'default'
+        ? value.time_format
+        : undefined;
 
     // If all empty/default, revert to string
     if (
       (!newName || newName === '') &&
       (!newInfo || newInfo === 'none') &&
-      newDecimals === undefined
+      newDecimals === undefined &&
+      newTimeFormat === undefined
     ) {
       entities[index] = currentEntityId;
     } else {
@@ -414,6 +488,9 @@ class FoundryEntitiesEditor extends HTMLElement {
       };
       if (newDecimals !== undefined) {
         entityObj.decimals = newDecimals;
+      }
+      if (newTimeFormat !== undefined) {
+        entityObj.time_format = newTimeFormat;
       }
       entities[index] = entityObj;
     }

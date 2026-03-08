@@ -12087,7 +12087,14 @@ var FoundryEntitiesCard = class extends HTMLElement {
           if (stateObj.attributes.device_class === "timestamp") {
             const date = new Date(stateObj.state);
             if (!isNaN(date.getTime())) {
-              stateStr = date.toLocaleString();
+              const timeFormat = typeof entityConf === "object" ? entityConf.time_format : void 0;
+              if (timeFormat === "time_since") {
+                stateStr = this._timeSince(date, false);
+              } else if (timeFormat === "time_since_verbose") {
+                stateStr = this._timeSince(date, true);
+              } else {
+                stateStr = date.toLocaleString();
+              }
             } else {
               stateStr = stateObj.state;
             }
@@ -12155,7 +12162,10 @@ var FoundryEntitiesCard = class extends HTMLElement {
       const s = this._hass.states[eid];
       return s && s.attributes.finishes_at && new Date(s.attributes.finishes_at) > now;
     });
-    if (hasActiveTimer) {
+    const hasTimeSince = this.config.entities.some(
+      (e) => typeof e === "object" && (e.time_format === "time_since" || e.time_format === "time_since_verbose")
+    );
+    if (hasActiveTimer || hasTimeSince) {
       if (!this._timerInterval) {
         this._timerInterval = setInterval(() => this._updateValues(), 1e3);
       }
@@ -12163,6 +12173,30 @@ var FoundryEntitiesCard = class extends HTMLElement {
       clearInterval(this._timerInterval);
       this._timerInterval = null;
     }
+  }
+  _timeSince(date, verbose) {
+    const now = /* @__PURE__ */ new Date();
+    const diffSeconds = Math.round((now - date) / 1e3);
+    const future = diffSeconds < 0;
+    const abs = Math.abs(diffSeconds);
+    let value, unit;
+    if (abs < 60) {
+      value = abs;
+      unit = verbose ? abs === 1 ? "second" : "seconds" : "s";
+    } else if (abs < 3600) {
+      value = Math.floor(abs / 60);
+      unit = verbose ? value === 1 ? "minute" : "minutes" : "m";
+    } else if (abs < 86400) {
+      value = Math.floor(abs / 3600);
+      unit = verbose ? value === 1 ? "hour" : "hours" : "h";
+    } else {
+      value = Math.floor(abs / 86400);
+      unit = verbose ? value === 1 ? "day" : "days" : "d";
+    }
+    if (verbose) {
+      return future ? `in ${value} ${unit}` : `${value} ${unit} ago`;
+    }
+    return future ? `in ${value}${unit}` : `${value}${unit} ago`;
   }
   render() {
     const config = this.config;
@@ -12759,6 +12793,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       form.computeLabel = this._computeLabel;
       const entName = typeof entity === "string" ? entity : entity.entity;
       const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12790,6 +12825,28 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                 label: "Decimal Places",
                 selector: { number: { min: 0, max: 6, mode: "box" } }
               }
+            ] : [],
+            ...isDateTime ? [
+              {
+                name: "time_format",
+                label: "Time Format",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "default", label: "Date / Time" },
+                      {
+                        value: "time_since",
+                        label: 'Time Since (short: "5m ago")'
+                      },
+                      {
+                        value: "time_since_verbose",
+                        label: 'Time Since (verbose: "5 minutes ago")'
+                      }
+                    ]
+                  }
+                }
+              }
             ] : []
           ]
         }
@@ -12797,7 +12854,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       const data = {
         name: typeof entity === "object" ? entity.name : "",
         secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
-        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : ""
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : "",
+        time_format: typeof entity === "object" && entity.time_format ? entity.time_format : "default"
       };
       form.schema = schema2;
       form.data = data;
@@ -12824,6 +12882,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       if (!form) return;
       const entName = typeof entity === "string" ? entity : entity.entity;
       const isNumeric = this._isNumericEntity(entName);
+      const isDateTime = this._isDateTimeEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12854,6 +12913,28 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                 label: "Decimal Places",
                 selector: { number: { min: 0, max: 6, mode: "box" } }
               }
+            ] : [],
+            ...isDateTime ? [
+              {
+                name: "time_format",
+                label: "Time Format",
+                selector: {
+                  select: {
+                    mode: "dropdown",
+                    options: [
+                      { value: "default", label: "Date / Time" },
+                      {
+                        value: "time_since",
+                        label: 'Time Since (short: "5m ago")'
+                      },
+                      {
+                        value: "time_since_verbose",
+                        label: 'Time Since (verbose: "5 minutes ago")'
+                      }
+                    ]
+                  }
+                }
+              }
             ] : []
           ]
         }
@@ -12861,7 +12942,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       const data = {
         name: typeof entity === "object" ? entity.name : "",
         secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
-        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : ""
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : "",
+        time_format: typeof entity === "object" && entity.time_format ? entity.time_format : "default"
       };
       form.schema = schema2;
       form.data = data;
@@ -12883,6 +12965,15 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const state = stateObj.state;
     return !isNaN(parseFloat(state)) && isFinite(state);
   }
+  _isDateTimeEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const dc = stateObj.attributes.device_class;
+    if (dc === "timestamp" || dc === "date" || dc === "time") return true;
+    const d = new Date(stateObj.state);
+    return !isNaN(d.getTime()) && stateObj.state.includes("-");
+  }
   _moveEntity(index, direction) {
     const newIndex = index + direction;
     const entities = [...this._config.entities || []];
@@ -12903,7 +12994,8 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     const newName = value.name;
     const newInfo = value.secondary_info;
     const newDecimals = value.decimals !== "" && value.decimals !== void 0 && value.decimals !== null ? parseInt(value.decimals, 10) : void 0;
-    if ((!newName || newName === "") && (!newInfo || newInfo === "none") && newDecimals === void 0) {
+    const newTimeFormat = value.time_format && value.time_format !== "default" ? value.time_format : void 0;
+    if ((!newName || newName === "") && (!newInfo || newInfo === "none") && newDecimals === void 0 && newTimeFormat === void 0) {
       entities[index] = currentEntityId;
     } else {
       const entityObj = {
@@ -12913,6 +13005,9 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       };
       if (newDecimals !== void 0) {
         entityObj.decimals = newDecimals;
+      }
+      if (newTimeFormat !== void 0) {
+        entityObj.time_format = newTimeFormat;
       }
       entities[index] = entityObj;
     }

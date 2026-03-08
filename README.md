@@ -116,6 +116,7 @@ A digital list display for multiple entities:
 
 - Supports secondary info (last-updated, last-changed, etc.)
 - Configurable decimal places for numeric entities
+- `time_since` / `time_since_verbose` display for timestamp entities
 - Vintage digital VFD/LCD aesthetic
 - Customizable fonts and colors
 - Same industrial casing options
@@ -782,6 +783,7 @@ A digital display for a list of entities.
 | `entities[].name`        | string  | No       | -                       | Override the display name for this entity                                           |
 | `entities[].secondary_info` | string | No    | `'none'`                | Secondary info shown below the value: `'none'`, `'entity-id'`, `'state'`, `'last-updated'`, `'last-changed'` |
 | `entities[].decimals`    | number  | No       | -                       | Number of decimal places to show for numeric entities (0–6). Hidden for non-numeric entities. |
+| `entities[].time_format` | string  | No       | -                       | Display format for `timestamp` device-class entities: `'time_since'` (e.g. `5m ago`), `'time_since_verbose'` (e.g. `5 minutes ago`), or omit for the default locale date/time string. |
 | `title`                  | string  | No       | "Entities"              | Card title                                                                          |
 | `title_font_size`        | number  | No       | 14                      | Font size for the title text                                                        |
 | `title_color`            | string  | No       | '#3e2723'               | Color of the title text                                                             |

@@ -102,7 +102,17 @@ class FoundryEntitiesCard extends HTMLElement {
             // 1. Local Date Time Formatting
             const date = new Date(stateObj.state);
             if (!isNaN(date.getTime())) {
-              stateStr = date.toLocaleString();
+              const timeFormat =
+                typeof entityConf === 'object'
+                  ? entityConf.time_format
+                  : undefined;
+              if (timeFormat === 'time_since') {
+                stateStr = this._timeSince(date, false);
+              } else if (timeFormat === 'time_since_verbose') {
+                stateStr = this._timeSince(date, true);
+              } else {
+                stateStr = date.toLocaleString();
+              }
             } else {
               stateStr = stateObj.state;
             }
@@ -210,7 +220,14 @@ class FoundryEntitiesCard extends HTMLElement {
       );
     });
 
-    if (hasActiveTimer) {
+    const hasTimeSince = this.config.entities.some(
+      (e) =>
+        typeof e === 'object' &&
+        (e.time_format === 'time_since' ||
+          e.time_format === 'time_since_verbose')
+    );
+
+    if (hasActiveTimer || hasTimeSince) {
       if (!this._timerInterval) {
         this._timerInterval = setInterval(() => this._updateValues(), 1000);
       }
@@ -218,6 +235,33 @@ class FoundryEntitiesCard extends HTMLElement {
       clearInterval(this._timerInterval);
       this._timerInterval = null;
     }
+  }
+
+  _timeSince(date, verbose) {
+    const now = new Date();
+    const diffSeconds = Math.round((now - date) / 1000);
+    const future = diffSeconds < 0;
+    const abs = Math.abs(diffSeconds);
+
+    let value, unit;
+    if (abs < 60) {
+      value = abs;
+      unit = verbose ? (abs === 1 ? 'second' : 'seconds') : 's';
+    } else if (abs < 3600) {
+      value = Math.floor(abs / 60);
+      unit = verbose ? (value === 1 ? 'minute' : 'minutes') : 'm';
+    } else if (abs < 86400) {
+      value = Math.floor(abs / 3600);
+      unit = verbose ? (value === 1 ? 'hour' : 'hours') : 'h';
+    } else {
+      value = Math.floor(abs / 86400);
+      unit = verbose ? (value === 1 ? 'day' : 'days') : 'd';
+    }
+
+    if (verbose) {
+      return future ? `in ${value} ${unit}` : `${value} ${unit} ago`;
+    }
+    return future ? `in ${value}${unit}` : `${value}${unit} ago`;
   }
 
   render() {
