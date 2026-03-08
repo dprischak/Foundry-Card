@@ -149,6 +149,7 @@ class FoundryAnalogMeterCard extends HTMLElement {
       config.animation_duration !== undefined ? config.animation_duration : 1.2;
     const titleFontSize =
       config.title_font_size !== undefined ? config.title_font_size : 12;
+    const unit = config.unit !== undefined ? config.unit : '';
 
     const ringStyle =
       config.ring_style !== undefined ? config.ring_style : 'brass';
@@ -209,6 +210,32 @@ class FoundryAnalogMeterCard extends HTMLElement {
       { from: -20, to: 0, color: '#3e2723' },
       { from: 0, to: 3, color: '#F44336' },
     ];
+
+    // Multiplier logic
+    // Calculate the step size (distance between major ticks)
+    // Ticks are 10 segments total
+    const tickStep = (max - min) / 10;
+    let multiplier = 1;
+    let multiplierSuffix = '';
+
+    if (tickStep >= 10000) {
+      multiplier = 10000;
+      multiplierSuffix = 'x10k';
+    } else if (tickStep >= 1000) {
+      multiplier = 1000;
+      multiplierSuffix = 'x1k';
+    } else if (tickStep >= 100) {
+      multiplier = 100;
+      multiplierSuffix = 'x100';
+    }
+
+    // Combine config unit with multiplier
+    let displayUnit = unit;
+    if (multiplierSuffix && unit) {
+      displayUnit = `${unit} ${multiplierSuffix}`;
+    } else if (multiplierSuffix && !unit) {
+      displayUnit = multiplierSuffix;
+    }
 
     // Plate and rim dimensions (rectangular)
     const plateX = 5;
@@ -472,6 +499,9 @@ class FoundryAnalogMeterCard extends HTMLElement {
               <!-- Title text (VU label) -->
               ${title ? this.renderTitleText(title, titleFontSize, config.number_color, cx, cy) : ''}
               
+              <!-- Unit / Multiplier text -->
+              ${displayUnit ? this.renderUnitText(displayUnit, titleFontSize * 0.7, config.number_color, cx, cy, title) : ''}
+              
               <!-- PEAK indicator -->
               <g id="peakGroup" transform="translate(${faceX + faceW - 25}, ${faceY + faceH - 20})">
                 <circle id="peakLed" cx="0" cy="0" r="5" fill="#666" opacity="0.3" stroke="#4a4034" stroke-width="0.5"/>
@@ -516,7 +546,7 @@ class FoundryAnalogMeterCard extends HTMLElement {
     `;
     this._attachActionListeners();
     this.drawSegments(segments, min, max);
-    this.drawTicks(min, max, config);
+    this.drawTicks(min, max, config, multiplier);
     this.drawStoppers();
   }
 
@@ -724,6 +754,30 @@ class FoundryAnalogMeterCard extends HTMLElement {
       .join('\n');
   }
 
+  renderUnitText(
+    unitText,
+    fontSize,
+    color = '#3e2723',
+    cx = 150,
+    cy = 155,
+    hasTitle
+  ) {
+    // If there is a title, position the unit just above it.
+    // The title starts at `cy - 55 - totalHeight / 2`.
+    // Default 1 line title height is ~1.2 * fontSize.
+    // If no title, put the unit approximately where the top of the title would have been.
+    const titleLines = hasTitle ? hasTitle.split('\n').slice(0, 3).length : 0;
+    const titleFontSize = fontSize / 0.7; // Re-derive title font size to calculate offset
+    const titleTotalHeight =
+      (titleLines - 1 > 0 ? titleLines - 1 : 0) * (titleFontSize * 1.2);
+
+    // Position unit text above the title by a small offset, or default placement
+    const startY = cy - 55 - titleTotalHeight / 2;
+    const unitY = startY - titleFontSize;
+
+    return `<text x="${cx}" y="${unitY}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="${color}" font-family="Georgia, serif" opacity="0.8">${unitText}</text>`;
+  }
+
   getRimStyleData(ringStyle, uid) {
     switch (ringStyle) {
       case 'brass':
@@ -864,7 +918,7 @@ class FoundryAnalogMeterCard extends HTMLElement {
     });
   }
 
-  drawTicks(min, max, config) {
+  drawTicks(min, max, config, multiplier = 1) {
     const ticksGroup = this.shadowRoot.getElementById('ticks');
     const numbersGroup = this.shadowRoot.getElementById('numbers');
     const cx = this._cx;
@@ -942,8 +996,11 @@ class FoundryAnalogMeterCard extends HTMLElement {
       text.setAttribute('font-weight', 'bold');
       text.setAttribute('fill', config.number_color || '#3e2723');
       text.setAttribute('font-family', 'Georgia, serif');
+
+      const scaledValue = value / multiplier;
       const displayValue =
-        max - min <= 10 ? value.toFixed(1) : Math.round(value);
+        max < 10 ? parseFloat(scaledValue.toFixed(1)) : Math.round(scaledValue);
+
       text.textContent = displayValue;
       numbersGroup.appendChild(text);
 
