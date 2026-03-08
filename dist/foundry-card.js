@@ -12758,6 +12758,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       form.hass = this._hass;
       form.computeLabel = this._computeLabel;
       const entName = typeof entity === "string" ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12783,11 +12784,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                 }
               }
             },
-            {
-              name: "decimals",
-              label: "Decimal Places",
-              selector: { number: { min: 0, max: 6, mode: "box" } }
-            }
+            ...isNumeric ? [
+              {
+                name: "decimals",
+                label: "Decimal Places",
+                selector: { number: { min: 0, max: 6, mode: "box" } }
+              }
+            ] : []
           ]
         }
       ];
@@ -12820,6 +12823,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       const form = row.querySelector("ha-form");
       if (!form) return;
       const entName = typeof entity === "string" ? entity : entity.entity;
+      const isNumeric = this._isNumericEntity(entName);
       const schema2 = [
         {
           name: "",
@@ -12843,13 +12847,21 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                   ]
                 }
               }
-            }
+            },
+            ...isNumeric ? [
+              {
+                name: "decimals",
+                label: "Decimal Places",
+                selector: { number: { min: 0, max: 6, mode: "box" } }
+              }
+            ] : []
           ]
         }
       ];
       const data = {
         name: typeof entity === "object" ? entity.name : "",
-        secondary_info: typeof entity === "object" ? entity.secondary_info : "none"
+        secondary_info: typeof entity === "object" ? entity.secondary_info : "none",
+        decimals: typeof entity === "object" && entity.decimals !== void 0 ? entity.decimals : ""
       };
       form.schema = schema2;
       form.data = data;
@@ -12863,6 +12875,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
         downBtn.style.opacity = index === entities.length - 1 ? "0.3" : "1";
       }
     });
+  }
+  _isNumericEntity(entityId) {
+    if (!this._hass || !entityId) return false;
+    const stateObj = this._hass.states[entityId];
+    if (!stateObj) return false;
+    const state = stateObj.state;
+    return !isNaN(parseFloat(state)) && isFinite(state);
   }
   _moveEntity(index, direction) {
     const newIndex = index + direction;
@@ -20817,7 +20836,7 @@ if (!customElements.get("foundry-analog-meter-card-editor")) {
 }
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "26.3.2";
+var FOUNDRY_CARDS_VERSION = "26.3.2.dan";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
