@@ -5,6 +5,7 @@ Thermometer
 Entities
 Uptime
 Chart
+Bar Chart
 Button
 Slider
 Analog Clock
