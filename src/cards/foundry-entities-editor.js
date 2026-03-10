@@ -637,6 +637,7 @@ class FoundryEntitiesEditor extends HTMLElement {
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
+      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
@@ -701,7 +702,10 @@ class FoundryEntitiesEditor extends HTMLElement {
 
   _configToForm(config) {
     const themeData =
-      config.theme && config.theme !== 'none' && this._themes
+      config.theme &&
+      config.theme !== 'none' &&
+      config.theme !== 'entity' &&
+      this._themes
         ? this._themes[config.theme]
         : null;
     const sourceConfig = themeData
@@ -723,6 +727,7 @@ class FoundryEntitiesEditor extends HTMLElement {
 
     // Defaults
     data.theme = sourceConfig.theme ?? 'none';
+    data.themeentity = sourceConfig.themeentity ?? '';
     data.title = sourceConfig.title ?? 'Entities';
     data.title_font_size = sourceConfig.title_font_size ?? 14;
     data.title_color = this._hexToRgb(
@@ -844,6 +849,7 @@ class FoundryEntitiesEditor extends HTMLElement {
                 mode: 'dropdown',
                 options: [
                   { value: 'none', label: 'None/Custom' },
+                  { value: 'entity', label: 'Entity' },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -852,6 +858,15 @@ class FoundryEntitiesEditor extends HTMLElement {
               },
             },
           },
+          ...(this._config && this._config.theme === 'entity'
+            ? [
+                {
+                  name: 'themeentity',
+                  label: 'Theme Entity',
+                  selector: { entity: {} },
+                },
+              ]
+            : []),
           {
             name: 'ring_style',
             label: 'Ring Style',

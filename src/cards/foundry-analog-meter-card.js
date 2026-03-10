@@ -68,8 +68,16 @@ class FoundryAnalogMeterCard extends HTMLElement {
       }
     };
 
+    this._baseConfig = { ...this.config };
+
     // Theme handling
-    if (this.config.theme && this.config.theme !== 'none') {
+    if (
+      this.config.theme &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity
+    ) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -136,6 +144,34 @@ class FoundryAnalogMeterCard extends HTMLElement {
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
+
+    // Handle dynamic entity-based themes
+    if (
+      this.config.theme === 'entity' &&
+      this.config.themeentity &&
+      hass.states[this.config.themeentity]
+    ) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          requestAnimationFrame(() => this.updateMeter());
+        });
+        return;
+      }
+    }
+
     this.updateMeter();
   }
 
