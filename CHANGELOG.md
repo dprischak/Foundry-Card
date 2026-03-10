@@ -2,7 +2,7 @@
 
 ### 🛠️ Improvements
 - **Issue #109:** - Added the ability to use an entity to define the them for a card to use.
-
+- Added Unit Testing
 
 ### 🚀 New Cards
 
