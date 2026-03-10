@@ -298,6 +298,7 @@ class FoundryThermometerEditor extends HTMLElement {
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
+      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
@@ -361,7 +362,10 @@ class FoundryThermometerEditor extends HTMLElement {
 
   _configToForm(config) {
     const themeData =
-      config.theme && config.theme !== 'none' && this._themes
+      config.theme &&
+      config.theme !== 'none' &&
+      config.theme !== 'entity' &&
+      this._themes
         ? this._themes[config.theme]
         : null;
     const sourceConfig = themeData
@@ -374,6 +378,7 @@ class FoundryThermometerEditor extends HTMLElement {
     // Explicitly check config.theme first to preserve selection even if theme data isn't loaded yet
     data.theme =
       config.theme && config.theme !== 'none' ? config.theme : 'none';
+    data.themeentity = sourceConfig.themeentity ?? '';
     // Color Conversions
     data.liquid_color = this._hexToRgb(
       sourceConfig.liquid_color ?? '#cc0000'
@@ -515,6 +520,7 @@ class FoundryThermometerEditor extends HTMLElement {
                 mode: 'dropdown',
                 options: [
                   { value: 'none', label: 'None/Custom' },
+                  { value: 'entity', label: 'Entity' },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -523,6 +529,15 @@ class FoundryThermometerEditor extends HTMLElement {
               },
             },
           },
+          ...(this._config && this._config.theme === 'entity'
+            ? [
+                {
+                  name: 'themeentity',
+                  label: 'Theme Entity',
+                  selector: { entity: {} },
+                },
+              ]
+            : []),
           {
             name: 'ring_style',
             label: 'Ring Style',

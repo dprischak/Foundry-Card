@@ -253,8 +253,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function (style) {
-      map2[style].forEach(function (alias) {
+    Object.keys(map2).forEach(function(style) {
+      map2[style].forEach(function(alias) {
         result[String(alias)] = style;
       });
     });
@@ -263,7 +263,7 @@ function compileStyleAliases(map2) {
 }
 function Type$1(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function (name) {
+  Object.keys(options).forEach(function(name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -271,10 +271,10 @@ function Type$1(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function () {
+  this.resolve = options["resolve"] || function() {
     return true;
   };
-  this.construct = options["construct"] || function (data) {
+  this.construct = options["construct"] || function(data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -291,9 +291,9 @@ function Type$1(tag, options) {
 var type = Type$1;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function (currentType) {
+  schema2[name].forEach(function(currentType) {
     var newIndex = result.length;
-    result.forEach(function (previousType, previousIndex) {
+    result.forEach(function(previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -344,7 +344,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function (type$1) {
+  implicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -355,7 +355,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function (type$1) {
+  explicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
       throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -371,19 +371,19 @@ Schema$1.prototype.extend = function extend2(definition) {
 var schema = Schema$1;
 var str = new type("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : "";
   }
 });
 var seq = new type("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : [];
   }
 });
 var map = new type("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function (data) {
+  construct: function(data) {
     return data !== null ? data : {};
   }
 });
@@ -411,19 +411,19 @@ var _null = new type("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function () {
+    canonical: function() {
       return "~";
     },
-    lowercase: function () {
+    lowercase: function() {
       return "null";
     },
-    uppercase: function () {
+    uppercase: function() {
       return "NULL";
     },
-    camelcase: function () {
+    camelcase: function() {
       return "Null";
     },
-    empty: function () {
+    empty: function() {
       return "";
     }
   },
@@ -446,13 +446,13 @@ var bool = new type("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function (object) {
+    lowercase: function(object) {
       return object ? "true" : "false";
     },
-    uppercase: function (object) {
+    uppercase: function(object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function (object) {
+    camelcase: function(object) {
       return object ? "True" : "False";
     }
   },
@@ -549,17 +549,17 @@ var int = new type("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function (obj) {
+    binary: function(obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function (obj) {
+    octal: function(obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function (obj) {
+    decimal: function(obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function (obj) {
+    hexadecimal: function(obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -578,8 +578,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-    // Probably should update regexp & check speed
-    data[data.length - 1] === "_") {
+  // Probably should update regexp & check speed
+  data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -2257,7 +2257,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -2283,7 +2283,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = (function () {
+  state.dump = (function() {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -2335,7 +2335,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = (function () {
+  var result = (function() {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -2659,7 +2659,7 @@ var dumper = {
   dump: dump_1
 };
 function renamed(from, to) {
-  return function () {
+  return function() {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -2822,7 +2822,8 @@ function applyTheme(config, theme) {
     "grid_opacity",
     "hour_hand_color",
     "minute_hand_color",
-    "second_hand_color"
+    "second_hand_color",
+    "bar_color"
   ];
   for (const key of themeProperties) {
     if (theme[key] !== void 0) {
@@ -2913,7 +2914,10 @@ var FoundryGaugeCard = class extends HTMLElement {
         requestAnimationFrame(() => this.updateGauge());
       }
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -3013,6 +3017,27 @@ var FoundryGaugeCard = class extends HTMLElement {
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          requestAnimationFrame(() => this.updateGauge());
+        });
+        return;
+      }
+    }
     this.updateGauge();
   }
   render() {
@@ -4858,7 +4883,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -4907,11 +4932,12 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
       ring_style: sourceConfig.ring_style,
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
@@ -4968,6 +4994,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       high_needle_length: sourceConfig.high_needle_length
     };
     delete data.theme;
+    delete data.themeentity;
     delete data.ring_style;
     delete data.rivet_color;
     delete data.plate_color;
@@ -5148,6 +5175,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -5156,6 +5184,13 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
               }
             }
           },
+          ...formData.appearance?.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -5468,6 +5503,32 @@ var FoundryThermometerCard = class extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.plate_color = this.config.plate_color || "#8c7626";
+            this.config.rivet_color = this.config.rivet_color || "#6a5816";
+            this.config.face_color = this.config.face_color || "#f8f8f0";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.number_color = this.config.number_color || "#3e2723";
+            this.render();
+            this.updateCard();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     this.updateCard();
   }
   getRimStyleData(ringStyle, uid) {
@@ -5752,16 +5813,16 @@ var FoundryThermometerCard = class extends HTMLElement {
                 <rect x="47.5" y="50" width="20" height="245" rx="10" ry="10" fill="rgba(200,200,200,0.1)" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
 
                 ${(() => {
-        const tubeWidth = 20;
-        const tubeX = 47.5;
-        const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
-        const widthPx = tubeWidth * pct / 100;
-        const xPx = tubeX + (tubeWidth - widthPx) / 2;
-        return `
+      const tubeWidth = 20;
+      const tubeX = 47.5;
+      const pct = config.mercury_width !== void 0 ? config.mercury_width : 50;
+      const widthPx = tubeWidth * pct / 100;
+      const xPx = tubeX + (tubeWidth - widthPx) / 2;
+      return `
                         <rect x="${xPx}" y="52" width="${widthPx}" height="241" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
                         <rect id="liquid-col" x="${xPx}" y="100" width="${widthPx}" height="150" rx="${widthPx / 2}" ry="${widthPx / 2}" fill="url(#liquidRad-${uid})" />
                         `;
-      })()}
+    })()}
                 
                 <g transform="translate(57.5, 295)">
                     <rect x="-12.5" y="0" width="25" height="15" fill="${this.darkenColor(rimData.stroke || "#444", 10)}" stroke="#444" stroke-width="0.5" />
@@ -5872,7 +5933,10 @@ var FoundryThermometerCard = class extends HTMLElement {
       this.render();
       if (this._hass) this.updateCard();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -6280,7 +6344,7 @@ var FoundryThermometerEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -6327,11 +6391,12 @@ var FoundryThermometerEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     delete data.segments;
     data.theme = config.theme && config.theme !== "none" ? config.theme : "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.liquid_color = this._hexToRgb(
       sourceConfig.liquid_color ?? "#cc0000"
     ) || [204, 0, 0];
@@ -6448,6 +6513,7 @@ var FoundryThermometerEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -6456,6 +6522,13 @@ var FoundryThermometerEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -6666,7 +6739,10 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
       this.render();
       if (this._hass) this._updateValues();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -6680,6 +6756,32 @@ var FoundryHomeThermostatCard = class extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     if (!this.shadowRoot || !this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.config.font_color = this.config.font_color || "#000000";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this.render();
+            this._updateValues();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     this._updateValues();
   }
   _updateValues() {
@@ -7720,7 +7822,7 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         this._config = newConfig;
@@ -7783,6 +7885,7 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -7791,6 +7894,13 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -7902,10 +8012,11 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     ];
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.title = sourceConfig.title ?? "Thermostat";
     data.ring_style = sourceConfig.ring_style ?? "brass";
     data.title_color = this._hexToRgb(
@@ -8005,7 +8116,10 @@ var FoundryAnalogClockCard = class extends HTMLElement {
       this.render();
       this._startClock();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -8018,6 +8132,25 @@ var FoundryAnalogClockCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (this.config && this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+      }
+    }
   }
   connectedCallback() {
     this._startClock();
@@ -8791,7 +8924,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -8857,11 +8990,12 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
       ring_style: sourceConfig.ring_style,
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
@@ -8910,6 +9044,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
       title_font_size: sourceConfig.title_font_size
     };
     delete data.theme;
+    delete data.themeentity;
     delete data.ring_style;
     delete data.rivet_color;
     delete data.plate_color;
@@ -9098,6 +9233,7 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -9106,6 +9242,13 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
               }
             }
           },
+          ...formData.appearance?.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -9363,7 +9506,10 @@ var FoundryDigitalClockCard = class extends HTMLElement {
       this.render();
       this._startClock();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -9376,6 +9522,32 @@ var FoundryDigitalClockCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.font_color = this.config.font_color || "#000000";
+            this.render();
+            this._updateTime();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+      }
+    }
   }
   connectedCallback() {
     this._startClock();
@@ -10014,7 +10186,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -10078,11 +10250,12 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
       ring_style: sourceConfig.ring_style ?? "brass",
       font_bg_color: this._hexToRgb(
         sourceConfig.font_bg_color ?? "#ffffff"
@@ -10226,6 +10399,7 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -10234,6 +10408,13 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
               }
             }
           },
+          ...typeof _formData === "object" && _formData.appearance?.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -10398,7 +10579,10 @@ var FoundrySliderCard = class extends HTMLElement {
       this._updateValueDisplay(this.config.value);
       if (this._hass) this._updateFromEntity();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -10411,6 +10595,34 @@ var FoundrySliderCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.plate_color = this.config.plate_color || "#8c7626";
+            this.config.rivet_color = this.config.rivet_color || "#6a5816";
+            this.config.font_color = this.config.font_color || "#000000";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.slider_color = this.config.slider_color || "#444444";
+            this.config.knob_color = this.config.knob_color || "#c9a961";
+            this.render();
+            this._updateFromEntity();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     this._updateFromEntity();
   }
   _updateFromEntity() {
@@ -11505,7 +11717,7 @@ var FoundrySliderEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -11598,11 +11810,12 @@ var FoundrySliderEditor = class extends HTMLElement {
     );
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
       ring_style: sourceConfig.ring_style ?? "brass",
       background_style: sourceConfig.background_style ?? "gradient",
       face_color: this._hexToRgb(
@@ -11748,6 +11961,7 @@ var FoundrySliderEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -11756,6 +11970,13 @@ var FoundrySliderEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" || this._form && this._form.data && this._form.data.appearance && this._form.data.appearance.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -12056,7 +12277,10 @@ var FoundryEntitiesCard = class extends HTMLElement {
       this.render();
       if (this._hass) this._updateValues();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -12069,6 +12293,33 @@ var FoundryEntitiesCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.font_color = this.config.font_color || "#000000";
+            this.render();
+            this._updateValues();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     this._updateValues();
   }
   _updateValues() {
@@ -13105,7 +13356,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -13157,7 +13408,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     if (Array.isArray(sourceConfig.entities)) {
@@ -13169,6 +13420,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
       data.entities = [];
     }
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.title = sourceConfig.title ?? "Entities";
     data.title_font_size = sourceConfig.title_font_size ?? 14;
     data.title_color = this._hexToRgb(
@@ -13277,6 +13529,7 @@ var FoundryEntitiesEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -13285,6 +13538,13 @@ var FoundryEntitiesEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -13447,7 +13707,10 @@ var FoundryButtonCard = class extends HTMLElement {
       }
       this._updateRender();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -13460,6 +13723,35 @@ var FoundryButtonCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.font_color = this.config.font_color || "#000000";
+            if (this.shadowRoot) {
+              this.shadowRoot.innerHTML = "";
+            }
+            this._updateRender();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     this._updateTemplateSubscriptions();
     this._updateRender();
   }
@@ -14008,7 +14300,7 @@ var FoundryButtonEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -14060,10 +14352,11 @@ var FoundryButtonEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.ring_style = sourceConfig.ring_style ?? "brass";
     data.plate_color = this._hexToRgb(
       sourceConfig.plate_color ?? "#f5f5f5"
@@ -14181,6 +14474,7 @@ var FoundryButtonEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -14189,6 +14483,13 @@ var FoundryButtonEditor = class extends HTMLElement {
               }
             }
           },
+          ...formData.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -14463,7 +14764,10 @@ var FoundryUptimeCard = class extends HTMLElement {
         this.config.update_interval * 1e3
       );
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -14504,6 +14808,38 @@ var FoundryUptimeCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.config.font_color = this.config.font_color || "#000000";
+            this.config.font_bg_color = this.config.font_bg_color || "#ffffff";
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this._rendered = false;
+            this.render();
+            if (this._history) {
+              this._updateValues();
+            } else {
+              this._fetchHistory();
+            }
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+        return;
+      }
+    }
     if (!this._lastFetch || /* @__PURE__ */ new Date() - this._lastFetch > this.config.update_interval * 1e3) {
       this._fetchHistory();
     } else {
@@ -15253,7 +15589,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -15297,10 +15633,11 @@ var FoundryUptimeEditor = class extends HTMLElement {
     return schema2.name;
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     if (sourceConfig.font_bg_color)
       data.font_bg_color = this._hexToRgb(sourceConfig.font_bg_color);
     if (sourceConfig.font_color)
@@ -15405,6 +15742,7 @@ var FoundryUptimeEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -15413,6 +15751,13 @@ var FoundryUptimeEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -15582,6 +15927,7 @@ var FoundryChartCard = class extends HTMLElement {
       this.config.grid_major_color = this.config.grid_major_color || "#8fc79d";
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
+      this._baseConfig = { ...this.config };
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -15596,7 +15942,9 @@ var FoundryChartCard = class extends HTMLElement {
         this.config.update_interval * 1e3
       );
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -15713,6 +16061,33 @@ var FoundryChartCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this._rendered = false;
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          if (this._history) {
+            requestAnimationFrame(() => this._updateValues());
+          } else {
+            this._fetchHistory();
+          }
+        });
+        return;
+      }
+    }
     if (!this._lastFetch || /* @__PURE__ */ new Date() - this._lastFetch > this.config.update_interval * 1e3) {
       this._fetchHistory();
     } else {
@@ -16611,7 +16986,7 @@ var FoundryChartEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -16756,10 +17131,11 @@ var FoundryChartEditor = class extends HTMLElement {
     this._updateConfig({ segments });
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
@@ -16969,6 +17345,7 @@ var FoundryChartEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -16977,6 +17354,13 @@ var FoundryChartEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -17112,7 +17496,10 @@ var FoundryTitleCard = class extends HTMLElement {
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       this.render();
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -17123,7 +17510,31 @@ var FoundryTitleCard = class extends HTMLElement {
       applyDefaultsAndRender();
     }
   }
-  set hass(_hass) {
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.config.title_color = this.config.title_color || "#3e2723";
+            this.config.plate_color = this.config.plate_color || "#f5f5f5";
+            this.config.rivet_color = this.config.rivet_color || "#6d5d4b";
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+      }
+    }
   }
   render() {
     const config = this.config;
@@ -17352,7 +17763,7 @@ var FoundryTitleEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (themeData) {
         const themedConfig = applyTheme({ ...this._config }, themeData);
@@ -17384,10 +17795,11 @@ var FoundryTitleEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.title = sourceConfig.title ?? "Title";
     data.title_font_size = sourceConfig.title_font_size ?? 18;
     data.title_color = this._hexToRgb(
@@ -17430,6 +17842,7 @@ var FoundryTitleEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -17438,6 +17851,13 @@ var FoundryTitleEditor = class extends HTMLElement {
               }
             }
           },
+          ...this._config && this._config.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             type: "grid",
             name: "",
@@ -17598,6 +18018,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.grid_major_color = this.config.grid_major_color || "#8fc79d";
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
+      this._baseConfig = { ...this.config };
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -17612,7 +18033,9 @@ var FoundryBarChartCard = class extends HTMLElement {
         this.config.update_interval * 1e3
       );
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -17729,6 +18152,33 @@ var FoundryBarChartCard = class extends HTMLElement {
   }
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this._rendered = false;
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          if (this._history) {
+            requestAnimationFrame(() => this._updateValues());
+          } else {
+            this._fetchHistory();
+          }
+        });
+        return;
+      }
+    }
     if (!this._lastFetch || /* @__PURE__ */ new Date() - this._lastFetch > this.config.update_interval * 1e3) {
       this._fetchHistory();
     } else {
@@ -18629,7 +19079,7 @@ var FoundryBarChartEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -18789,10 +19239,11 @@ var FoundryBarChartEditor = class extends HTMLElement {
     this._updateConfig({ segments });
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
+    data.themeentity = sourceConfig.themeentity ?? "";
     data.show_inspect_value = sourceConfig.show_inspect_value ?? true;
     data.segment_blend_width = sourceConfig.segment_blend_width ?? 0;
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
@@ -18998,6 +19449,7 @@ var FoundryBarChartEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -19006,6 +19458,13 @@ var FoundryBarChartEditor = class extends HTMLElement {
               }
             }
           },
+          ...formData.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",
@@ -19257,7 +19716,10 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
         requestAnimationFrame(() => this.updateMeter());
       }
     };
-    if (this.config.theme && this.config.theme !== "none") {
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -19314,6 +19776,27 @@ var FoundryAnalogMeterCard = class extends HTMLElement {
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          requestAnimationFrame(() => this.updateMeter());
+        });
+        return;
+      }
+    }
     this.updateMeter();
   }
   render() {
@@ -20590,7 +21073,7 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
     let newConfig = this._formToConfig(ev.detail.value);
     if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
       newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -20635,11 +21118,12 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && this._themes ? this._themes[config.theme] : null;
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
       ring_style: sourceConfig.ring_style,
       rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
         106,
@@ -20824,6 +21308,7 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
                 mode: "dropdown",
                 options: [
                   { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1)
@@ -20832,6 +21317,13 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
               }
             }
           },
+          ...formData.appearance?.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
           {
             name: "ring_style",
             label: "Ring Style",

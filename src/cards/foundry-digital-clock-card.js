@@ -64,8 +64,16 @@ class FoundryDigitalClockCard extends HTMLElement {
       this._startClock();
     };
 
+    this._baseConfig = { ...this.config };
+
     // Theme handling
-    if (this.config.theme && this.config.theme !== 'none') {
+    if (
+      this.config.theme &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity
+    ) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -79,6 +87,42 @@ class FoundryDigitalClockCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+
+    // Handle dynamic entity-based themes
+    if (
+      this.config.theme === 'entity' &&
+      this.config.themeentity &&
+      hass.states[this.config.themeentity]
+    ) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+
+            // Re-apply defaults
+            this.config.title_color = this.config.title_color || '#3e2723';
+            this.config.plate_color = this.config.plate_color || '#f5f5f5';
+            this.config.rivet_color = this.config.rivet_color || '#6d5d4b';
+            this.config.font_bg_color = this.config.font_bg_color || '#ffffff';
+            this.config.font_color = this.config.font_color || '#000000';
+
+            this.render();
+            // Re-render the time right away
+            this._updateTime();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+      }
+    }
   }
 
   connectedCallback() {

@@ -127,8 +127,19 @@ class FoundryGaugeCard extends HTMLElement {
       }
     };
 
+    // Store the raw base config before applying any themes
+    // This allows us to re-apply new themes on the fly without accumulating old theme properties
+    this._baseConfig = { ...this.config };
+
     // Theme handling
-    if (this.config.theme && this.config.theme !== 'none') {
+    if (
+      this.config.theme &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity
+    ) {
+      // Defer theme application until we have hass with the state value
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -244,6 +255,38 @@ class FoundryGaugeCard extends HTMLElement {
     this._hass = hass;
     if (!this.config) return;
     if (!this.shadowRoot) return;
+
+    // Handle dynamic entity-based themes
+    if (
+      this.config.theme === 'entity' &&
+      this.config.themeentity &&
+      hass.states[this.config.themeentity]
+    ) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      // Only process if the theme name actually changed to avoid infinite loops
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            // Apply theme on top of the original unthemed config
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            // Re-render the SVG entirely to apply the new theme properties
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          // Follow up with a gauge update
+          requestAnimationFrame(() => this.updateGauge());
+        });
+        return; // Render and update will be called inside the promise
+      }
+    }
+
     this.updateGauge();
   }
 

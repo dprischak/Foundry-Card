@@ -145,6 +145,7 @@ export function applyTheme(config, theme) {
     'hour_hand_color',
     'minute_hand_color',
     'second_hand_color',
+    'bar_color',
   ];
 
   for (const key of themeProperties) {

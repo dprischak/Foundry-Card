@@ -1,6 +1,7 @@
 ## v26.3.3
 
 ### 🛠️ Improvements
+- **Issue #109:** - Added the ability to use an entity to define the them for a card to use.
 
 
 ### 🚀 New Cards
