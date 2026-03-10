@@ -35,8 +35,16 @@ class FoundryAnalogClockCard extends HTMLElement {
       this._startClock();
     };
 
+    this._baseConfig = { ...this.config };
+
     // Theme handling
-    if (this.config.theme && this.config.theme !== 'none') {
+    if (
+      this.config.theme &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity
+    ) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -50,9 +58,32 @@ class FoundryAnalogClockCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    // We don't necessarily need to re-render on every hass update like the gauge does
-    // unless we were binding to an entity for time (which we aren't, yet).
-    // If we wanted to support offsets from an entity, we would do it here.
+
+    // Handle dynamic entity-based themes
+    if (
+      this.config &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity &&
+      hass.states[this.config.themeentity]
+    ) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+        });
+      }
+    }
   }
 
   connectedCallback() {

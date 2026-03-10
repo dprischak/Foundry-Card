@@ -109,6 +109,7 @@ class FoundrySliderEditor extends HTMLElement {
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
+      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
@@ -219,7 +220,10 @@ class FoundrySliderEditor extends HTMLElement {
 
   _configToForm(config) {
     const themeData =
-      config.theme && config.theme !== 'none' && this._themes
+      config.theme &&
+      config.theme !== 'none' &&
+      config.theme !== 'entity' &&
+      this._themes
         ? this._themes[config.theme]
         : null;
     const sourceConfig = themeData
@@ -230,6 +234,7 @@ class FoundrySliderEditor extends HTMLElement {
     // Group: Appearance
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
+      themeentity: sourceConfig.themeentity ?? '',
       ring_style: sourceConfig.ring_style ?? 'brass',
       background_style: sourceConfig.background_style ?? 'gradient',
       face_color: this._hexToRgb(
@@ -389,6 +394,7 @@ class FoundrySliderEditor extends HTMLElement {
                 mode: 'dropdown',
                 options: [
                   { value: 'none', label: 'None/Custom' },
+                  { value: 'entity', label: 'Entity' },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -397,6 +403,19 @@ class FoundrySliderEditor extends HTMLElement {
               },
             },
           },
+          ...((this._config && this._config.theme === 'entity') ||
+          (this._form &&
+            this._form.data &&
+            this._form.data.appearance &&
+            this._form.data.appearance.theme === 'entity')
+            ? [
+                {
+                  name: 'themeentity',
+                  label: 'Theme Entity',
+                  selector: { entity: {} },
+                },
+              ]
+            : []),
           {
             name: 'ring_style',
             label: 'Ring Style',

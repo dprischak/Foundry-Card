@@ -117,6 +117,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
+      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
@@ -193,7 +194,10 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
 
   _configToForm(config) {
     const themeData =
-      config.theme && config.theme !== 'none' && this._themes
+      config.theme &&
+      config.theme !== 'none' &&
+      config.theme !== 'entity' &&
+      this._themes
         ? this._themes[config.theme]
         : null;
     const sourceConfig = themeData
@@ -202,6 +206,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
     const data = { ...sourceConfig };
     data.appearance = {
       theme: sourceConfig.theme ?? 'none',
+      themeentity: sourceConfig.themeentity ?? '',
       ring_style: sourceConfig.ring_style ?? 'brass',
       font_bg_color: this._hexToRgb(
         sourceConfig.font_bg_color ?? '#ffffff'
@@ -351,6 +356,7 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
                 mode: 'dropdown',
                 options: [
                   { value: 'none', label: 'None/Custom' },
+                  { value: 'entity', label: 'Entity' },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -359,6 +365,16 @@ class FoundryDigitalClockCardEditor extends HTMLElement {
               },
             },
           },
+          ...(typeof _formData === 'object' &&
+          _formData.appearance?.theme === 'entity'
+            ? [
+                {
+                  name: 'themeentity',
+                  label: 'Theme Entity',
+                  selector: { entity: {} },
+                },
+              ]
+            : []),
           {
             name: 'ring_style',
             label: 'Ring Style',

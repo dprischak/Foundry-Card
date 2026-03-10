@@ -88,6 +88,8 @@ class FoundryChartCard extends HTMLElement {
           ? this.config.value_precision
           : 2;
 
+      this._baseConfig = { ...this.config };
+
       this._uniqueId =
         this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
@@ -106,7 +108,13 @@ class FoundryChartCard extends HTMLElement {
       );
     };
 
-    if (this.config.theme && this.config.theme !== 'none') {
+    if (
+      this.config.theme &&
+      this.config.theme === 'entity' &&
+      this.config.themeentity
+    ) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== 'none') {
       loadThemes().then((themes) => {
         if (themes[this.config.theme]) {
           this.config = applyTheme(this.config, themes[this.config.theme]);
@@ -249,6 +257,41 @@ class FoundryChartCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    if (!this.config) return;
+
+    // Handle dynamic entity-based themes
+    if (
+      this.config.theme === 'entity' &&
+      this.config.themeentity &&
+      hass.states[this.config.themeentity]
+    ) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+
+            this._rendered = false;
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          if (this._history) {
+            requestAnimationFrame(() => this._updateValues());
+          } else {
+            this._fetchHistory();
+          }
+        });
+        return;
+      }
+    }
+
     if (
       !this._lastFetch ||
       new Date() - this._lastFetch > this.config.update_interval * 1000

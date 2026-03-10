@@ -330,6 +330,7 @@ class FoundryUptimeEditor extends HTMLElement {
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
+      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
       const themeData = this._themes ? this._themes[this._config.theme] : null;
@@ -387,7 +388,10 @@ class FoundryUptimeEditor extends HTMLElement {
 
   _configToForm(config) {
     const themeData =
-      config.theme && config.theme !== 'none' && this._themes
+      config.theme &&
+      config.theme !== 'none' &&
+      config.theme !== 'entity' &&
+      this._themes
         ? this._themes[config.theme]
         : null;
     const sourceConfig = themeData
@@ -396,6 +400,7 @@ class FoundryUptimeEditor extends HTMLElement {
     const data = { ...sourceConfig };
     // Defaults
     data.theme = sourceConfig.theme ?? 'none';
+    data.themeentity = sourceConfig.themeentity ?? '';
     // Visuals - convert to Array for HA Form? NO, we want HEX for custom UI, but Array for Form?
     // Wait, the BOTTOM form uses color_rgb selector which needs Array.
     // My simple helper manages this.
@@ -514,6 +519,7 @@ class FoundryUptimeEditor extends HTMLElement {
                 mode: 'dropdown',
                 options: [
                   { value: 'none', label: 'None/Custom' },
+                  { value: 'entity', label: 'Entity' },
                   ...Object.keys(this._themes || {}).map((t) => ({
                     value: t,
                     label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -522,6 +528,15 @@ class FoundryUptimeEditor extends HTMLElement {
               },
             },
           },
+          ...(this._config && this._config.theme === 'entity'
+            ? [
+                {
+                  name: 'themeentity',
+                  label: 'Theme Entity',
+                  selector: { entity: {} },
+                },
+              ]
+            : []),
           {
             name: 'ring_style',
             label: 'Ring Style',

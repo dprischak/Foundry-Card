@@ -48,12 +48,13 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Slider Card](#foundry-slider-card)
    - [Foundry Title Card](#foundry-title-card)
    - [Foundry Analog Meter Card](#foundry-analog-meter-card)
-4. [Custom Themes](#custom-themes)
-5. [Development](#development)
-6. [Roadmap](#roadmap)
-7. [Support](#support)
-8. [License](#license)
-9. [Credits](#credits)
+4. [Dynamic Entity Themes](#dynamic-entity-themes) 
+5. [Custom Themes](#custom-themes)
+6. [Development](#development)
+7. [Roadmap](#roadmap)
+8. [Support](#support)
+9. [License](#license)
+10. [Credits](#credits)
 
 <a name="cards-included"></a>
 
@@ -1305,6 +1306,62 @@ needle_color: '#1a1a1a'
 ```
 
 </details>
+
+<a name="dynamic-entity-themes"></a>
+
+## Dynamic Entity Themes
+
+Foundry Cards allow you to dynamically change a card's theme based on the state of a Home Assistant entity (like an `input_select` dropdown helper). This means you can create a single dropdown on your dashboard that instantly changes the theme of your cards!
+
+### How to Create a Theme Selector Helper
+
+1. **Open the Helpers Page**
+   - Go to **Settings**
+   - Click **Devices & Services**
+   - Select the **Helpers** tab at the top
+   - Click **➕ Create Helper**
+
+2. **Choose the Correct Helper Type**
+   - Select: **Dropdown** (This creates an `input_select` entity).
+
+3. **Configure the Helper**
+   - Fill in the fields:
+     - **Name**: `Gauge Theme` (or any name you prefer)
+     - **Icon** (optional): `mdi:palette`
+     - **Options**: Paste each theme on its own line:
+       ```text
+       industrial
+       racing
+       warm
+       cool
+       vintage
+       midnight
+       steampunk
+       military
+       retro
+       arctic
+       copper
+       neon
+       pink
+       blue
+       green
+       spring
+       summer
+       autumn
+       winter
+       purple
+       orange
+       yellow
+       teal
+       aerospace
+       cherry_blossom
+       deep_sea
+       mediterranean
+       stealth_black
+       pine_forest
+       ```
+
+Once your helper is created, open the visual editor for any Foundry Card, set the **Theme** dropdown to **Entity**, and select your new entity (e.g., `input_select.gauge_theme`)!
 
 <a name="custom-themes"></a>
 
