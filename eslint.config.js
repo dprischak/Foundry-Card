@@ -3,7 +3,7 @@ import pluginJs from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['dist/'] },
+  { ignores: ['dist/', 'tests/', 'vitest.config.js', 'coverage/'] },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   eslintConfigPrettier,
