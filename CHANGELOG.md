@@ -6,6 +6,16 @@
 
 ### 🚀 New Cards
 
+#### 🎚️ Foundry Digital Meter Card
+
+A vintage digital LED bar meter in a landscape rectangular chassis.
+
+- Dual Entity Support: Can display two separate entities (e.g., L and R audio channels) simultaneously on top and bottom LED bars.
+- Dynamic Scale: A detailed dual-line scale with numbers automatically calculates major/minor ticks between the bars.
+- Custom Segments: Map value ranges to custom LED colors.
+- Full Theming: Matches analog meter face and plate styling perfectly, along with all standard Foundry ring styles and aged textures.
+
+
 
 ### 🐛 Defect Fixes
 

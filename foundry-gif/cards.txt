@@ -1,5 +1,6 @@
 Gauge
 Analog Meter
+Digital Meter
 Thermostat
 Thermometer
 Entities

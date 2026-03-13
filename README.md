@@ -28,7 +28,7 @@
 A collection of custom dashboard cards for Home Assistant that are designed with industrial and vintage aesthetics.
 
 <p></p>
-<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v26.3.2.gif" style="border-radius: 8px"></a>
+<a href="#"><img src="https://raw.githubusercontent.com/dprischak/Foundry-Card/refs/heads/main/media/foundry_card_v26.3.3.gif" style="border-radius: 8px"></a>
 
 ## Table of Contents
 
@@ -48,6 +48,7 @@ A collection of custom dashboard cards for Home Assistant that are designed with
    - [Foundry Slider Card](#foundry-slider-card)
    - [Foundry Title Card](#foundry-title-card)
    - [Foundry Analog Meter Card](#foundry-analog-meter-card)
+   - [Foundry Digital Meter Card](#foundry-digital-meter-card)
 4. [Dynamic Entity Themes](#dynamic-entity-themes) 
 5. [Custom Themes](#custom-themes)
 6. [Development](#development)
@@ -207,6 +208,17 @@ A vintage VU-style analog meter:
 - PEAK LED: Indicator that lights up with the highest color segment when the value meets its threshold.
 - Shake Action: Custom tap/hold/double-tap action for a fun meter shake animation.
 - Full Theming: Supports all standard Foundry ring styles, plate colors, aged textures, and custom themes.
+
+<a name="foundry-digital-meter-card"></a>
+
+### 🎚️ Foundry Digital Meter Card
+
+A vintage digital LED bar meter in a landscape rectangular chassis.
+
+- Dual Entity Support: Can display two separate entities (e.g., L and R audio channels) simultaneously on top and bottom LED bars.
+- Dynamic Scale: A detailed dual-line scale with numbers automatically calculates major/minor ticks between the bars.
+- Custom Segments: Map value ranges to custom LED colors.
+- Full Theming: Matches analog meter face and plate styling perfectly, along with all standard Foundry ring styles and aged textures.
 
 
 <a name="installation"></a>
@@ -1303,6 +1315,72 @@ number_color: '#3e2723'
 primary_tick_color: '#3e2723'
 secondary_tick_color: '#5d4e37'
 needle_color: '#1a1a1a'
+```
+
+</details>
+
+<a name="foundry-digital-meter-card"></a>
+
+### Foundry Digital Meter Card
+
+A vintage digital LED bar meter in a landscape rectangular chassis.
+
+#### Configuration Options
+
+| Option                   | Type    | Required | Default                 | Description                                                                                          |
+| ------------------------ | ------- | -------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| `entity`                 | string  | **Yes**  | -                       | Primary entity ID to display on the top bar                                                          |
+| `bottom_entity`          | string  | No       | -                       | Secondary entity ID to display on the bottom bar                                                     |
+| `card_title`             | string  | No       | -                       | Card title displayed above the meter face                                                            |
+| `title`                  | string  | No       | 'L'                     | Label for the top bar                                                                                |
+| `bottom_title`           | string  | No       | 'R'                     | Label for the bottom bar                                                                             |
+| `min`                    | number  | No       | 0                       | Minimum meter value                                                                                  |
+| `max`                    | number  | No       | 100                     | Maximum meter value                                                                                  |
+| `unit`                   | string  | No       | 'dB'                    | Unit of measurement                                                                                  |
+| `segments`               | array   | No       | See below               | Color segments configuration                                                                         |
+| `animation_duration`     | number  | No       | 0.15                    | Animation duration in seconds                                                                        |
+| `ring_style`             | string  | No       | 'brass'                 | Ring style: 'brass', 'silver', 'chrome', 'copper', 'black', 'white', 'blue', 'green', 'red', 'none'  |
+| `rivet_color`            | string  | No       | '#6d5d4b'               | Color of the decorative rivets                                                                       |
+| `plate_color`            | string  | No       | 'transparent'           | Color of the plate                                                                                   |
+| `plate_transparent`      | boolean | No       | false                   | Make the plate transparent                                                                           |
+| `wear_level`             | number  | No       | 50                      | Amount of wear marks and age spots (0-100)                                                           |
+| `glass_effect_enabled`   | boolean | No       | true                    | Enable glass effect overlay                                                                          |
+| `aged_texture`           | string  | No       | 'glass_only'            | Aged texture mode: 'none', 'glass_only', or 'everywhere'                                             |
+| `aged_texture_intensity` | number  | No       | 20                      | Intensity of aged texture effect (0-100)                                                             |
+| `background_style`       | string  | No       | 'gradient'              | Background style: 'gradient' or 'solid'                                                              |
+| `face_color`             | string  | No       | '#111111'               | Color of the meter face                                                                              |
+| `title_color`            | string  | No       | '#9e9e9e'               | Color of the card title text                                                                         |
+| `number_color`           | string  | No       | '#9e9e9e'               | Color of the labels and scale numbers                                                                |
+| `primary_tick_color`     | string  | No       | '#616161'               | Color of major tick marks and outline                                                                |
+| `secondary_tick_color`   | string  | No       | '#424242'               | Color of minor tick marks                                                                            |
+
+<details>
+  <summary>Click to see examples</summary>
+
+```yaml
+type: custom:foundry-digital-meter-card
+entity: sensor.audio_level_left
+bottom_entity: sensor.audio_level_right
+card_title: Digital Meter
+title: L
+bottom_title: R
+min: 0
+max: 100
+unit: dB
+theme: industrial
+segments:
+  - from: 0
+    to: 50
+    color: '#4caf50'
+  - from: 50
+    to: 60
+    color: '#8bc34a'
+  - from: 60
+    to: 80
+    color: '#ffeb3b'
+  - from: 80
+    to: 100
+    color: '#f44336'
 ```
 
 </details>
