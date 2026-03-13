@@ -2,7 +2,8 @@
 
 ### 🛠️ Improvements
 - **Issue #109:** - Added the ability to use an entity to define the them for a card to use.
-- Added Unit Testing
+- **Issue #NA:** - Added Unit Testing with tests for every card.
+- **Issue #91:** - Using an MDI icon for HACS display
 
 ### 🚀 New Cards
 

@@ -3,5 +3,6 @@
   "render_readme": true,
   "filename": "foundry-card.js",
   "content_in_root": false,
-  "homeassistant": "2023.1.0"
+  "homeassistant": "2023.1.0",
+  "icon": "mdi:factory"
 }
