@@ -15,10 +15,8 @@ A vintage digital LED bar meter in a landscape rectangular chassis.
 - Custom Segments: Map value ranges to custom LED colors.
 - Full Theming: Matches analog meter face and plate styling perfectly, along with all standard Foundry ring styles and aged textures.
 
-
-
 ### 🐛 Defect Fixes
-
+- **Issue #114:** - Charts not working with entity themes while using custom:state-switch cards
 
 
 ## v26.3.2

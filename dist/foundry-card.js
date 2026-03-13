@@ -15928,6 +15928,7 @@ var FoundryChartCard = class extends HTMLElement {
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
       this._baseConfig = { ...this.config };
+      this._currentLiveTheme = void 0;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -18019,6 +18020,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
       this._baseConfig = { ...this.config };
+      this._currentLiveTheme = void 0;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
