@@ -2,7 +2,7 @@
 
 ### 🛠️ Improvements
 - **Issue #109:** - Added the ability to use an entity to define the them for a card to use.
-- **Issue #NA:** - Added Unit Testing with tests for every card.
+- **Issue #NA:** - Added Unit Testing with tests for every card.  Created 175 unit tests.
 
 ### 🚀 New Cards
 
