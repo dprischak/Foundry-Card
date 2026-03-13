@@ -89,6 +89,7 @@ class FoundryChartCard extends HTMLElement {
           : 2;
 
       this._baseConfig = { ...this.config };
+      this._currentLiveTheme = undefined;
 
       this._uniqueId =
         this._uniqueId || Math.random().toString(36).substr(2, 9);
