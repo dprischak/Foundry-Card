@@ -4,7 +4,7 @@
 [![Stable][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
 ![Latest Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/latest/foundry-card.js)
-![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.1/foundry-card.js)
+![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.2/foundry-card.js)
 
 
 
