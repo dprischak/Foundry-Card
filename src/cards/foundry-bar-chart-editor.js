@@ -195,7 +195,7 @@ class FoundryBarChartEditor extends HTMLElement {
     if (this._form1) {
       this._form1.hass = this._hass;
       this._form1.data = data;
-      this._form1.schema = this._getSchemaTop();
+      this._form1.schema = this._getSchemaTop(data);
     }
 
     if (this._form2) {
@@ -431,6 +431,8 @@ class FoundryBarChartEditor extends HTMLElement {
     data.aged_texture = sourceConfig.aged_texture ?? 'everywhere';
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     data.x_axis_time_format = sourceConfig.x_axis_time_format ?? 'local';
+    data.group_by = sourceConfig.group_by ?? 'hour';
+    data.days_to_show = sourceConfig.days_to_show ?? 7;
 
     data.actions = {};
     ['tap', 'hold', 'double_tap'].forEach((type) => {
@@ -529,7 +531,8 @@ class FoundryBarChartEditor extends HTMLElement {
     return '#' + rgb.map((x) => x.toString(16).padStart(2, '0')).join('');
   }
 
-  _getSchemaTop() {
+  _getSchemaTop(formData) {
+    const groupBy = formData?.group_by ?? 'hour';
     return [
       { name: 'entity', selector: { entity: {} } },
       { name: 'title', label: 'Title', selector: { text: {} } },
@@ -539,17 +542,44 @@ class FoundryBarChartEditor extends HTMLElement {
         title: 'Chart Settings',
         schema: [
           {
-            name: 'hours_to_show',
-            label: 'Hours to Show (type in for a higher value)',
-            selector: { number: { min: 1, max: 336 } },
-          },
-          {
-            name: 'points_per_hour',
-            label: 'Data Points per Hour',
+            name: 'group_by',
+            label: 'Group By',
             selector: {
-              number: { min: 1, max: 60, step: 1, mode: 'slider' },
+              select: {
+                mode: 'dropdown',
+                options: [
+                  { value: 'hour', label: 'Hour (default)' },
+                  { value: 'day', label: 'Day' },
+                ],
+              },
             },
           },
+          ...(groupBy === 'day'
+            ? [
+                {
+                  name: 'days_to_show',
+                  label: 'Days to Show',
+                  selector: { number: { min: 1, max: 90, mode: 'box' } },
+                },
+              ]
+            : [
+                {
+                  name: 'hours_to_show',
+                  label: 'Hours to Show (type in for a higher value)',
+                  selector: { number: { min: 1, max: 336 } },
+                },
+              ]),
+          ...(groupBy !== 'day'
+            ? [
+                {
+                  name: 'points_per_hour',
+                  label: 'Data Points per Hour',
+                  selector: {
+                    number: { min: 1, max: 60, step: 1, mode: 'slider' },
+                  },
+                },
+              ]
+            : []),
           {
             name: 'aggregation',
             label: 'Aggregation',
