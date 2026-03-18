@@ -15928,6 +15928,7 @@ var FoundryChartCard = class extends HTMLElement {
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
       this._baseConfig = { ...this.config };
+      this._currentLiveTheme = void 0;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -18019,6 +18020,7 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.grid_opacity = this.config.grid_opacity !== void 0 ? this.config.grid_opacity : 0.6;
       this.config.value_precision = this.config.value_precision !== void 0 ? this.config.value_precision : 2;
       this._baseConfig = { ...this.config };
+      this._currentLiveTheme = void 0;
       this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
       ensureLedFont();
       this._rendered = false;
@@ -21533,6 +21535,1639 @@ if (!customElements.get("foundry-analog-meter-card-editor")) {
   customElements.define(
     "foundry-analog-meter-card-editor",
     FoundryAnalogMeterCardEditor
+  );
+}
+
+// src/cards/foundry-digital-meter-card.js
+var FoundryDigitalMeterCard = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._resizeObserver = null;
+    this._entityError = null;
+    this._boundHandleClick = () => this._handleAction("tap");
+    this._boundHandleDblClick = () => this._handleAction("double_tap");
+    this._boundHandleContextMenu = (e) => {
+      e.preventDefault();
+      this._handleAction("hold");
+    };
+    this._boundHandleKeyDown = (e) => this._handleKeyDown(e);
+    this._debouncedReflow = debounce(() => {
+    }, 100);
+  }
+  connectedCallback() {
+  }
+  disconnectedCallback() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+    }
+  }
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error("You need to define an entity");
+    }
+    this.config = { ...config };
+    this._validateConfig();
+    const applyDefaultsAndRender = () => {
+      if (!this.config.tap_action) {
+        this.config.tap_action = { action: "more-info" };
+      }
+      if (this.config.ring_style === void 0) {
+        this.config.ring_style = "brass";
+      }
+      this._uniqueId = this._uniqueId || Math.random().toString(36).substr(2, 9);
+      this.render();
+      if (this._hass) {
+        requestAnimationFrame(() => this.updateMeter());
+      }
+    };
+    this._baseConfig = { ...this.config };
+    if (this.config.theme && this.config.theme === "entity" && this.config.themeentity) {
+      applyDefaultsAndRender();
+    } else if (this.config.theme && this.config.theme !== "none") {
+      loadThemes().then((themes) => {
+        if (themes[this.config.theme]) {
+          this.config = applyTheme(this.config, themes[this.config.theme]);
+        }
+        applyDefaultsAndRender();
+      });
+    } else {
+      applyDefaultsAndRender();
+    }
+  }
+  _validateConfig() {
+    const config = this.config;
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    if (min >= max) {
+      console.warn(
+        "Foundry Digital Meter Card: min value must be less than max value. Using defaults."
+      );
+      this.config.min = 0;
+      this.config.max = 100;
+    }
+    if (config.animation_duration !== void 0) {
+      const duration = parseFloat(config.animation_duration);
+      if (isNaN(duration) || duration <= 0) {
+        console.warn(
+          "Foundry Digital Meter Card: animation_duration must be positive. Using 0.15s."
+        );
+        this.config.animation_duration = 0.15;
+      } else {
+        this.config.animation_duration = Math.min(duration, 10);
+      }
+    }
+    if (config.wear_level !== void 0) {
+      const wear = parseFloat(config.wear_level);
+      if (isNaN(wear)) {
+        this.config.wear_level = 50;
+      } else {
+        this.config.wear_level = Math.max(0, Math.min(100, wear));
+      }
+    }
+    if (config.aged_texture_intensity !== void 0) {
+      const intensity = parseFloat(config.aged_texture_intensity);
+      if (isNaN(intensity)) {
+        this.config.aged_texture_intensity = 20;
+      } else {
+        this.config.aged_texture_intensity = Math.max(
+          0,
+          Math.min(100, intensity)
+        );
+      }
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.config) return;
+    if (!this.shadowRoot) return;
+    if (this.config.theme === "entity" && this.config.themeentity && hass.states[this.config.themeentity]) {
+      const liveThemeName = hass.states[this.config.themeentity].state;
+      if (liveThemeName && liveThemeName !== this._currentLiveTheme) {
+        this._currentLiveTheme = liveThemeName;
+        loadThemes().then((themes) => {
+          if (themes[liveThemeName]) {
+            this.config = applyTheme(
+              { ...this._baseConfig },
+              themes[liveThemeName]
+            );
+            this.render();
+          } else {
+            console.warn(
+              `[Foundry Cards] Theme '${liveThemeName}' from entity ${this.config.themeentity} not found.`
+            );
+          }
+          requestAnimationFrame(() => this.updateMeter());
+        });
+        return;
+      }
+    }
+    this.updateMeter();
+  }
+  render() {
+    const config = this.config;
+    const cardTitle = config.card_title || "";
+    const topTitle = config.title || "L";
+    const bottomTitle = config.bottom_title || "R";
+    const hasBottomEntity = !!config.bottom_entity;
+    const uid = this._uniqueId;
+    const animationDuration = config.animation_duration !== void 0 ? config.animation_duration : 0.15;
+    const unit = config.unit !== void 0 ? config.unit : "dB";
+    const ringStyle = config.ring_style !== void 0 ? config.ring_style : "brass";
+    const rivetColor = config.rivet_color !== void 0 ? config.rivet_color : "#6d5d4b";
+    const plateColor = config.plate_color !== void 0 ? config.plate_color : "transparent";
+    const plateTransparent = config.plate_transparent !== void 0 ? config.plate_transparent : false;
+    const wearLevel = config.wear_level !== void 0 ? config.wear_level : 50;
+    const glassEffectEnabled = config.glass_effect_enabled !== void 0 ? config.glass_effect_enabled : true;
+    const agedTexture = config.aged_texture !== void 0 ? config.aged_texture : "glass_only";
+    const agedTextureIntensity = config.aged_texture_intensity !== void 0 ? config.aged_texture_intensity : 20;
+    const agedTextureOpacity = (100 - agedTextureIntensity) / 100 * 1;
+    const effectiveAgedTexture = plateTransparent && agedTexture === "everywhere" ? "glass_only" : agedTexture;
+    const agedTextureEnabled = effectiveAgedTexture === "glass_only";
+    const agedTextureOnFace = agedTextureEnabled || effectiveAgedTexture === "everywhere";
+    const titleFontSize = config.title_font_size || 11;
+    const titleColor = config.title_color || config.number_color || "#9e9e9e";
+    const titleFontFamily = "Georgia, serif";
+    const vbWidth = 300;
+    const numRows = hasBottomEntity ? 2 : 1;
+    const BAR_H = 10;
+    const SCALE_H = numRows > 1 ? 18 : 14;
+    const FACE_PAD_V = 5;
+    const faceContentH = numRows > 1 ? BAR_H + SCALE_H + BAR_H + FACE_PAD_V * 2 : BAR_H + SCALE_H + FACE_PAD_V * 2;
+    const rimInset = 8;
+    const rimH = faceContentH + rimInset * 2;
+    const rimMarginSide = 35;
+    const rimMarginVert = 30;
+    const plateX = 5;
+    const plateY = 5;
+    const plateW = vbWidth - plateX * 2;
+    const plateH = rimMarginVert + rimH + rimMarginVert;
+    const vbHeight = plateY + plateH + plateY;
+    const rimX = rimMarginSide;
+    const rimY = plateY + rimMarginVert;
+    const rimW = vbWidth - rimMarginSide * 2;
+    const faceX = rimX + rimInset;
+    const faceY = rimY + rimInset;
+    const faceW = rimW - rimInset * 2;
+    const faceH = faceContentH;
+    const titleY = plateY + 20;
+    this._faceX = faceX;
+    this._faceY = faceY;
+    this._faceW = faceW;
+    this._faceH = faceH;
+    this._barH = BAR_H;
+    this._scaleH = SCALE_H;
+    this._facePadV = FACE_PAD_V;
+    this._numRows = numRows;
+    this._hasBottomEntity = hasBottomEntity;
+    this._animationDuration = animationDuration;
+    this._unit = unit;
+    this._topTitle = topTitle;
+    this._bottomTitle = bottomTitle;
+    this._vbWidth = vbWidth;
+    this._vbHeight = vbHeight;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          padding: 0px;
+        }
+        ha-card {
+          container-type: inline-size;
+          background: transparent;
+          box-shadow: none;
+        }
+        .card {
+          background: transparent;
+          padding: 0px;
+          position: relative;
+          cursor: pointer;
+        }
+        .meter-container {
+          position: relative;
+          width: 100%;
+          max-width: 520px;
+          margin: 0 auto;
+          container-type: inline-size;
+        }
+        .meter-svg {
+          width: 100%;
+          height: auto;
+          filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+        }
+        .rivet {
+          fill: ${rivetColor};
+          filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+        }
+        .screw-detail {
+          stroke: #4a4034;
+          stroke-width: 0.5;
+          fill: none;
+        }
+      </style>
+      <ha-card role="img" aria-label="Foundry digital meter showing ${config.entity}" tabindex="0">
+        <div class="card" id="actionRoot">
+          <div class="meter-container" role="presentation">
+            <svg class="meter-svg" viewBox="0 0 ${vbWidth} ${vbHeight}" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+              <defs>
+                <!-- Gradient for meter face: matches analog meter EXACTLY (cream/paper look) -->
+                <radialGradient id="meterFace-${uid}" cx="50%" cy="80%">
+                  <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="85%" style="stop-color:#f8f8f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#d4d4c8;stop-opacity:1" />
+                </radialGradient>
+
+                <!-- Rim gradients -->
+                <linearGradient id="brassRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#c9a961;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ddc68f;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#b8944d;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#d4b877;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#a68038;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="silverRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#c0c0c0;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#b0b0b0;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="whiteRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f6f6f6;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#dcdcdc;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#f0f0f0;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#cfcfcf;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="blueRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2a6fdb;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#5ea2ff;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f4f9e;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#4f8fe6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#163b76;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="greenRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2fbf71;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#6fe0a6;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f7a49;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#53cf8e;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#165a36;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="redRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#e53935;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ff6f6c;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#9e1f1c;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e85a57;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#6f1513;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="blackRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3a3a3a;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#555555;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#1f1f1f;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#444444;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#141414;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="copperRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#c77c43;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#e1a06a;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#9a5c2a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#d7925a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#7b461f;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="purpleRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#9c27b0;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ce93d8;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#6a1b9a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ba68c8;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="orangeRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ef6c00;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#ffb74d;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#e65100;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffa726;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="yellowRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f9a825;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#fff176;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#f57f17;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#ffee58;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="tealRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00897b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#4db6ac;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#00695c;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#26a69a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="goldRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#d4a017;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#f0d060;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#b8860b;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#e8c840;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="titaniumRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6e7b8b;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#94a3b3;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#546e7a;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#88979e;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="carbonRim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                  <stop offset="25%" style="stop-color:#333333;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+                  <stop offset="75%" style="stop-color:#2a2a2a;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+                </linearGradient>
+
+                <!-- Shadow filter -->
+                <filter id="innerShadow-${uid}">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                  <feOffset dx="1" dy="1" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.5"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+
+                <!-- Aged texture -->
+                <filter id="aged-${uid}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" in="noise" result="desaturatedNoise" />
+                  <feComponentTransfer result="grainTexture">
+                    <feFuncR type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncG type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                    <feFuncB type="linear" slope="${1 - agedTextureOpacity}" intercept="${agedTextureOpacity}"/>
+                  </feComponentTransfer>
+                  <feComposite operator="arithmetic" k1="1" k2="0" k3="0" k4="0" in="grainTexture" in2="SourceGraphic" />
+                </filter>
+
+                <!-- Clip paths -->
+                <clipPath id="faceClip-${uid}">
+                  <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="4" ry="4"/>
+                </clipPath>
+                <clipPath id="plateClip-${uid}">
+                  <rect x="${plateX}" y="${plateY}" width="${plateW}" height="${plateH}" rx="20" ry="20" />
+                </clipPath>
+
+                <!-- Glass glare gradient -->
+                <linearGradient id="glassGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#aaccff;stop-opacity:0.12" />
+                  <stop offset="100%" style="stop-color:#aaccff;stop-opacity:0" />
+                </linearGradient>
+
+                <!-- LED scan line effect -->
+                <pattern id="scanlines-${uid}" x="0" y="0" width="2" height="3" patternUnits="userSpaceOnUse">
+                  <rect x="0" y="0" width="2" height="1" fill="rgba(0,0,0,0.18)"/>
+                </pattern>
+              </defs>
+
+              <!-- Plate -->
+              <rect x="${plateX}" y="${plateY}" width="${plateW}" height="${plateH}" rx="20" ry="20"
+                    fill="${plateTransparent ? "rgba(240, 235, 225, 0.15)" : plateColor}"
+                    clip-path="url(#plateClip-${uid})"
+                    ${effectiveAgedTexture === "everywhere" ? `filter="url(#aged-${uid})"` : ""} />
+
+              <!-- Rectangular Rim -->
+              ${this.renderRectRim(ringStyle, uid, rimX, rimY, rimW, rimH)}
+
+              <!-- Face (dark screen area) -->
+              <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="4" ry="4"
+                    fill="${config.background_style === "solid" ? config.face_color || "#f8f8f0" : `url(#meterFace-${uid})`}"
+                    ${agedTexture !== "none" && agedTextureOnFace ? `filter="url(#aged-${uid})" clip-path="url(#faceClip-${uid})"` : ""} />
+
+              <!-- Scanline overlay -->
+              <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="4" ry="4"
+                    fill="url(#scanlines-${uid})" opacity="0.5" clip-path="url(#faceClip-${uid})" style="pointer-events:none;" />
+
+              <!-- Glass effect overlay -->
+              ${glassEffectEnabled ? `<path d="M ${faceX} ${faceY} L ${faceX + faceW} ${faceY} L ${faceX + faceW} ${faceY + faceH * 0.25} Q ${faceX + faceW / 2} ${faceY + faceH * 0.3} ${faceX} ${faceY + faceH * 0.25} Z" fill="url(#glassGrad-${uid})" clip-path="url(#faceClip-${uid})" style="pointer-events: none;" />` : ""}
+
+              <!-- Face border -->
+              <rect x="${faceX}" y="${faceY}" width="${faceW}" height="${faceH}" rx="4" ry="4"
+                    fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="1" />
+
+              <!-- Card title \u2014 in the fixed top margin, ring position unchanged (same as digital clock) -->
+              ${cardTitle ? `<text x="${vbWidth / 2}" y="${titleY}" text-anchor="middle" font-size="${titleFontSize}" font-weight="bold" fill="${titleColor}" font-family="${titleFontFamily}" style="pointer-events: none;">${cardTitle}</text>` : ""}
+
+              <!-- Bar row groups \u2014 populated by updateMeter() -->
+              <g id="topBarGroup"></g>
+              <g id="scaleGroup"></g>
+              ${hasBottomEntity ? '<g id="bottomBarGroup"></g>' : ""}
+
+              <!-- Hidden ARIA live region for accessibility -->
+              <foreignObject x="0" y="0" width="1" height="1" style="overflow: hidden;">
+                <div xmlns="http://www.w3.org/1999/xhtml" id="ariaLive" aria-live="polite" aria-atomic="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"></div>
+              </foreignObject>
+
+              <!-- Corner rivets -->
+              ${this.renderRivets(plateW, plateH, plateX, plateY)}
+
+              <!-- Age spots and wear marks -->
+              ${this.renderWearMarks(wearLevel, vbWidth, vbHeight)}
+            </svg>
+          </div>
+        </div>
+      </ha-card>
+    `;
+    this._attachActionListeners();
+  }
+  // -------------------------------------------------------------------------
+  // Bar drawing
+  // -------------------------------------------------------------------------
+  /**
+   * Draw a horizontal LED bar row for a given entity fraction (0–1).
+   * @param {string} groupId  - Shadow DOM element id ('topBarGroup' | 'bottomBarGroup')
+   * @param {number} fraction - fill fraction, 0–1
+   * @param {string} rowLabel - label text (e.g. 'L')
+   * @param {number} rowIndex - 0 for top row, 1 for bottom row
+   */
+  _drawBar(groupId, fraction, rowLabel, rowIndex) {
+    const group = this.shadowRoot.getElementById(groupId);
+    if (!group) return;
+    const config = this.config;
+    const segments = config.segments || [
+      { from: 0, to: 80, color: "#4caf50" },
+      { from: 80, to: 95, color: "#ffeb3b" },
+      { from: 95, to: 100, color: "#f44336" }
+    ];
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    const numRows = this._numRows;
+    const labelColor = config.number_color || "#9e9e9e";
+    const fX = this._faceX;
+    const fY = this._faceY;
+    const fW = this._faceW;
+    const barH = this._barH;
+    const scaleH = this._scaleH;
+    const padV = this._facePadV;
+    const labelW = 22;
+    const unitW = 22;
+    const barAreaX = fX + labelW + 2;
+    const barAreaW = fW - labelW - unitW - 4;
+    let rowCenterY;
+    if (rowIndex === 0) {
+      rowCenterY = fY + padV + barH / 2;
+    } else {
+      rowCenterY = fY + padV + barH + scaleH + barH / 2;
+    }
+    const barY = rowCenterY - barH / 2;
+    const NUM_CELLS = 40;
+    const cellGap = 1.5;
+    const cellW = (barAreaW - cellGap * (NUM_CELLS - 1)) / NUM_CELLS;
+    const faceColorBase = config.face_color || "#111111";
+    const unlitColor = this._adjustColor(faceColorBase, -15);
+    let cells = "";
+    for (let i = 0; i < NUM_CELLS; i++) {
+      const cellFraction = i / NUM_CELLS;
+      const cellX = barAreaX + i * (cellW + cellGap);
+      const cellValue = min + cellFraction * (max - min);
+      let cellColor = unlitColor;
+      for (const seg of segments) {
+        if (cellValue >= seg.from && cellValue < seg.to) {
+          cellColor = seg.color;
+          break;
+        }
+        if (cellValue >= seg.from && cellValue <= seg.to && segments.indexOf(seg) === segments.length - 1) {
+          cellColor = seg.color;
+        }
+      }
+      const isLit = cellFraction <= fraction;
+      const litOpacity = isLit ? "1" : "0.15";
+      const rx = Math.max(1, cellW * 0.25);
+      cells += `<rect x="${cellX.toFixed(2)}" y="${barY.toFixed(2)}" width="${cellW.toFixed(2)}" height="${barH.toFixed(2)}" rx="${rx}" ry="${rx}" fill="${cellColor}" opacity="${litOpacity}"/>`;
+    }
+    const labelX = fX + labelW / 2;
+    const label = `<text x="${labelX}" y="${rowCenterY}" text-anchor="middle" dominant-baseline="middle" font-size="7" font-weight="bold" fill="${labelColor}" font-family="'Courier New', monospace">${rowLabel}</text>`;
+    const unitX = fX + fW - unitW / 2;
+    const unitLabel = `<text x="${unitX}" y="${rowCenterY}" text-anchor="middle" dominant-baseline="middle" font-size="6" fill="${labelColor}" font-family="'Courier New', monospace" opacity="0.7">${this._unit}</text>`;
+    group.innerHTML = label + cells + unitLabel;
+    if (rowIndex === numRows - 1) {
+      const scaleCenterY = fY + padV + barH + scaleH / 2;
+      this._drawScale(barAreaX, barAreaW, scaleCenterY, scaleH, min, max);
+    }
+  }
+  /**
+   * Draw the scale ruler (dual hash marks + center numbers) between bar rows.
+   */
+  _drawScale(barAreaX, barAreaW, scaleCenterY, scaleH, min, max) {
+    const scaleGroup = this.shadowRoot.getElementById("scaleGroup");
+    if (!scaleGroup) return;
+    const config = this.config;
+    const primaryColor = config.primary_tick_color || "#616161";
+    const secondaryColor = config.secondary_tick_color || "#424242";
+    const numberColor = config.number_color || "#9e9e9e";
+    const scaleTopY = scaleCenterY - scaleH / 2;
+    const scaleBotY = scaleCenterY + scaleH / 2;
+    const majorTickLen = scaleH * 0.25;
+    const minorTickLen = scaleH * 0.12;
+    const range = max - min;
+    const niceIntervals = [1, 2, 5, 10, 20, 25, 50, 100, 200, 500, 1e3];
+    const majorInterval = niceIntervals.find((n) => range / n <= 12 && range / n >= 4) || range / 6;
+    const minorDivisions = 5;
+    const minorStep = majorInterval / minorDivisions;
+    let svg = "";
+    svg += `<line x1="${barAreaX}" y1="${scaleTopY.toFixed(2)}" x2="${(barAreaX + barAreaW).toFixed(2)}" y2="${scaleTopY.toFixed(2)}" stroke="${primaryColor}" stroke-width="1.0" opacity="0.8"/>`;
+    svg += `<line x1="${barAreaX}" y1="${scaleBotY.toFixed(2)}" x2="${(barAreaX + barAreaW).toFixed(2)}" y2="${scaleBotY.toFixed(2)}" stroke="${primaryColor}" stroke-width="1.0" opacity="0.8"/>`;
+    const totalMinorTicks = Math.round(range / minorStep) + 1;
+    for (let i = 0; i <= totalMinorTicks; i++) {
+      const val = min + i * minorStep;
+      if (val > max + minorStep * 0.01) break;
+      const frac = (Math.min(val, max) - min) / range;
+      const x = barAreaX + frac * barAreaW;
+      const isMajor = Math.abs(Math.round(val / majorInterval) * majorInterval - val) < minorStep * 0.1;
+      if (isMajor) {
+        svg += `<line x1="${x.toFixed(2)}" y1="${scaleTopY.toFixed(2)}" x2="${x.toFixed(2)}" y2="${(scaleTopY + majorTickLen).toFixed(2)}" stroke="${primaryColor}" stroke-width="1.0" opacity="0.9"/>`;
+        svg += `<line x1="${x.toFixed(2)}" y1="${scaleBotY.toFixed(2)}" x2="${x.toFixed(2)}" y2="${(scaleBotY - majorTickLen).toFixed(2)}" stroke="${primaryColor}" stroke-width="1.0" opacity="0.9"/>`;
+        const numLabel = Number.isInteger(Math.round(val * 10) / 10) ? String(Math.round(val)) : val.toFixed(1);
+        svg += `<text x="${x.toFixed(2)}" y="${(scaleCenterY + 0.5).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" font-size="5.5" fill="${numberColor}" font-family="'Courier New', monospace" opacity="0.95">${numLabel}</text>`;
+      } else {
+        svg += `<line x1="${x.toFixed(2)}" y1="${scaleTopY.toFixed(2)}" x2="${x.toFixed(2)}" y2="${(scaleTopY + minorTickLen).toFixed(2)}" stroke="${secondaryColor}" stroke-width="0.7" opacity="0.6"/>`;
+        svg += `<line x1="${x.toFixed(2)}" y1="${scaleBotY.toFixed(2)}" x2="${x.toFixed(2)}" y2="${(scaleBotY - minorTickLen).toFixed(2)}" stroke="${secondaryColor}" stroke-width="0.7" opacity="0.6"/>`;
+      }
+    }
+    scaleGroup.innerHTML = svg;
+  }
+  // -------------------------------------------------------------------------
+  // Meter update
+  // -------------------------------------------------------------------------
+  updateMeter() {
+    if (!this._hass || !this.config) return;
+    const config = this.config;
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    this._updateRow("topBarGroup", config.entity, min, max, this._topTitle, 0);
+    if (this._hasBottomEntity && config.bottom_entity) {
+      this._updateRow(
+        "bottomBarGroup",
+        config.bottom_entity,
+        min,
+        max,
+        this._bottomTitle,
+        1
+      );
+    }
+  }
+  _updateRow(groupId, entityId, min, max, label, rowIndex) {
+    const entity = this._hass.states[entityId];
+    if (!entity) {
+      console.warn(
+        `Foundry Digital Meter Card: entity '${entityId}' not found.`
+      );
+      return;
+    }
+    if (entity.state === "unavailable" || entity.state === "unknown") {
+      this._drawBar(groupId, 0, label, rowIndex);
+      return;
+    }
+    const value = parseFloat(entity.state);
+    if (isNaN(value)) {
+      console.warn(
+        `Foundry Digital Meter Card: non-numeric state for '${entityId}': "${entity.state}"`
+      );
+      return;
+    }
+    const clamped = Math.max(min, Math.min(max, value));
+    const fraction = (clamped - min) / (max - min);
+    this._drawBar(groupId, fraction, label, rowIndex);
+    this._updateAriaLive(entityId, value);
+  }
+  _updateAriaLive(entityId, value) {
+    const ariaLive = this.shadowRoot?.getElementById("ariaLive");
+    if (ariaLive) {
+      const unit = this.config.unit || "";
+      ariaLive.textContent = `${entityId}: ${value}${unit ? " " + unit : ""}`;
+    }
+  }
+  // -------------------------------------------------------------------------
+  // Rivets / rim / wear marks (identical to analog meter)
+  // -------------------------------------------------------------------------
+  renderRivets(w, h, x, y) {
+    const offset = 15;
+    const rivets = [
+      { cx: x + offset, cy: y + offset },
+      { cx: x + w - offset, cy: y + offset },
+      { cx: x + offset, cy: y + h - offset },
+      { cx: x + w - offset, cy: y + h - offset }
+    ];
+    return rivets.map(
+      (r) => `
+      <g>
+        <circle cx="${r.cx}" cy="${r.cy}" r="4" class="rivet"/>
+        <circle cx="${r.cx}" cy="${r.cy}" r="2.5" class="screw-detail"/>
+        <line x1="${r.cx - 3}" y1="${r.cy}" x2="${r.cx + 3}" y2="${r.cy}" class="screw-detail" transform="rotate(45, ${r.cx}, ${r.cy})"/>
+      </g>
+    `
+    ).join("");
+  }
+  getRimStyleData(ringStyle, uid) {
+    switch (ringStyle) {
+      case "brass":
+        return { grad: `brassRim-${uid}`, stroke: "#8B7355" };
+      case "silver":
+      case "chrome":
+        return { grad: `silverRim-${uid}`, stroke: "#999999" };
+      case "white":
+        return { grad: `whiteRim-${uid}`, stroke: "#cfcfcf" };
+      case "blue":
+        return { grad: `blueRim-${uid}`, stroke: "#1e4f8f" };
+      case "green":
+        return { grad: `greenRim-${uid}`, stroke: "#1f6b3a" };
+      case "red":
+        return { grad: `redRim-${uid}`, stroke: "#8f1e1e" };
+      case "black":
+        return { grad: `blackRim-${uid}`, stroke: "#2b2b2b" };
+      case "copper":
+        return { grad: `copperRim-${uid}`, stroke: "#c77c43" };
+      case "purple":
+        return { grad: `purpleRim-${uid}`, stroke: "#6a1b9a" };
+      case "orange":
+        return { grad: `orangeRim-${uid}`, stroke: "#e65100" };
+      case "yellow":
+        return { grad: `yellowRim-${uid}`, stroke: "#f57f17" };
+      case "teal":
+        return { grad: `tealRim-${uid}`, stroke: "#00695c" };
+      case "gold":
+        return { grad: `goldRim-${uid}`, stroke: "#b8860b" };
+      case "titanium":
+        return { grad: `titaniumRim-${uid}`, stroke: "#546e7a" };
+      case "carbon":
+        return { grad: `carbonRim-${uid}`, stroke: "#1a1a1a" };
+      default:
+        return null;
+    }
+  }
+  /** Darken/lighten a hex color by an integer percentage (like adjustColor in digital clock). */
+  _adjustColor(color, percent) {
+    if (!color || !color.startsWith("#")) return color;
+    const num = parseInt(color.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 255) + amt));
+    const B = Math.max(0, Math.min(255, (num & 255) + amt));
+    return "#" + (16777216 + R * 65536 + G * 256 + B).toString(16).slice(1);
+  }
+  renderRectRim(ringStyle, uid, x, y, w, h) {
+    const data = this.getRimStyleData(ringStyle, uid);
+    if (!data) return "";
+    const bevelX = x + 4;
+    const bevelY = y + 4;
+    const bevelW = w - 8;
+    const bevelH = h - 8;
+    return `
+      <!-- Outer Frame (The Rim) -->
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" ry="12" fill="url(#${data.grad})" stroke="${data.stroke}" stroke-width="1"
+            filter="drop-shadow(2px 2px 3px rgba(0,0,0,0.4))"/>
+      <!-- Inner Bevel -->
+      <rect x="${bevelX}" y="${bevelY}" width="${bevelW}" height="${bevelH}" rx="8" ry="8" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+    `;
+  }
+  renderWearMarks(wearLevel, vbWidth, vbHeight) {
+    if (wearLevel <= 0) return "";
+    const marks = [];
+    const numMarks = Math.floor(wearLevel / 5);
+    const seed = 42;
+    let rng = seed;
+    const random = () => {
+      rng = rng * 16807 % 2147483647;
+      return (rng - 1) / 2147483646;
+    };
+    for (let i = 0; i < numMarks; i++) {
+      const x = 10 + random() * (vbWidth - 20);
+      const y = 10 + random() * (vbHeight - 20);
+      const r = 0.5 + random() * 2;
+      const opacity = 0.05 + random() * 0.15;
+      const type2 = random();
+      if (type2 < 0.3) {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(60,40,20,${opacity})"/>`
+        );
+      } else if (type2 < 0.6) {
+        const x2 = x + (random() - 0.5) * 15;
+        const y2 = y + (random() - 0.5) * 15;
+        marks.push(
+          `<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="rgba(200,190,170,${opacity})" stroke-width="0.3"/>`
+        );
+      } else if (type2 < 0.8) {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r * 1.5}" fill="rgba(80,110,60,${opacity * 0.5})"/>`
+        );
+      } else {
+        marks.push(
+          `<circle cx="${x}" cy="${y}" r="${r * 0.5}" fill="rgba(40,30,20,${opacity * 0.8})" stroke="rgba(200,190,170,${opacity * 0.3})" stroke-width="0.2"/>`
+        );
+      }
+    }
+    return marks.join("\n");
+  }
+  // -------------------------------------------------------------------------
+  // Action handling (identical to analog meter)
+  // -------------------------------------------------------------------------
+  _attachActionListeners() {
+    const root = this.shadowRoot?.getElementById("actionRoot");
+    if (!root) return;
+    root.removeEventListener("click", this._boundHandleClick);
+    root.removeEventListener("dblclick", this._boundHandleDblClick);
+    root.removeEventListener("contextmenu", this._boundHandleContextMenu);
+    root.removeEventListener("keydown", this._boundHandleKeyDown);
+    root.addEventListener("click", this._boundHandleClick, { passive: true });
+    root.addEventListener("dblclick", this._boundHandleDblClick, {
+      passive: true
+    });
+    root.addEventListener("contextmenu", this._boundHandleContextMenu);
+    root.addEventListener("keydown", this._boundHandleKeyDown);
+  }
+  _handleKeyDown(e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      this._handleAction("tap");
+    }
+  }
+  _handleAction(kind) {
+    if (!this._hass || !this.config) return;
+    const entityId = this.config.entity;
+    const tap = getActionConfig(this.config, "tap_action", {
+      action: "more-info"
+    });
+    const hold = getActionConfig(this.config, "hold_action", {
+      action: "more-info"
+    });
+    const dbl = getActionConfig(this.config, "double_tap_action", {
+      action: "more-info"
+    });
+    const actionConfig = kind === "hold" ? hold : kind === "double_tap" ? dbl : tap;
+    this._runAction(actionConfig, entityId);
+  }
+  _runAction(actionConfig, entityId) {
+    const action = actionConfig?.action;
+    if (!action || action === "none") return;
+    if (action === "more-info") {
+      fireEvent(this, "hass-more-info", { entityId });
+      return;
+    }
+    if (action === "navigate") {
+      const path = actionConfig.navigation_path;
+      if (!path) return;
+      history.pushState(null, "", path);
+      fireEvent(window, "location-changed", { replace: false });
+      return;
+    }
+    if (action === "toggle") {
+      if (!entityId) return;
+      this._hass.callService("homeassistant", "toggle", {
+        entity_id: entityId
+      });
+      return;
+    }
+    if (action === "call-service") {
+      const service = actionConfig.service;
+      if (!service) return;
+      const [domain, srv] = service.split(".");
+      if (!domain || !srv) return;
+      const data = { ...actionConfig.service_data || {} };
+      if (actionConfig.target?.entity_id)
+        data.entity_id = actionConfig.target.entity_id;
+      this._hass.callService(domain, srv, data);
+      return;
+    }
+  }
+  // -------------------------------------------------------------------------
+  // HA integration
+  // -------------------------------------------------------------------------
+  getCardSize() {
+    return this.config?.bottom_entity ? 3 : 2;
+  }
+  static get supportsCardResize() {
+    return true;
+  }
+  static getConfigElement() {
+    return document.createElement("foundry-digital-meter-card-editor");
+  }
+  static getStubConfig() {
+    return {
+      entity: "sensor.audio_level_left",
+      bottom_entity: "sensor.audio_level_right",
+      card_title: "Digital Meter",
+      title_font_size: 14,
+      title: "L",
+      bottom_title: "R",
+      min: 0,
+      max: 100,
+      unit: "dB",
+      theme: "industrial",
+      ring_style: "brass",
+      rivet_color: "#6a5816",
+      plate_color: "#8c7626",
+      plate_transparent: false,
+      animation_duration: 0.15,
+      wear_level: 50,
+      glass_effect_enabled: true,
+      aged_texture: "everywhere",
+      aged_texture_intensity: 20,
+      segments: [
+        { from: 0, to: 50, color: "#4caf50" },
+        { from: 50, to: 60, color: "#8bc34a" },
+        { from: 60, to: 80, color: "#ffeb3b" },
+        { from: 80, to: 100, color: "#f44336" }
+      ],
+      background_style: "gradient",
+      face_color: "#929090",
+      number_color: "#3e2723",
+      primary_tick_color: "#3e2723",
+      secondary_tick_color: "#5d4e37"
+    };
+  }
+};
+if (!customElements.get("foundry-digital-meter-card")) {
+  customElements.define("foundry-digital-meter-card", FoundryDigitalMeterCard);
+}
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "foundry-digital-meter-card",
+  name: "Foundry Digital Meter",
+  preview: true,
+  description: "A horizontal LED-bar level meter with dual entity support.",
+  documentationURL: "https://github.com/dprischak/Foundry-Card"
+});
+
+// src/cards/foundry-digital-meter-editor.js
+var FoundryDigitalMeterCardEditor = class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._themes = {};
+    this._themesLoaded = false;
+  }
+  setConfig(config) {
+    this._config = {
+      ...config,
+      segments: Array.isArray(config.segments) ? config.segments : []
+    };
+    this.render();
+    if (!this._themesLoaded) {
+      this._loadThemes();
+    }
+  }
+  async _loadThemes() {
+    try {
+      this._themes = await loadThemes();
+      this._themesLoaded = true;
+      if (this._root && this._root.parentNode) {
+        this._root.parentNode.removeChild(this._root);
+      }
+      this._root = null;
+      this._form1 = null;
+      this._form2 = null;
+      if (!this._advancedMode) {
+        this.render();
+      }
+    } catch (e) {
+      console.error("Error loading themes:", e);
+    }
+  }
+  set hass(hass) {
+    this._hass = hass;
+    if (this._form1) this._form1.hass = hass;
+    if (this._form2) this._form2.hass = hass;
+  }
+  render() {
+    if (!this._hass || !this._config) return;
+    if (!this._root) {
+      this._root = document.createElement("div");
+      const style = document.createElement("style");
+      style.textContent = `
+        .card-config { display: flex; flex-direction: column; gap: 16px; }
+
+        .segments-section {
+          margin-top: 8px;
+          margin-bottom: 8px;
+          padding: 16px;
+          background: var(--card-background-color, #fff);
+          border: 1px solid var(--divider-color, #e0e0e0);
+          border-radius: 4px;
+        }
+        .segment-row {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+          margin-bottom: 12px;
+          background: var(--secondary-background-color, #f9f9f9);
+          padding: 10px;
+          border-radius: 4px;
+        }
+        .input-group {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .input-group label {
+          font-size: 11px;
+          color: var(--secondary-text-color);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+        .input-group input {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid var(--divider-color, #ccc);
+          border-radius: 4px;
+          background: var(--card-background-color, #fff);
+          color: var(--primary-text-color);
+        }
+        .input-group input[type="color"] {
+          height: 36px;
+          padding: 2px;
+          cursor: pointer;
+        }
+        .remove-btn {
+          background: none;
+          border: none;
+          color: var(--error-color, #db4437);
+          cursor: pointer;
+          padding: 8px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+        }
+        .remove-btn:hover {
+          background: rgba(219, 68, 55, 0.1);
+          border-radius: 50%;
+        }
+        .add-btn {
+          background-color: var(--primary-color, #03a9f4);
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 14px;
+          margin-top: 4px;
+        }
+        .add-btn:hover {
+          background-color: var(--primary-color-dark, #0288d1);
+        }
+        .validation-warning {
+          background: var(--warning-color, #ff9800);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin: 8px 0;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .validation-error {
+          background: var(--error-color, #db4437);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin: 8px 0;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      `;
+      this.shadowRoot.appendChild(style);
+      this.shadowRoot.appendChild(this._root);
+      this._form1 = document.createElement("ha-form");
+      this._form1.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
+      this._root.appendChild(this._form1);
+      this._segmentsPanel = document.createElement("ha-expansion-panel");
+      this._segmentsPanel.header = "Color Ranges";
+      this._segmentsPanel.outlined = true;
+      this._segmentsPanel.expanded = false;
+      this._segmentsPanel.style.marginTop = "8px";
+      this._segmentsPanel.style.marginBottom = "8px";
+      this._segmentsContainer = document.createElement("div");
+      this._segmentsContainer.className = "segments-section";
+      this._segmentsContainer.style.border = "none";
+      this._segmentsContainer.style.padding = "16px";
+      this._segmentsPanel.appendChild(this._segmentsContainer);
+      this._root.appendChild(this._segmentsPanel);
+      this._form2 = document.createElement("ha-form");
+      this._form2.addEventListener(
+        "value-changed",
+        this._handleFormChanged.bind(this)
+      );
+      this._root.appendChild(this._form2);
+      this._validationContainer = document.createElement("div");
+      this._root.appendChild(this._validationContainer);
+    }
+    if (this._form1) this._form1.hass = this._hass;
+    if (this._form2) this._form2.hass = this._hass;
+    const formData = this._configToForm(this._config);
+    this._form1.schema = this._getSchemaTop(formData);
+    this._form1.data = formData;
+    this._form1.computeLabel = this._computeLabel;
+    this._form2.schema = this._getSchemaBottom(formData);
+    this._form2.data = formData;
+    this._form2.computeLabel = this._computeLabel;
+    this._renderSegments();
+    this._displayValidationMessages();
+  }
+  _displayValidationMessages() {
+    if (!this._validationContainer) return;
+    const config = this._config;
+    const messages = [];
+    const min = config.min !== void 0 ? config.min : 0;
+    const max = config.max !== void 0 ? config.max : 100;
+    if (min >= max) {
+      messages.push({
+        type: "error",
+        text: "\u274C Minimum must be less than Maximum"
+      });
+    }
+    if (config.segments && config.segments.length > 0) {
+      config.segments.forEach((seg, idx) => {
+        if (seg.from >= seg.to) {
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: 'From' must be less than 'To'`
+          });
+        }
+        if (seg.from < min || seg.to > max) {
+          messages.push({
+            type: "warning",
+            text: `\u26A0\uFE0F Segment ${idx + 1}: Range should be within min/max values`
+          });
+        }
+      });
+    }
+    if (messages.length > 0) {
+      this._validationContainer.innerHTML = messages.map((msg) => `<div class="validation-${msg.type}">${msg.text}</div>`).join("");
+    } else {
+      this._validationContainer.innerHTML = "";
+    }
+  }
+  // --- Segments Renderer ---
+  _renderSegments() {
+    if (!this._segmentsContainer) return;
+    const segments = this._config.segments || [];
+    let html = "";
+    if (segments.length === 0) {
+      html += `<div style="font-style: italic; color: var(--secondary-text-color); margin-bottom: 12px;">No segments defined.</div>`;
+    }
+    segments.forEach((seg, index) => {
+      const fromVal = seg.from !== void 0 ? seg.from : 0;
+      const toVal = seg.to !== void 0 ? seg.to : 0;
+      const colVal = seg.color || "#000000";
+      html += `
+        <div class="segment-row">
+          <div class="input-group">
+            <label>From</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="from" value="${fromVal}">
+          </div>
+          <div class="input-group">
+            <label>To</label>
+            <input type="number" class="seg-input" data-idx="${index}" data-key="to" value="${toVal}">
+          </div>
+          <div class="input-group">
+            <label>Color</label>
+            <input type="color" class="seg-input" data-idx="${index}" data-key="color" value="${colVal}">
+          </div>
+          <button class="remove-btn" data-idx="${index}" title="Remove">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+    html += `<button id="add-btn" class="add-btn">+ Add Color Range</button>`;
+    this._segmentsContainer.innerHTML = html;
+    this._segmentsContainer.querySelectorAll(".seg-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const key = e.target.dataset.key;
+        let val = e.target.value;
+        if (key !== "color") val = Number(val);
+        this._updateSegment(idx, key, val);
+      });
+    });
+    this._segmentsContainer.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const target = e.target.closest(".remove-btn");
+        if (target) {
+          this._removeSegment(parseInt(target.dataset.idx));
+        }
+      });
+    });
+    const addBtn = this._segmentsContainer.querySelector("#add-btn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => this._addSegment());
+    }
+  }
+  // --- Data Logic for Segments ---
+  _updateSegment(index, key, value) {
+    const segments = [...this._config.segments || []];
+    if (segments[index]) {
+      segments[index] = { ...segments[index], [key]: value };
+      this._updateConfig({ segments });
+    }
+  }
+  _addSegment() {
+    const segments = [...this._config.segments || []];
+    const last = segments[segments.length - 1];
+    const from = last ? last.to : 0;
+    const to = from + 10;
+    segments.push({ from, to, color: "#4CAF50" });
+    this._updateConfig({ segments });
+  }
+  _removeSegment(index) {
+    const segments = [...this._config.segments || []];
+    segments.splice(index, 1);
+    this._updateConfig({ segments });
+  }
+  _updateConfig(updates) {
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+  // --- HA Form Logic ---
+  async _handleFormChanged(ev) {
+    let newConfig = this._formToConfig(ev.detail.value);
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
+      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
+      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      if (!themeData) {
+        if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+        return;
+      }
+      const themedConfig = applyTheme({ ...this._config }, themeData);
+      const themeProperties = [
+        "plate_color",
+        "rivet_color",
+        "ring_style",
+        "font_color",
+        "font_bg_color",
+        "number_color",
+        "primary_tick_color",
+        "secondary_tick_color",
+        "background_style",
+        "face_color",
+        "plate_transparent",
+        "glass_effect_enabled",
+        "wear_level",
+        "aged_texture",
+        "aged_texture_intensity"
+      ];
+      const overriddenProps = themeProperties.filter(
+        (prop) => JSON.stringify(newConfig[prop]) !== JSON.stringify(themedConfig[prop])
+      );
+      if (overriddenProps.length > 0) {
+        const mergedConfig = { ...themedConfig, ...newConfig, theme: "none" };
+        for (const prop of themeProperties) {
+          if (!overriddenProps.includes(prop)) {
+            mergedConfig[prop] = themedConfig[prop];
+          }
+        }
+        newConfig = mergedConfig;
+      }
+    }
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._updateConfig(newConfig);
+    }
+  }
+  _configToForm(config) {
+    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
+    const data = { ...sourceConfig };
+    data.appearance = {
+      theme: sourceConfig.theme ?? "none",
+      themeentity: sourceConfig.themeentity ?? "",
+      ring_style: sourceConfig.ring_style,
+      rivet_color: this._hexToRgb(sourceConfig.rivet_color ?? "#6a5816") ?? [
+        106,
+        88,
+        22
+      ],
+      plate_color: this._hexToRgb(sourceConfig.plate_color ?? "#1a1a1a") ?? [
+        26,
+        26,
+        26
+      ],
+      plate_transparent: sourceConfig.plate_transparent,
+      wear_level: sourceConfig.wear_level,
+      glass_effect_enabled: sourceConfig.glass_effect_enabled,
+      aged_texture: sourceConfig.aged_texture,
+      aged_texture_intensity: sourceConfig.aged_texture_intensity,
+      background_style: sourceConfig.background_style,
+      face_color: this._hexToRgb(sourceConfig.face_color ?? "#111111") ?? [
+        17,
+        17,
+        17
+      ]
+    };
+    data.style_fonts_ticks = {
+      number_color: this._hexToRgb(sourceConfig.number_color ?? "#9e9e9e") ?? [
+        158,
+        158,
+        158
+      ],
+      primary_tick_color: this._hexToRgb(
+        sourceConfig.primary_tick_color ?? "#616161"
+      ) ?? [97, 97, 97],
+      secondary_tick_color: this._hexToRgb(
+        sourceConfig.secondary_tick_color ?? "#424242"
+      ) ?? [66, 66, 66],
+      title_font_size: sourceConfig.title_font_size,
+      animation_duration: sourceConfig.animation_duration
+    };
+    data.actions = {};
+    ["tap", "hold", "double_tap"].forEach((type2) => {
+      const conf = config[`${type2}_action`] || {};
+      data.actions[`${type2}_action_action`] = conf.action || "more-info";
+      data.actions[`${type2}_action_navigation_path`] = conf.navigation_path || "";
+      data.actions[`${type2}_action_service`] = conf.service || "";
+      data.actions[`${type2}_action_target_entity`] = conf.target?.entity_id || "";
+    });
+    return data;
+  }
+  _formToConfig(formData) {
+    const config = { ...this._config };
+    const defaults = {
+      rivet_color: this._config?.rivet_color ?? "#6a5816",
+      plate_color: this._config?.plate_color ?? "#1a1a1a",
+      face_color: this._config?.face_color ?? "#111111",
+      number_color: this._config?.number_color ?? "#9e9e9e",
+      primary_tick_color: this._config?.primary_tick_color ?? "#616161",
+      secondary_tick_color: this._config?.secondary_tick_color ?? "#424242",
+      background_style: this._config?.background_style ?? "gradient"
+    };
+    Object.keys(formData).forEach((key) => {
+      if (["appearance", "style_fonts_ticks", "actions"].includes(key)) return;
+      config[key] = formData[key];
+    });
+    if (formData.appearance) Object.assign(config, formData.appearance);
+    if (formData.style_fonts_ticks)
+      Object.assign(config, formData.style_fonts_ticks);
+    const rc = this._rgbToHex(config.rivet_color);
+    if (rc) config.rivet_color = rc;
+    else config.rivet_color = defaults.rivet_color;
+    const pc = this._rgbToHex(config.plate_color);
+    if (pc) config.plate_color = pc;
+    else config.plate_color = defaults.plate_color;
+    const fc = this._rgbToHex(config.face_color);
+    if (fc) config.face_color = fc;
+    else config.face_color = defaults.face_color;
+    const nc = this._rgbToHex(config.number_color);
+    if (nc) config.number_color = nc;
+    else config.number_color = defaults.number_color;
+    const ptc = this._rgbToHex(config.primary_tick_color);
+    if (ptc) config.primary_tick_color = ptc;
+    else config.primary_tick_color = defaults.primary_tick_color;
+    const stc = this._rgbToHex(config.secondary_tick_color);
+    if (stc) config.secondary_tick_color = stc;
+    else config.secondary_tick_color = defaults.secondary_tick_color;
+    if (formData.actions) {
+      ["tap", "hold", "double_tap"].forEach((type2) => {
+        const group = formData.actions;
+        const actionType = group[`${type2}_action_action`];
+        const newAction = { action: actionType };
+        if (actionType === "navigate") {
+          newAction.navigation_path = group[`${type2}_action_navigation_path`];
+        } else if (actionType === "call-service") {
+          newAction.service = group[`${type2}_action_service`];
+          const targetEnt = group[`${type2}_action_target_entity`];
+          if (targetEnt) newAction.target = { entity_id: targetEnt };
+        }
+        config[`${type2}_action`] = newAction;
+      });
+    }
+    return config;
+  }
+  _computeLabel(schema2) {
+    if (schema2.label) return schema2.label;
+    if (schema2.name === "entity") return "Entity";
+    return schema2.name.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  }
+  // --- Schemas ---
+  _getSchemaTop(_formData) {
+    return [
+      {
+        name: "entity",
+        label: "Top Entity",
+        selector: { entity: {} }
+      },
+      {
+        name: "bottom_entity",
+        label: "Bottom Entity",
+        selector: { entity: {} }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "card_title", label: "Card Title", selector: { text: {} } }
+        ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "title", label: "Top Label", selector: { text: {} } },
+          {
+            name: "bottom_title",
+            label: "Bottom Label",
+            selector: { text: {} }
+          }
+        ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          { name: "min", selector: { number: { mode: "box" } } },
+          { name: "max", selector: { number: { mode: "box" } } },
+          { name: "unit", selector: { text: {} } }
+        ]
+      }
+    ];
+  }
+  _hexToRgb(hex) {
+    if (typeof hex !== "string") return null;
+    const h = hex.replace("#", "").trim();
+    if (h.length !== 6) return null;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    if ([r, g, b].some(Number.isNaN)) return null;
+    return [r, g, b];
+  }
+  _rgbToHex(input) {
+    let rgb = input;
+    if (rgb && typeof rgb === "object" && !Array.isArray(rgb)) {
+      if (Array.isArray(rgb.color)) rgb = rgb.color;
+      else if ("r" in rgb && "g" in rgb && "b" in rgb)
+        rgb = [rgb.r, rgb.g, rgb.b];
+    }
+    if (!Array.isArray(rgb) || rgb.length !== 3) return null;
+    const [r, g, b] = rgb.map(
+      (n) => Math.max(0, Math.min(255, Math.round(Number(n))))
+    );
+    if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  _getSchemaBottom(formData) {
+    const actionData = formData.actions || {};
+    return [
+      // Appearance
+      {
+        name: "appearance",
+        type: "expandable",
+        title: "Appearance",
+        schema: [
+          {
+            name: "theme",
+            label: "Theme",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None/Custom" },
+                  { value: "entity", label: "Entity" },
+                  ...Object.keys(this._themes || {}).map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1)
+                  }))
+                ]
+              }
+            }
+          },
+          ...formData.appearance?.theme === "entity" ? [
+            {
+              name: "themeentity",
+              label: "Theme Entity",
+              selector: { entity: {} }
+            }
+          ] : [],
+          {
+            name: "ring_style",
+            label: "Ring Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "brass", label: "Brass" },
+                  { value: "silver", label: "Silver" },
+                  { value: "chrome", label: "Chrome" },
+                  { value: "copper", label: "Copper" },
+                  { value: "purple", label: "Purple" },
+                  { value: "orange", label: "Orange" },
+                  { value: "yellow", label: "Yellow" },
+                  { value: "teal", label: "Teal" },
+                  { value: "gold", label: "Gold" },
+                  { value: "titanium", label: "Titanium" },
+                  { value: "carbon", label: "Carbon" },
+                  { value: "black", label: "Black" },
+                  { value: "white", label: "White" },
+                  { value: "blue", label: "Blue" },
+                  { value: "green", label: "Green" },
+                  { value: "red", label: "Red" }
+                ]
+              }
+            }
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "rivet_color",
+                label: "Rivet Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "plate_color",
+                label: "Plate Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "plate_transparent",
+            label: "Transparent Plate",
+            selector: { boolean: {} }
+          },
+          {
+            name: "background_style",
+            label: "Background Style",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "gradient", label: "Gradient" },
+                  { value: "solid", label: "Solid Color" }
+                ]
+              }
+            }
+          },
+          {
+            name: "face_color",
+            label: "Face Color (Solid Mode)",
+            selector: { color_rgb: {} }
+          },
+          {
+            name: "glass_effect_enabled",
+            label: "Glass Effect",
+            selector: { boolean: {} }
+          },
+          {
+            name: "wear_level",
+            label: "Wear Level",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          },
+          {
+            name: "aged_texture",
+            label: "Aged Texture",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "none", label: "None" },
+                  { value: "glass_only", label: "Glass Only" },
+                  { value: "everywhere", label: "Everywhere" }
+                ]
+              }
+            }
+          },
+          {
+            name: "aged_texture_intensity",
+            label: "Texture Intensity",
+            selector: { number: { min: 0, max: 100, mode: "slider" } }
+          }
+        ]
+      },
+      // Colors & Typography
+      {
+        name: "style_fonts_ticks",
+        type: "expandable",
+        title: "Colors & Typography",
+        schema: [
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "number_color",
+                label: "Number Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "primary_tick_color",
+                label: "Major Tick Color",
+                selector: { color_rgb: {} }
+              },
+              {
+                name: "secondary_tick_color",
+                label: "Minor Tick Color",
+                selector: { color_rgb: {} }
+              }
+            ]
+          },
+          {
+            name: "title_font_size",
+            label: "Title Font Size",
+            selector: { number: { mode: "box", min: 6, max: 48 } }
+          },
+          {
+            name: "animation_duration",
+            label: "Animation Duration (s)",
+            selector: { number: { mode: "box", step: 0.05, min: 0.05 } }
+          }
+        ]
+      },
+      // Actions
+      {
+        name: "actions",
+        type: "expandable",
+        title: "Actions",
+        schema: [
+          ...this._getActionSchema("tap", "Tap", actionData),
+          ...this._getActionSchema("hold", "Hold", actionData),
+          ...this._getActionSchema("double_tap", "Double Tap", actionData)
+        ]
+      }
+    ];
+  }
+  _getActionSchema(type2, label, actionData) {
+    const actionKey = `${type2}_action_action`;
+    const currentAction = actionData ? actionData[actionKey] : "more-info";
+    const schema2 = [
+      {
+        name: actionKey,
+        label: `${label} Action`,
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "more-info", label: "More Info" },
+              { value: "toggle", label: "Toggle" },
+              { value: "navigate", label: "Navigate" },
+              { value: "call-service", label: "Call Service" },
+              { value: "none", label: "None" }
+            ]
+          }
+        }
+      }
+    ];
+    if (currentAction === "navigate") {
+      schema2.push({
+        name: `${type2}_action_navigation_path`,
+        label: "Navigation Path",
+        selector: { text: {} }
+      });
+    }
+    if (currentAction === "call-service") {
+      schema2.push({
+        name: `${type2}_action_service`,
+        label: "Service",
+        selector: { text: {} }
+      });
+      schema2.push({
+        name: `${type2}_action_target_entity`,
+        label: "Target Entity",
+        selector: { entity: {} }
+      });
+    }
+    return schema2;
+  }
+};
+if (!customElements.get("foundry-digital-meter-card-editor")) {
+  customElements.define(
+    "foundry-digital-meter-card-editor",
+    FoundryDigitalMeterCardEditor
   );
 }
 
