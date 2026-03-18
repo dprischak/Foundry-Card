@@ -71,6 +71,8 @@ class FoundryBarChartCard extends HTMLElement {
           ? this.config.segment_blend_width
           : 0;
       this.config.bar_range_blend = this.config.bar_range_blend || 'single';
+      this.config.group_by = this.config.group_by || 'hour';
+      this.config.days_to_show = this.config.days_to_show || 7;
 
       this.config.ring_style = this.config.ring_style || 'brass';
       this.config.title = this.config.title || 'Foundry Bar Chart';
@@ -173,6 +175,8 @@ class FoundryBarChartCard extends HTMLElement {
       x_axis_time_format: 'local',
       segments: [],
       segment_blend_width: 0,
+      group_by: 'hour',
+      days_to_show: 7,
     };
   }
 
@@ -322,12 +326,18 @@ class FoundryBarChartCard extends HTMLElement {
     if (this._interval) clearInterval(this._interval);
   }
 
+  _effectiveHours() {
+    return this.config.group_by === 'day'
+      ? this.config.days_to_show * 24
+      : this.config.hours_to_show;
+  }
+
   async _fetchHistory() {
     if (!this._hass) return;
     this._lastFetch = new Date();
 
     const entityId = this.config.entity;
-    const hours = this.config.hours_to_show;
+    const hours = this._effectiveHours();
     const startTime = new Date();
     startTime.setHours(startTime.getHours() - hours);
     const isoStart = startTime.toISOString();
@@ -601,7 +611,7 @@ class FoundryBarChartCard extends HTMLElement {
     if (!this._history) return;
 
     const now = new Date();
-    const hours = this.config.hours_to_show;
+    const hours = this._effectiveHours();
     const startTime = new Date(now.getTime() - hours * 3600 * 1000);
     const startTs = startTime.getTime();
     const endTs = now.getTime();
@@ -610,15 +620,39 @@ class FoundryBarChartCard extends HTMLElement {
     const chartWidth = 200;
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
-    const bucketCount = Math.max(
-      1,
-      this.config.bucket_minutes
-        ? Math.round((hours * 60) / this.config.bucket_minutes)
-        : this.config.points_per_hour
-          ? Math.round(this.config.points_per_hour * hours)
-          : this.config.bucket_count || 50
-    );
-    const bucketDur = totalDuration / bucketCount;
+    const groupBy = this.config.group_by || 'hour';
+
+    let bucketBoundaries;
+    if (groupBy === 'day') {
+      bucketBoundaries = [];
+      const dayStart = new Date(startTime);
+      dayStart.setHours(0, 0, 0, 0);
+      let cursor = dayStart.getTime();
+      while (cursor < endTs) {
+        const nextCursor = cursor + 86400000;
+        const bStart = Math.max(cursor, startTs);
+        const bEnd = Math.min(nextCursor, endTs);
+        if (bEnd > bStart) {
+          bucketBoundaries.push({ bStart, bEnd });
+        }
+        cursor = nextCursor;
+      }
+    } else {
+      const hourBucketCount = Math.max(
+        1,
+        this.config.bucket_minutes
+          ? Math.round((hours * 60) / this.config.bucket_minutes)
+          : this.config.points_per_hour
+            ? Math.round(this.config.points_per_hour * hours)
+            : this.config.bucket_count || 50
+      );
+      const bucketDur = totalDuration / hourBucketCount;
+      bucketBoundaries = Array.from({ length: hourBucketCount }, (_, i) => ({
+        bStart: startTs + i * bucketDur,
+        bEnd: startTs + (i + 1) * bucketDur,
+      }));
+    }
+    const bucketCount = bucketBoundaries.length;
 
     const segments = [];
     let currentValue = null;
@@ -660,8 +694,7 @@ class FoundryBarChartCard extends HTMLElement {
     const aggregation = this.config.aggregation || 'avg';
 
     for (let i = 0; i < bucketCount; i++) {
-      const bStart = startTs + i * bucketDur;
-      const bEnd = bStart + bucketDur;
+      const { bStart, bEnd } = bucketBoundaries[i];
       let weightedSum = 0;
       let weightedDur = 0;
       let minValue = null;
@@ -882,8 +915,13 @@ class FoundryBarChartCard extends HTMLElement {
       const startEl = this.shadowRoot.getElementById('footer-start');
       const endEl = this.shadowRoot.getElementById('footer-end');
       if (startEl && endEl) {
-        startEl.textContent = this._timeAgo(startTime);
-        endEl.textContent = 'Now';
+        if (groupBy === 'day') {
+          startEl.textContent = this._formatShortDate(startTime);
+          endEl.textContent = this._formatShortDate(now);
+        } else {
+          startEl.textContent = this._timeAgo(startTime);
+          endEl.textContent = 'Now';
+        }
       }
     }
   }
@@ -893,6 +931,10 @@ class FoundryBarChartCard extends HTMLElement {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  _formatShortDate(date) {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
 
   _formatAxisTime(date) {

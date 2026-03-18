@@ -102,6 +102,18 @@ describe('FoundryBarChartEditor._configToForm', () => {
     expect(data.theme).toBe('none');
   });
 
+  test('defaults group_by to hour when not set', () => {
+    const editor = makeEditor({ group_by: undefined });
+    const data = editor._configToForm(editor._config);
+    expect(data.group_by).toBe('hour');
+  });
+
+  test('passes through group_by day', () => {
+    const editor = makeEditor({ group_by: 'day' });
+    const data = editor._configToForm(editor._config);
+    expect(data.group_by).toBe('day');
+  });
+
   test('packs actions into nested actions object', () => {
     const editor = makeEditor({
       tap_action: { action: 'more-info' },
@@ -353,5 +365,63 @@ describe('FoundryBarChartEditor._handleFormChanged (override detection)', () => 
     });
 
     expect(emitted).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// _getSchemaTop — group_by conditional fields
+// ---------------------------------------------------------------------------
+
+describe('FoundryBarChartEditor._getSchemaTop (group_by)', () => {
+  test('includes points_per_hour when group_by is hour', () => {
+    const editor = makeEditor();
+    const schema = editor._getSchemaTop({ group_by: 'hour' });
+    const chartSettings = schema.find((s) => s.title === 'Chart Settings');
+    const fieldNames = chartSettings.schema.map((f) => f.name);
+    expect(fieldNames).toContain('points_per_hour');
+  });
+
+  test('excludes points_per_hour when group_by is day', () => {
+    const editor = makeEditor();
+    const schema = editor._getSchemaTop({ group_by: 'day' });
+    const chartSettings = schema.find((s) => s.title === 'Chart Settings');
+    const fieldNames = chartSettings.schema.map((f) => f.name);
+    expect(fieldNames).not.toContain('points_per_hour');
+  });
+
+  test('shows days_to_show field when group_by is day', () => {
+    const editor = makeEditor();
+    const schema = editor._getSchemaTop({ group_by: 'day' });
+    const chartSettings = schema.find((s) => s.title === 'Chart Settings');
+    const fieldNames = chartSettings.schema.map((f) => f.name);
+    expect(fieldNames).toContain('days_to_show');
+    expect(fieldNames).not.toContain('hours_to_show');
+  });
+
+  test('shows hours_to_show field when group_by is hour', () => {
+    const editor = makeEditor();
+    const schema = editor._getSchemaTop({ group_by: 'hour' });
+    const chartSettings = schema.find((s) => s.title === 'Chart Settings');
+    const fieldNames = chartSettings.schema.map((f) => f.name);
+    expect(fieldNames).toContain('hours_to_show');
+    expect(fieldNames).not.toContain('days_to_show');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// _configToForm — days_to_show
+// ---------------------------------------------------------------------------
+
+describe('FoundryBarChartEditor._configToForm (days_to_show)', () => {
+  test('defaults days_to_show to 7 when not set', () => {
+    const editor = makeEditor({ days_to_show: undefined });
+    const data = editor._configToForm(editor._config);
+    expect(data.days_to_show).toBe(7);
+  });
+
+  test('passes through days_to_show', () => {
+    const editor = makeEditor({ days_to_show: 14 });
+    const data = editor._configToForm(editor._config);
+    expect(data.days_to_show).toBe(14);
   });
 });

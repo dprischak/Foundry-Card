@@ -18002,6 +18002,8 @@ var FoundryBarChartCard = class extends HTMLElement {
       this.config.segments = Array.isArray(this.config.segments) ? this.config.segments : [];
       this.config.segment_blend_width = this.config.segment_blend_width !== void 0 ? this.config.segment_blend_width : 0;
       this.config.bar_range_blend = this.config.bar_range_blend || "single";
+      this.config.group_by = this.config.group_by || "hour";
+      this.config.days_to_show = this.config.days_to_show || 7;
       this.config.ring_style = this.config.ring_style || "brass";
       this.config.title = this.config.title || "Foundry Bar Chart";
       this.config.title_font_size = this.config.title_font_size || 14;
@@ -18078,7 +18080,9 @@ var FoundryBarChartCard = class extends HTMLElement {
       show_y_axis_minmax: false,
       x_axis_time_format: "local",
       segments: [],
-      segment_blend_width: 0
+      segment_blend_width: 0,
+      group_by: "hour",
+      days_to_show: 7
     };
   }
   _normalizeSegments(segments) {
@@ -18190,11 +18194,14 @@ var FoundryBarChartCard = class extends HTMLElement {
   disconnectedCallback() {
     if (this._interval) clearInterval(this._interval);
   }
+  _effectiveHours() {
+    return this.config.group_by === "day" ? this.config.days_to_show * 24 : this.config.hours_to_show;
+  }
   async _fetchHistory() {
     if (!this._hass) return;
     this._lastFetch = /* @__PURE__ */ new Date();
     const entityId = this.config.entity;
-    const hours = this.config.hours_to_show;
+    const hours = this._effectiveHours();
     const startTime = /* @__PURE__ */ new Date();
     startTime.setHours(startTime.getHours() - hours);
     const isoStart = startTime.toISOString();
@@ -18398,7 +18405,7 @@ var FoundryBarChartCard = class extends HTMLElement {
     if (!this.shadowRoot) return;
     if (!this._history) return;
     const now = /* @__PURE__ */ new Date();
-    const hours = this.config.hours_to_show;
+    const hours = this._effectiveHours();
     const startTime = new Date(now.getTime() - hours * 3600 * 1e3);
     const startTs = startTime.getTime();
     const endTs = now.getTime();
@@ -18406,11 +18413,34 @@ var FoundryBarChartCard = class extends HTMLElement {
     const chartWidth = 200;
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
-    const bucketCount = Math.max(
-      1,
-      this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * hours) : this.config.bucket_count || 50
-    );
-    const bucketDur = totalDuration / bucketCount;
+    const groupBy = this.config.group_by || "hour";
+    let bucketBoundaries;
+    if (groupBy === "day") {
+      bucketBoundaries = [];
+      const dayStart = new Date(startTime);
+      dayStart.setHours(0, 0, 0, 0);
+      let cursor = dayStart.getTime();
+      while (cursor < endTs) {
+        const nextCursor = cursor + 864e5;
+        const bStart = Math.max(cursor, startTs);
+        const bEnd = Math.min(nextCursor, endTs);
+        if (bEnd > bStart) {
+          bucketBoundaries.push({ bStart, bEnd });
+        }
+        cursor = nextCursor;
+      }
+    } else {
+      const hourBucketCount = Math.max(
+        1,
+        this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * hours) : this.config.bucket_count || 50
+      );
+      const bucketDur = totalDuration / hourBucketCount;
+      bucketBoundaries = Array.from({ length: hourBucketCount }, (_, i) => ({
+        bStart: startTs + i * bucketDur,
+        bEnd: startTs + (i + 1) * bucketDur
+      }));
+    }
+    const bucketCount = bucketBoundaries.length;
     const segments = [];
     let currentValue = null;
     let lastChangeTs = startTs;
@@ -18444,8 +18474,7 @@ var FoundryBarChartCard = class extends HTMLElement {
     const buckets = [];
     const aggregation = this.config.aggregation || "avg";
     for (let i = 0; i < bucketCount; i++) {
-      const bStart = startTs + i * bucketDur;
-      const bEnd = bStart + bucketDur;
+      const { bStart, bEnd } = bucketBoundaries[i];
       let weightedSum = 0;
       let weightedDur = 0;
       let minValue2 = null;
@@ -18619,8 +18648,13 @@ var FoundryBarChartCard = class extends HTMLElement {
       const startEl = this.shadowRoot.getElementById("footer-start");
       const endEl = this.shadowRoot.getElementById("footer-end");
       if (startEl && endEl) {
-        startEl.textContent = this._timeAgo(startTime);
-        endEl.textContent = "Now";
+        if (groupBy === "day") {
+          startEl.textContent = this._formatShortDate(startTime);
+          endEl.textContent = this._formatShortDate(now);
+        } else {
+          startEl.textContent = this._timeAgo(startTime);
+          endEl.textContent = "Now";
+        }
       }
     }
   }
@@ -18629,6 +18663,9 @@ var FoundryBarChartCard = class extends HTMLElement {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  }
+  _formatShortDate(date) {
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
   }
   _formatAxisTime(date) {
     const fmt = this.config.x_axis_time_format;
@@ -19064,7 +19101,7 @@ var FoundryBarChartEditor = class extends HTMLElement {
     if (this._form1) {
       this._form1.hass = this._hass;
       this._form1.data = data;
-      this._form1.schema = this._getSchemaTop();
+      this._form1.schema = this._getSchemaTop(data);
     }
     if (this._form2) {
       this._form2.hass = this._hass;
@@ -19251,6 +19288,8 @@ var FoundryBarChartEditor = class extends HTMLElement {
     data.aged_texture = sourceConfig.aged_texture ?? "everywhere";
     data.aged_texture_intensity = sourceConfig.aged_texture_intensity ?? 50;
     data.x_axis_time_format = sourceConfig.x_axis_time_format ?? "local";
+    data.group_by = sourceConfig.group_by ?? "hour";
+    data.days_to_show = sourceConfig.days_to_show ?? 7;
     data.actions = {};
     ["tap", "hold", "double_tap"].forEach((type2) => {
       const conf = config[`${type2}_action`] || {};
@@ -19332,7 +19371,8 @@ var FoundryBarChartEditor = class extends HTMLElement {
     if (!Array.isArray(rgb)) return rgb;
     return "#" + rgb.map((x) => x.toString(16).padStart(2, "0")).join("");
   }
-  _getSchemaTop() {
+  _getSchemaTop(formData) {
+    const groupBy = formData?.group_by ?? "hour";
     return [
       { name: "entity", selector: { entity: {} } },
       { name: "title", label: "Title", selector: { text: {} } },
@@ -19342,17 +19382,40 @@ var FoundryBarChartEditor = class extends HTMLElement {
         title: "Chart Settings",
         schema: [
           {
-            name: "hours_to_show",
-            label: "Hours to Show (type in for a higher value)",
-            selector: { number: { min: 1, max: 336 } }
-          },
-          {
-            name: "points_per_hour",
-            label: "Data Points per Hour",
+            name: "group_by",
+            label: "Group By",
             selector: {
-              number: { min: 1, max: 60, step: 1, mode: "slider" }
+              select: {
+                mode: "dropdown",
+                options: [
+                  { value: "hour", label: "Hour (default)" },
+                  { value: "day", label: "Day" }
+                ]
+              }
             }
           },
+          ...groupBy === "day" ? [
+            {
+              name: "days_to_show",
+              label: "Days to Show",
+              selector: { number: { min: 1, max: 90, mode: "box" } }
+            }
+          ] : [
+            {
+              name: "hours_to_show",
+              label: "Hours to Show (type in for a higher value)",
+              selector: { number: { min: 1, max: 336 } }
+            }
+          ],
+          ...groupBy !== "day" ? [
+            {
+              name: "points_per_hour",
+              label: "Data Points per Hour",
+              selector: {
+                number: { min: 1, max: 60, step: 1, mode: "slider" }
+              }
+            }
+          ] : [],
           {
             name: "aggregation",
             label: "Aggregation",
