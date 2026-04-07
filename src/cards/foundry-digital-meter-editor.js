@@ -358,23 +358,42 @@ class FoundryDigitalMeterCardEditor extends HTMLElement {
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
 
+    // Helper: resolve the live theme data when theme === 'entity'
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName]
+        ? this._themes[liveThemeName]
+        : null;
+    };
+
     // 1. Theme Selection Logic
     if (
       newConfig.theme &&
       newConfig.theme !== this._config.theme &&
-      this._themes &&
-      this._themes[newConfig.theme]
+      this._themes
     ) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      if (newConfig.theme === 'entity') {
+        // Switching TO entity theme: apply the live entity's theme values now
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+      // NOTE: We do NOT delete newConfig.theme anymore. We want to persist it.
     }
     // 2. Manual Override Logic
     else if (
       this._config.theme &&
       this._config.theme !== 'none' &&
-      this._config.theme !== 'entity' &&
       newConfig.theme === this._config.theme
     ) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+      const themeData =
+        this._config.theme === 'entity'
+          ? resolveLiveThemeData()
+          : (this._themes?.[this._config.theme] ?? null);
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -424,13 +443,19 @@ class FoundryDigitalMeterCardEditor extends HTMLElement {
   }
 
   _configToForm(config) {
-    const themeData =
-      config.theme &&
-      config.theme !== 'none' &&
-      config.theme !== 'entity' &&
-      this._themes
-        ? this._themes[config.theme]
-        : null;
+    let themeData = null;
+    if (config.theme && config.theme !== 'none' && this._themes) {
+      if (config.theme === 'entity') {
+        const liveThemeName =
+          this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData =
+          liveThemeName && this._themes[liveThemeName]
+            ? this._themes[liveThemeName]
+            : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData
       ? applyTheme({ ...config }, themeData)
       : { ...config };
