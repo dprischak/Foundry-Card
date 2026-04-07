@@ -337,9 +337,15 @@ class FoundryBarChartCard extends HTMLElement {
     this._lastFetch = new Date();
 
     const entityId = this.config.entity;
-    const hours = this._effectiveHours();
-    const startTime = new Date();
-    startTime.setHours(startTime.getHours() - hours);
+    let startTime;
+    if (this.config.group_by === 'day') {
+      startTime = new Date();
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = new Date();
+      startTime.setHours(startTime.getHours() - this._effectiveHours());
+    }
     const isoStart = startTime.toISOString();
 
     try {
@@ -611,8 +617,17 @@ class FoundryBarChartCard extends HTMLElement {
     if (!this._history) return;
 
     const now = new Date();
-    const hours = this._effectiveHours();
-    const startTime = new Date(now.getTime() - hours * 3600 * 1000);
+    const groupBy = this.config.group_by || 'hour';
+    let startTime;
+    if (groupBy === 'day') {
+      startTime = new Date(now);
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = new Date(
+        now.getTime() - this._effectiveHours() * 3600 * 1000
+      );
+    }
     const startTs = startTime.getTime();
     const endTs = now.getTime();
     const totalDuration = endTs - startTs;
@@ -620,7 +635,6 @@ class FoundryBarChartCard extends HTMLElement {
     const chartWidth = 200;
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
-    const groupBy = this.config.group_by || 'hour';
 
     let bucketBoundaries;
     if (groupBy === 'day') {
@@ -638,12 +652,13 @@ class FoundryBarChartCard extends HTMLElement {
         cursor = nextCursor;
       }
     } else {
+      const effectiveHours = this._effectiveHours();
       const hourBucketCount = Math.max(
         1,
         this.config.bucket_minutes
-          ? Math.round((hours * 60) / this.config.bucket_minutes)
+          ? Math.round((effectiveHours * 60) / this.config.bucket_minutes)
           : this.config.points_per_hour
-            ? Math.round(this.config.points_per_hour * hours)
+            ? Math.round(this.config.points_per_hour * effectiveHours)
             : this.config.bucket_count || 50
       );
       const bucketDur = totalDuration / hourBucketCount;
