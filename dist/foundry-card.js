@@ -18201,19 +18201,36 @@ var FoundryBarChartCard = class extends HTMLElement {
     if (!this._hass) return;
     this._lastFetch = /* @__PURE__ */ new Date();
     const entityId = this.config.entity;
-    const hours = this._effectiveHours();
-    const startTime = /* @__PURE__ */ new Date();
-    startTime.setHours(startTime.getHours() - hours);
-    const isoStart = startTime.toISOString();
+    const groupBy = this.config.group_by || "hour";
+    let startTime;
+    if (groupBy === "day") {
+      startTime = /* @__PURE__ */ new Date();
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = /* @__PURE__ */ new Date();
+      startTime.setHours(startTime.getHours() - this._effectiveHours());
+    }
     try {
-      const history2 = await this._hass.callApi(
-        "GET",
-        `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${(/* @__PURE__ */ new Date()).toISOString()}`
-      );
-      if (history2 && history2.length > 0) {
-        this._history = history2[0];
+      if (groupBy === "day") {
+        const result = await this._hass.callWS({
+          type: "recorder/statistics_during_period",
+          start_time: startTime.toISOString(),
+          end_time: (/* @__PURE__ */ new Date()).toISOString(),
+          statistic_ids: [entityId],
+          period: "day",
+          types: ["mean", "min", "max"]
+        });
+        this._statistics = result?.[entityId] ?? [];
+        this._history = null;
       } else {
-        this._history = [];
+        const isoStart = startTime.toISOString();
+        const history2 = await this._hass.callApi(
+          "GET",
+          `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${(/* @__PURE__ */ new Date()).toISOString()}`
+        );
+        this._history = history2?.length > 0 ? history2[0] : [];
+        this._statistics = null;
       }
       this._renderHistory();
     } catch (e) {
@@ -18403,107 +18420,115 @@ var FoundryBarChartCard = class extends HTMLElement {
   }
   _updateValues() {
     if (!this.shadowRoot) return;
-    if (!this._history) return;
+    const groupBy = this.config.group_by || "hour";
+    if (groupBy === "day" && this._statistics == null) return;
+    if (groupBy !== "day" && this._history == null) return;
     const now = /* @__PURE__ */ new Date();
-    const hours = this._effectiveHours();
-    const startTime = new Date(now.getTime() - hours * 3600 * 1e3);
+    let startTime;
+    if (groupBy === "day") {
+      startTime = new Date(now);
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = new Date(
+        now.getTime() - this._effectiveHours() * 3600 * 1e3
+      );
+    }
     const startTs = startTime.getTime();
     const endTs = now.getTime();
     const totalDuration = endTs - startTs;
     const chartWidth = 200;
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
-    const groupBy = this.config.group_by || "hour";
-    let bucketBoundaries;
+    const aggregation = this.config.aggregation || "avg";
+    let buckets;
+    let bucketCount;
     if (groupBy === "day") {
-      bucketBoundaries = [];
-      const dayStart = new Date(startTime);
-      dayStart.setHours(0, 0, 0, 0);
-      let cursor = dayStart.getTime();
-      while (cursor < endTs) {
-        const nextCursor = cursor + 864e5;
-        const bStart = Math.max(cursor, startTs);
-        const bEnd = Math.min(nextCursor, endTs);
-        if (bEnd > bStart) {
-          bucketBoundaries.push({ bStart, bEnd });
+      bucketCount = this.config.days_to_show;
+      const raw = Array.from({ length: bucketCount }, () => null);
+      for (const stat of this._statistics) {
+        const dayIdx = Math.round(
+          (new Date(stat.start).getTime() - startTs) / 864e5
+        );
+        if (dayIdx >= 0 && dayIdx < bucketCount) {
+          if (aggregation === "min") raw[dayIdx] = stat.min ?? null;
+          else if (aggregation === "max") raw[dayIdx] = stat.max ?? null;
+          else raw[dayIdx] = stat.mean ?? null;
         }
-        cursor = nextCursor;
       }
+      buckets = raw.map((value, i) => ({ id: i, value }));
     } else {
+      const effectiveHours = this._effectiveHours();
       const hourBucketCount = Math.max(
         1,
-        this.config.bucket_minutes ? Math.round(hours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * hours) : this.config.bucket_count || 50
+        this.config.bucket_minutes ? Math.round(effectiveHours * 60 / this.config.bucket_minutes) : this.config.points_per_hour ? Math.round(this.config.points_per_hour * effectiveHours) : this.config.bucket_count || 50
       );
       const bucketDur = totalDuration / hourBucketCount;
-      bucketBoundaries = Array.from({ length: hourBucketCount }, (_, i) => ({
-        bStart: startTs + i * bucketDur,
-        bEnd: startTs + (i + 1) * bucketDur
-      }));
-    }
-    const bucketCount = bucketBoundaries.length;
-    const segments = [];
-    let currentValue = null;
-    let lastChangeTs = startTs;
-    if (this._history.length > 0) {
-      const sortedHistory = [...this._history].sort(
-        (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+      const bucketBoundaries = Array.from(
+        { length: hourBucketCount },
+        (_, i) => ({
+          bStart: startTs + i * bucketDur,
+          bEnd: startTs + (i + 1) * bucketDur
+        })
       );
-      for (const entry of sortedHistory) {
-        const t = new Date(entry.last_changed).getTime();
-        const parsed = parseFloat(entry.state);
-        const value = Number.isFinite(parsed) ? parsed : null;
-        if (t <= startTs) {
+      bucketCount = hourBucketCount;
+      const segments = [];
+      let currentValue = null;
+      let lastChangeTs = startTs;
+      if (this._history.length > 0) {
+        const sortedHistory = [...this._history].sort(
+          (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+        );
+        for (const entry of sortedHistory) {
+          const t = new Date(entry.last_changed).getTime();
+          const parsed = parseFloat(entry.state);
+          const value = Number.isFinite(parsed) ? parsed : null;
+          if (t <= startTs) {
+            currentValue = value;
+            lastChangeTs = startTs;
+            continue;
+          }
+          if (t > lastChangeTs) {
+            segments.push({ start: lastChangeTs, end: t, value: currentValue });
+          }
           currentValue = value;
-          lastChangeTs = startTs;
-          continue;
+          lastChangeTs = t;
         }
-        if (t > lastChangeTs) {
-          segments.push({ start: lastChangeTs, end: t, value: currentValue });
-        }
-        currentValue = value;
-        lastChangeTs = t;
+      } else {
+        const currentState = this._hass.states[this.config.entity]?.state;
+        const parsed = parseFloat(currentState);
+        currentValue = Number.isFinite(parsed) ? parsed : null;
       }
-    } else {
-      const currentState = this._hass.states[this.config.entity]?.state;
-      const parsed = parseFloat(currentState);
-      currentValue = Number.isFinite(parsed) ? parsed : null;
-    }
-    if (lastChangeTs < endTs) {
-      segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
-    }
-    const buckets = [];
-    const aggregation = this.config.aggregation || "avg";
-    for (let i = 0; i < bucketCount; i++) {
-      const { bStart, bEnd } = bucketBoundaries[i];
-      let weightedSum = 0;
-      let weightedDur = 0;
-      let minValue2 = null;
-      let maxValue2 = null;
-      for (const seg of segments) {
-        if (seg.value === null || seg.value === void 0) continue;
-        const overlapStart = Math.max(seg.start, bStart);
-        const overlapEnd = Math.min(seg.end, bEnd);
-        if (overlapEnd > overlapStart) {
-          const dur = overlapEnd - overlapStart;
-          if (aggregation === "min") {
-            minValue2 = minValue2 === null ? seg.value : Math.min(minValue2, seg.value);
-          } else if (aggregation === "max") {
-            maxValue2 = maxValue2 === null ? seg.value : Math.max(maxValue2, seg.value);
-          } else {
-            weightedSum += seg.value * dur;
-            weightedDur += dur;
+      if (lastChangeTs < endTs) {
+        segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
+      }
+      buckets = bucketBoundaries.map(({ bStart, bEnd }, i) => {
+        let weightedSum = 0;
+        let weightedDur = 0;
+        let minVal = null;
+        let maxVal = null;
+        for (const seg of segments) {
+          if (seg.value === null || seg.value === void 0) continue;
+          const overlapStart = Math.max(seg.start, bStart);
+          const overlapEnd = Math.min(seg.end, bEnd);
+          if (overlapEnd > overlapStart) {
+            const dur = overlapEnd - overlapStart;
+            if (aggregation === "min") {
+              minVal = minVal === null ? seg.value : Math.min(minVal, seg.value);
+            } else if (aggregation === "max") {
+              maxVal = maxVal === null ? seg.value : Math.max(maxVal, seg.value);
+            } else {
+              weightedSum += seg.value * dur;
+              weightedDur += dur;
+            }
           }
         }
-      }
-      let value = null;
-      if (aggregation === "min") {
-        value = minValue2;
-      } else if (aggregation === "max") {
-        value = maxValue2;
-      } else {
-        value = weightedDur > 0 ? weightedSum / weightedDur : null;
-      }
-      buckets.push({ id: i, value });
+        let value = null;
+        if (aggregation === "min") value = minVal;
+        else if (aggregation === "max") value = maxVal;
+        else value = weightedDur > 0 ? weightedSum / weightedDur : null;
+        return { id: i, value };
+      });
     }
     const values = buckets.map((b) => b.value).filter((v) => v !== null && v !== void 0);
     let minValue = this.config.min_value;

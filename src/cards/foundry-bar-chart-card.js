@@ -337,20 +337,37 @@ class FoundryBarChartCard extends HTMLElement {
     this._lastFetch = new Date();
 
     const entityId = this.config.entity;
-    const hours = this._effectiveHours();
-    const startTime = new Date();
-    startTime.setHours(startTime.getHours() - hours);
-    const isoStart = startTime.toISOString();
+    const groupBy = this.config.group_by || 'hour';
+    let startTime;
+    if (groupBy === 'day') {
+      startTime = new Date();
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = new Date();
+      startTime.setHours(startTime.getHours() - this._effectiveHours());
+    }
 
     try {
-      const history = await this._hass.callApi(
-        'GET',
-        `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${new Date().toISOString()}`
-      );
-      if (history && history.length > 0) {
-        this._history = history[0];
+      if (groupBy === 'day') {
+        const result = await this._hass.callWS({
+          type: 'recorder/statistics_during_period',
+          start_time: startTime.toISOString(),
+          end_time: new Date().toISOString(),
+          statistic_ids: [entityId],
+          period: 'day',
+          types: ['mean', 'min', 'max'],
+        });
+        this._statistics = result?.[entityId] ?? [];
+        this._history = null;
       } else {
-        this._history = [];
+        const isoStart = startTime.toISOString();
+        const history = await this._hass.callApi(
+          'GET',
+          `history/period/${isoStart}?filter_entity_id=${entityId}&minimal_response&end_time=${new Date().toISOString()}`
+        );
+        this._history = history?.length > 0 ? history[0] : [];
+        this._statistics = null;
       }
       this._renderHistory();
     } catch (e) {
@@ -608,11 +625,21 @@ class FoundryBarChartCard extends HTMLElement {
 
   _updateValues() {
     if (!this.shadowRoot) return;
-    if (!this._history) return;
+    const groupBy = this.config.group_by || 'hour';
+    if (groupBy === 'day' && this._statistics == null) return;
+    if (groupBy !== 'day' && this._history == null) return;
 
     const now = new Date();
-    const hours = this._effectiveHours();
-    const startTime = new Date(now.getTime() - hours * 3600 * 1000);
+    let startTime;
+    if (groupBy === 'day') {
+      startTime = new Date(now);
+      startTime.setHours(0, 0, 0, 0);
+      startTime.setDate(startTime.getDate() - (this.config.days_to_show - 1));
+    } else {
+      startTime = new Date(
+        now.getTime() - this._effectiveHours() * 3600 * 1000
+      );
+    }
     const startTs = startTime.getTime();
     const endTs = now.getTime();
     const totalDuration = endTs - startTs;
@@ -620,114 +647,114 @@ class FoundryBarChartCard extends HTMLElement {
     const chartWidth = 200;
     const chartHeight = 60;
     const chartGeometry = this._getChartGeometry(chartWidth, chartHeight);
-    const groupBy = this.config.group_by || 'hour';
 
-    let bucketBoundaries;
+    const aggregation = this.config.aggregation || 'avg';
+    let buckets;
+    let bucketCount;
+
     if (groupBy === 'day') {
-      bucketBoundaries = [];
-      const dayStart = new Date(startTime);
-      dayStart.setHours(0, 0, 0, 0);
-      let cursor = dayStart.getTime();
-      while (cursor < endTs) {
-        const nextCursor = cursor + 86400000;
-        const bStart = Math.max(cursor, startTs);
-        const bEnd = Math.min(nextCursor, endTs);
-        if (bEnd > bStart) {
-          bucketBoundaries.push({ bStart, bEnd });
+      // Build buckets directly from long-term statistics (unlimited history depth)
+      bucketCount = this.config.days_to_show;
+      const raw = Array.from({ length: bucketCount }, () => null);
+      for (const stat of this._statistics) {
+        const dayIdx = Math.round(
+          (new Date(stat.start).getTime() - startTs) / 86400000
+        );
+        if (dayIdx >= 0 && dayIdx < bucketCount) {
+          if (aggregation === 'min') raw[dayIdx] = stat.min ?? null;
+          else if (aggregation === 'max') raw[dayIdx] = stat.max ?? null;
+          else raw[dayIdx] = stat.mean ?? null;
         }
-        cursor = nextCursor;
       }
+      buckets = raw.map((value, i) => ({ id: i, value }));
     } else {
+      // Build buckets from raw recorder history
+      const effectiveHours = this._effectiveHours();
       const hourBucketCount = Math.max(
         1,
         this.config.bucket_minutes
-          ? Math.round((hours * 60) / this.config.bucket_minutes)
+          ? Math.round((effectiveHours * 60) / this.config.bucket_minutes)
           : this.config.points_per_hour
-            ? Math.round(this.config.points_per_hour * hours)
+            ? Math.round(this.config.points_per_hour * effectiveHours)
             : this.config.bucket_count || 50
       );
       const bucketDur = totalDuration / hourBucketCount;
-      bucketBoundaries = Array.from({ length: hourBucketCount }, (_, i) => ({
-        bStart: startTs + i * bucketDur,
-        bEnd: startTs + (i + 1) * bucketDur,
-      }));
-    }
-    const bucketCount = bucketBoundaries.length;
-
-    const segments = [];
-    let currentValue = null;
-    let lastChangeTs = startTs;
-
-    if (this._history.length > 0) {
-      const sortedHistory = [...this._history].sort(
-        (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+      const bucketBoundaries = Array.from(
+        { length: hourBucketCount },
+        (_, i) => ({
+          bStart: startTs + i * bucketDur,
+          bEnd: startTs + (i + 1) * bucketDur,
+        })
       );
+      bucketCount = hourBucketCount;
 
-      for (const entry of sortedHistory) {
-        const t = new Date(entry.last_changed).getTime();
-        const parsed = parseFloat(entry.state);
-        const value = Number.isFinite(parsed) ? parsed : null;
+      const segments = [];
+      let currentValue = null;
+      let lastChangeTs = startTs;
 
-        if (t <= startTs) {
+      if (this._history.length > 0) {
+        const sortedHistory = [...this._history].sort(
+          (a, b) => new Date(a.last_changed) - new Date(b.last_changed)
+        );
+
+        for (const entry of sortedHistory) {
+          const t = new Date(entry.last_changed).getTime();
+          const parsed = parseFloat(entry.state);
+          const value = Number.isFinite(parsed) ? parsed : null;
+
+          if (t <= startTs) {
+            currentValue = value;
+            lastChangeTs = startTs;
+            continue;
+          }
+
+          if (t > lastChangeTs) {
+            segments.push({ start: lastChangeTs, end: t, value: currentValue });
+          }
           currentValue = value;
-          lastChangeTs = startTs;
-          continue;
+          lastChangeTs = t;
         }
-
-        if (t > lastChangeTs) {
-          segments.push({ start: lastChangeTs, end: t, value: currentValue });
-        }
-        currentValue = value;
-        lastChangeTs = t;
+      } else {
+        const currentState = this._hass.states[this.config.entity]?.state;
+        const parsed = parseFloat(currentState);
+        currentValue = Number.isFinite(parsed) ? parsed : null;
       }
-    } else {
-      const currentState = this._hass.states[this.config.entity]?.state;
-      const parsed = parseFloat(currentState);
-      currentValue = Number.isFinite(parsed) ? parsed : null;
-    }
 
-    if (lastChangeTs < endTs) {
-      segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
-    }
+      if (lastChangeTs < endTs) {
+        segments.push({ start: lastChangeTs, end: endTs, value: currentValue });
+      }
 
-    const buckets = [];
-    const aggregation = this.config.aggregation || 'avg';
+      buckets = bucketBoundaries.map(({ bStart, bEnd }, i) => {
+        let weightedSum = 0;
+        let weightedDur = 0;
+        let minVal = null;
+        let maxVal = null;
 
-    for (let i = 0; i < bucketCount; i++) {
-      const { bStart, bEnd } = bucketBoundaries[i];
-      let weightedSum = 0;
-      let weightedDur = 0;
-      let minValue = null;
-      let maxValue = null;
-
-      for (const seg of segments) {
-        if (seg.value === null || seg.value === undefined) continue;
-        const overlapStart = Math.max(seg.start, bStart);
-        const overlapEnd = Math.min(seg.end, bEnd);
-        if (overlapEnd > overlapStart) {
-          const dur = overlapEnd - overlapStart;
-          if (aggregation === 'min') {
-            minValue =
-              minValue === null ? seg.value : Math.min(minValue, seg.value);
-          } else if (aggregation === 'max') {
-            maxValue =
-              maxValue === null ? seg.value : Math.max(maxValue, seg.value);
-          } else {
-            weightedSum += seg.value * dur;
-            weightedDur += dur;
+        for (const seg of segments) {
+          if (seg.value === null || seg.value === undefined) continue;
+          const overlapStart = Math.max(seg.start, bStart);
+          const overlapEnd = Math.min(seg.end, bEnd);
+          if (overlapEnd > overlapStart) {
+            const dur = overlapEnd - overlapStart;
+            if (aggregation === 'min') {
+              minVal =
+                minVal === null ? seg.value : Math.min(minVal, seg.value);
+            } else if (aggregation === 'max') {
+              maxVal =
+                maxVal === null ? seg.value : Math.max(maxVal, seg.value);
+            } else {
+              weightedSum += seg.value * dur;
+              weightedDur += dur;
+            }
           }
         }
-      }
 
-      let value = null;
-      if (aggregation === 'min') {
-        value = minValue;
-      } else if (aggregation === 'max') {
-        value = maxValue;
-      } else {
-        value = weightedDur > 0 ? weightedSum / weightedDur : null;
-      }
-      buckets.push({ id: i, value });
+        let value = null;
+        if (aggregation === 'min') value = minVal;
+        else if (aggregation === 'max') value = maxVal;
+        else value = weightedDur > 0 ? weightedSum / weightedDur : null;
+        return { id: i, value };
+      });
     }
 
     const values = buckets
