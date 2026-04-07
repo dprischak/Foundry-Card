@@ -4881,10 +4881,22 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
   // --- HA Form Logic ---
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -4932,7 +4944,15 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
@@ -6342,10 +6362,22 @@ var FoundryThermometerEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -6391,7 +6423,15 @@ var FoundryThermometerEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     delete data.segments;
@@ -7820,10 +7860,22 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         this._config = newConfig;
         fireEvent2(this, "config-changed", { config: this._config });
@@ -8012,7 +8064,15 @@ var FoundryHomeThermostatEditor = class extends HTMLElement {
     ];
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -8922,10 +8982,22 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._config = newConfig;
@@ -8990,7 +9062,15 @@ var FoundryAnalogClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
@@ -10184,10 +10264,22 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._config = newConfig;
@@ -10250,7 +10342,15 @@ var FoundryDigitalClockCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
@@ -11715,10 +11815,22 @@ var FoundrySliderEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -11810,7 +11922,15 @@ var FoundrySliderEditor = class extends HTMLElement {
     );
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
@@ -13354,10 +13474,22 @@ var FoundryEntitiesEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._config = newConfig;
@@ -13408,7 +13540,15 @@ var FoundryEntitiesEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     if (Array.isArray(sourceConfig.entities)) {
@@ -14298,10 +14438,22 @@ var FoundryButtonEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._config = newConfig;
@@ -14352,7 +14504,15 @@ var FoundryButtonEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -15587,10 +15747,22 @@ var FoundryUptimeEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -15633,7 +15805,15 @@ var FoundryUptimeEditor = class extends HTMLElement {
     return schema2.name;
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -16985,10 +17165,22 @@ var FoundryChartEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -17132,7 +17324,15 @@ var FoundryChartEditor = class extends HTMLElement {
     this._updateConfig({ segments });
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -17762,10 +17962,22 @@ var FoundryTitleEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (themeData) {
         const themedConfig = applyTheme({ ...this._config }, themeData);
         const themeProperties = [
@@ -17796,7 +18008,15 @@ var FoundryTitleEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -19141,10 +19361,22 @@ var FoundryBarChartEditor = class extends HTMLElement {
   }
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -19303,7 +19535,15 @@ var FoundryBarChartEditor = class extends HTMLElement {
     this._updateConfig({ segments });
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.theme = sourceConfig.theme ?? "none";
@@ -21161,10 +21401,22 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
   // --- HA Form Logic ---
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -21208,7 +21460,15 @@ var FoundryAnalogMeterCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {
@@ -22794,10 +23054,22 @@ var FoundryDigitalMeterCardEditor = class extends HTMLElement {
   // --- HA Form Logic ---
   async _handleFormChanged(ev) {
     let newConfig = this._formToConfig(ev.detail.value);
-    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes && this._themes[newConfig.theme]) {
-      newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
-    } else if (this._config.theme && this._config.theme !== "none" && this._config.theme !== "entity" && newConfig.theme === this._config.theme) {
-      const themeData = this._themes ? this._themes[this._config.theme] : null;
+    const resolveLiveThemeData = () => {
+      if (!this._hass || !newConfig.themeentity) return null;
+      const liveThemeName = this._hass.states?.[newConfig.themeentity]?.state;
+      return liveThemeName && this._themes?.[liveThemeName] ? this._themes[liveThemeName] : null;
+    };
+    if (newConfig.theme && newConfig.theme !== this._config.theme && this._themes) {
+      if (newConfig.theme === "entity") {
+        const liveThemeData = resolveLiveThemeData();
+        if (liveThemeData) {
+          newConfig = applyTheme(newConfig, liveThemeData);
+        }
+      } else if (this._themes[newConfig.theme]) {
+        newConfig = applyTheme(newConfig, this._themes[newConfig.theme]);
+      }
+    } else if (this._config.theme && this._config.theme !== "none" && newConfig.theme === this._config.theme) {
+      const themeData = this._config.theme === "entity" ? resolveLiveThemeData() : this._themes?.[this._config.theme] ?? null;
       if (!themeData) {
         if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
           this._updateConfig(newConfig);
@@ -22840,7 +23112,15 @@ var FoundryDigitalMeterCardEditor = class extends HTMLElement {
     }
   }
   _configToForm(config) {
-    const themeData = config.theme && config.theme !== "none" && config.theme !== "entity" && this._themes ? this._themes[config.theme] : null;
+    let themeData = null;
+    if (config.theme && config.theme !== "none" && this._themes) {
+      if (config.theme === "entity") {
+        const liveThemeName = this._hass?.states?.[config.themeentity]?.state ?? null;
+        themeData = liveThemeName && this._themes[liveThemeName] ? this._themes[liveThemeName] : null;
+      } else {
+        themeData = this._themes[config.theme] ?? null;
+      }
+    }
     const sourceConfig = themeData ? applyTheme({ ...config }, themeData) : { ...config };
     const data = { ...sourceConfig };
     data.appearance = {

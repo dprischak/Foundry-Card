@@ -289,3 +289,103 @@ describe('FoundryGaugeCardEditor._handleFormChanged (override detection)', () =>
     expect(emitted[0].plate_color).toBe('#8c7626');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Entity theme — _handleFormChanged
+// ---------------------------------------------------------------------------
+
+describe('FoundryGaugeCardEditor._handleFormChanged (entity theme)', () => {
+  function makeEntityEditor() {
+    // Simulate a config that was previously stamped with brass values
+    // when the user switched to entity theme (same as what _handleFormChanged does).
+    const editor = makeEditor({
+      theme: 'entity',
+      themeentity: 'input_select.gauge_theme',
+      // Brass-stamped values (matching mockThemes.brass)
+      plate_color: '#8c7626',
+      rivet_color: '#6a5816',
+      ring_style: 'brass',
+      font_color: '#1a0a00',
+      font_bg_color: '#fffde7',
+      number_color: '#3e2723',
+      wear_level: 40,
+      glass_effect_enabled: true,
+      aged_texture: 'everywhere',
+      aged_texture_intensity: 30,
+      plate_transparent: false,
+    });
+    // Simulate hass with the entity pointing to the 'brass' theme
+    editor._hass = {
+      states: {
+        'input_select.gauge_theme': { state: 'brass' },
+      },
+    };
+    return editor;
+  }
+
+  test('switching to entity theme applies the live entity theme values', async () => {
+    const editor = makeEditor({ theme: 'none' });
+    editor._hass = {
+      states: {
+        'input_select.gauge_theme': { state: 'brass' },
+      },
+    };
+    const emitted = captureEvents(editor);
+
+    const formData = makeGroupedFormData(editor._config, 'entity');
+    formData.appearance.themeentity = 'input_select.gauge_theme';
+    await editor._handleFormChanged({ detail: { value: formData } });
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].theme).toBe('entity');
+    // Brass theme values should be applied
+    expect(emitted[0].plate_color).toBe('#8c7626');
+    expect(emitted[0].ring_style).toBe('brass');
+  });
+
+  test('changing ring_style while entity theme is active detaches theme to none', async () => {
+    const editor = makeEntityEditor();
+    const emitted = captureEvents(editor);
+
+    const formData = makeGroupedFormData(editor._config, 'entity');
+    formData.appearance.themeentity = 'input_select.gauge_theme';
+    formData.appearance.ring_style = 'chrome'; // override a themed prop
+    await editor._handleFormChanged({ detail: { value: formData } });
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].theme).toBe('none');
+    expect(emitted[0].ring_style).toBe('chrome');
+    // Non-overridden themed props stay from brass
+    expect(emitted[0].plate_color).toBe('#8c7626');
+  });
+
+  test('changing only title while entity theme is active keeps entity theme', async () => {
+    const editor = makeEntityEditor();
+    const emitted = captureEvents(editor);
+
+    const formData = makeGroupedFormData(editor._config, 'entity');
+    formData.appearance.themeentity = 'input_select.gauge_theme';
+    formData.title = 'Updated Title';
+    await editor._handleFormChanged({ detail: { value: formData } });
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].theme).toBe('entity');
+    expect(emitted[0].title).toBe('Updated Title');
+  });
+
+  test('_configToForm applies live entity theme values for display', () => {
+    const editor = makeEntityEditor();
+    const data = editor._configToForm(editor._config);
+    // Should show brass plate_color in the form
+    expect(data.appearance.plate_color).toEqual([140, 118, 38]); // '#8c7626'
+    expect(data.appearance.theme).toBe('entity');
+  });
+
+  test('_configToForm uses raw config when themeentity entity not in hass states', () => {
+    const editor = makeEntityEditor();
+    editor._hass = { states: {} }; // entity missing
+    const data = editor._configToForm(editor._config);
+    // Falls back to raw config value (no theme applied)
+    expect(data.appearance.plate_color).toEqual([140, 118, 38]); // '#8c7626' from raw config
+  });
+});
