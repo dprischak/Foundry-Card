@@ -139,7 +139,7 @@ class FoundryGaugeCard extends HTMLElement {
       if (!stored) return null;
 
       const data = JSON.parse(stored);
-      
+
       // Validate that duration matches current config
       if (data.duration !== this.config.high_needle_duration) {
         // Duration changed, invalidate stored state
@@ -1697,7 +1697,7 @@ class FoundryGaugeCard extends HTMLElement {
         } else {
           // Automatic tracking mode: track maximum value with persistent storage
           const now = Date.now();
-          
+
           // Try to load persisted state on first run
           if (this._highNeedleValue === null) {
             const stored = this._loadHighNeedleState();
@@ -1731,8 +1731,11 @@ class FoundryGaugeCard extends HTMLElement {
             this._clearHighNeedleState();
           } else if (this._highNeedleResetTime === null) {
             // Value has decreased and no reset is scheduled - schedule one
-            this._highNeedleResetTime = now + (highNeedleDuration * 1000);
-            this._saveHighNeedleState(this._highNeedleValue, this._highNeedleResetTime);
+            this._highNeedleResetTime = now + highNeedleDuration * 1000;
+            this._saveHighNeedleState(
+              this._highNeedleValue,
+              this._highNeedleResetTime
+            );
           }
           // else: value is still below high value and reset is already scheduled
         }

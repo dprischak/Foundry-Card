@@ -8,7 +8,7 @@ describe('FoundryGaugeCard - High Needle Persistence', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorage.clear();
-    
+
     // Create element
     element = document.createElement('foundry-gauge-card');
     document.body.appendChild(element);
@@ -74,7 +74,9 @@ describe('FoundryGaugeCard - High Needle Persistence', () => {
     expect(parsedData.value).toBe(80);
     expect(parsedData.duration).toBe(86400);
     expect(parsedData.resetTime).toBeGreaterThan(Date.now());
-    expect(parsedData.resetTime).toBeLessThanOrEqual(Date.now() + 86400 * 1000 + 100);
+    expect(parsedData.resetTime).toBeLessThanOrEqual(
+      Date.now() + 86400 * 1000 + 100
+    );
   });
 
   it('should restore high needle state from localStorage on reload', async () => {
@@ -139,7 +141,7 @@ describe('FoundryGaugeCard - High Needle Persistence', () => {
     // High needle should reset to current value
     expect(element._highNeedleValue).toBe(30);
     expect(element._highNeedleResetTime).toBeNull();
-    
+
     // Storage should be cleared
     expect(localStorage.getItem(storageKey)).toBeNull();
   });
@@ -154,7 +156,7 @@ describe('FoundryGaugeCard - High Needle Persistence', () => {
     };
 
     const storageKey = `foundry-gauge-high-needle-sensor.test`;
-    
+
     element.setConfig(config);
     element.hass = mockHass;
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -185,7 +187,7 @@ describe('FoundryGaugeCard - High Needle Persistence', () => {
 
   it('should invalidate state when duration changes', async () => {
     const storageKey = `foundry-gauge-high-needle-sensor.test`;
-    
+
     // Store state with 1 hour duration
     localStorage.setItem(
       storageKey,
