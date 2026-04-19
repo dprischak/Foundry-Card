@@ -10,6 +10,7 @@ class FoundryGaugeCard extends HTMLElement {
     // High needle tracking
     this._highNeedleValue = null;
     this._highNeedleTimeout = null;
+    this._highNeedleResetTime = null; // Timestamp when high needle should reset
 
     // Shake animation tracking
     this._isShaking = false;
@@ -95,6 +96,76 @@ class FoundryGaugeCard extends HTMLElement {
         });
       }
     });
+  }
+
+  /**
+   * Get storage key for persisting high needle state
+   */
+  _getHighNeedleStorageKey() {
+    if (!this.config?.entity) return null;
+    return `foundry-gauge-high-needle-${this.config.entity}`;
+  }
+
+  /**
+   * Save high needle state to localStorage
+   */
+  _saveHighNeedleState(value, resetTime) {
+    const key = this._getHighNeedleStorageKey();
+    if (!key) return;
+
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          value,
+          resetTime,
+          duration: this.config.high_needle_duration,
+        })
+      );
+    } catch (e) {
+      console.warn('Failed to save high needle state:', e);
+    }
+  }
+
+  /**
+   * Load high needle state from localStorage
+   */
+  _loadHighNeedleState() {
+    const key = this._getHighNeedleStorageKey();
+    if (!key) return null;
+
+    try {
+      const stored = localStorage.getItem(key);
+      if (!stored) return null;
+
+      const data = JSON.parse(stored);
+      
+      // Validate that duration matches current config
+      if (data.duration !== this.config.high_needle_duration) {
+        // Duration changed, invalidate stored state
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      console.warn('Failed to load high needle state:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Clear high needle state from localStorage
+   */
+  _clearHighNeedleState() {
+    const key = this._getHighNeedleStorageKey();
+    if (!key) return;
+
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn('Failed to clear high needle state:', e);
+    }
   }
 
   setConfig(config) {
@@ -1624,33 +1695,46 @@ class FoundryGaugeCard extends HTMLElement {
           }
           // If entity doesn't exist or is unavailable, keep last known position
         } else {
-          // Automatic tracking mode: track maximum value with timeout
-          // Initialize high needle value if not set
+          // Automatic tracking mode: track maximum value with persistent storage
+          const now = Date.now();
+          
+          // Try to load persisted state on first run
           if (this._highNeedleValue === null) {
-            this._highNeedleValue = clampedValue;
+            const stored = this._loadHighNeedleState();
+            if (stored && stored.resetTime > now) {
+              // Stored state is still valid
+              this._highNeedleValue = stored.value;
+              this._highNeedleResetTime = stored.resetTime;
+            } else {
+              // No valid stored state, initialize with current value
+              this._highNeedleValue = clampedValue;
+              this._highNeedleResetTime = null;
+              if (stored) {
+                this._clearHighNeedleState();
+              }
+            }
           }
 
-          // If current value is higher than stored high value, update it
+          // Check if reset time has passed
+          if (this._highNeedleResetTime && now >= this._highNeedleResetTime) {
+            // Reset time has passed, update to current value
+            this._highNeedleValue = clampedValue;
+            this._highNeedleResetTime = null;
+            this._clearHighNeedleState();
+          }
+
+          // If current value is higher than or equal to stored high value, update it
           if (clampedValue >= this._highNeedleValue) {
             this._highNeedleValue = clampedValue;
-
-            // Clear any existing timeout
-            if (this._highNeedleTimeout) {
-              clearTimeout(this._highNeedleTimeout);
-              this._highNeedleTimeout = null;
-            }
-          } else {
-            // Value has decreased - start timeout if not already running
-            if (!this._highNeedleTimeout) {
-              this._highNeedleTimeout = setTimeout(() => {
-                // After timeout, set high needle to current value
-                this._highNeedleValue = clampedValue;
-                this._highNeedleTimeout = null;
-                // Trigger update to move the high needle
-                this.updateGauge();
-              }, highNeedleDuration * 1000);
-            }
+            // Clear any pending reset
+            this._highNeedleResetTime = null;
+            this._clearHighNeedleState();
+          } else if (this._highNeedleResetTime === null) {
+            // Value has decreased and no reset is scheduled - schedule one
+            this._highNeedleResetTime = now + (highNeedleDuration * 1000);
+            this._saveHighNeedleState(this._highNeedleValue, this._highNeedleResetTime);
           }
+          // else: value is still below high value and reset is already scheduled
         }
 
         // Calculate high needle position

@@ -315,7 +315,7 @@ unit: '°C'
 | `high_needle_enabled`        | boolean | No       | false                   | Enable the high value tracking needle                           |
 | `high_needle_entity`         | string  | No       | -                       | Optional entity to control high needle position (overrides auto-tracking) |
 | `high_needle_color`          | string  | No       | '#FF9800'               | Color of the high needle (hex color code)                       |
-| `high_needle_duration`       | number  | No       | 60                      | Duration in seconds to track the high value (auto mode only)    |
+| `high_needle_duration`       | number  | No       | 60                      | Duration in seconds to track the high value (auto mode only). Persists across page reloads. |
 | `high_needle_length`         | number  | No       | 75                      | Length of the high needle as percentage (25-150)                |
 | `plate_transparent`          | boolean | No       | false                   | Make the plate transparent (shows background)                   |
 | `wear_level`                 | number  | No       | 50                      | Amount of wear marks and age spots (0-100)                      |
@@ -522,6 +522,9 @@ The high needle feature provides two modes for displaying a secondary needle on 
 
 - High value needle (customizable color) with two operating modes:
   - **Automatic tracking**: Marks the highest value and resets after the configured duration (default 60 seconds)
+    - **Persistent state**: High needle position and reset time are saved to browser localStorage
+    - **Long duration support**: Works reliably with any duration length (e.g., 86400 seconds for daily reset)
+    - **Survives reloads**: State persists across page reloads, browser restarts, and Home Assistant restarts
   - **Entity-controlled**: Displays the value of `high_needle_entity` directly, ignoring duration settings
 - Falls back to automatic mode when `high_needle_entity` is not configured or becomes unavailable
 - Adjustable needle length (25-150% of standard needle)

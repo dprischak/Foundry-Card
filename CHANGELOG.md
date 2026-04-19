@@ -1,3 +1,9 @@
+## v26.4.2
+
+### 🐛 Defect Fixes
+- **Gauge Card:** Fixed high needle hold duration not working for long periods (e.g., 86400 seconds for daily reset). The high needle state is now persisted to localStorage and uses timestamp-based tracking instead of setTimeout, ensuring it survives page reloads and works reliably for any duration length.
+
+
 ## v26.4.1
 
 ### 🛠️ Improvements
