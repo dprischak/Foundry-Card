@@ -287,7 +287,7 @@ unit: '°C'
 - **Flip Display**: Digital odometer-style display with smooth rolling animation
 - **Configurable Odometer**: Adjustable size (25-200) and vertical position (50-150px)
 - **Smooth Animation**: Configurable animation duration (default 1.2s) with ease-out transition
-- **High Needle Tracking**: Optional high value needle that tracks peak values for a configurable duration
+- **High Needle Tracking**: Optional high value needle that can automatically track peak values for a configurable duration, or be controlled by a separate entity
 - **Multi-line Titles**: Support for up to 3 lines of text in title using `\n`
 - **Decorative Rings**: Choice of brass (default), silver, or no ring styles
 - **Customizable Plate**: Adjustable plate color for the gauge face
@@ -313,8 +313,9 @@ unit: '°C'
 | `rivet_color`                | string  | No       | '#6a5816'               | Color of the decorative rivets (hex color code)                 |
 | `plate_color`                | string  | No       | '#8c7626'               | Color of the gauge face plate (hex color code)                  |
 | `high_needle_enabled`        | boolean | No       | false                   | Enable the high value tracking needle                           |
+| `high_needle_entity`         | string  | No       | -                       | Optional entity to control high needle position (overrides auto-tracking) |
 | `high_needle_color`          | string  | No       | '#FF9800'               | Color of the high needle (hex color code)                       |
-| `high_needle_duration`       | number  | No       | 60                      | Duration in seconds to track the high value                     |
+| `high_needle_duration`       | number  | No       | 60                      | Duration in seconds to track the high value (auto mode only)    |
 | `high_needle_length`         | number  | No       | 75                      | Length of the high needle as percentage (25-150)                |
 | `plate_transparent`          | boolean | No       | false                   | Make the plate transparent (shows background)                   |
 | `wear_level`                 | number  | No       | 50                      | Amount of wear marks and age spots (0-100)                      |
@@ -511,14 +512,38 @@ tap_action:
 
 ### High Needle Tracking
 
-The high needle feature tracks the highest (peak) value reached over a configurable time period. This is useful for monitoring maximum temperatures, peak power usage, or any metric where you want to see how high the value has climbed.
+The high needle feature provides two modes for displaying a secondary needle on your gauge:
+
+**Automatic Mode (Default):** Tracks the highest (peak) value reached over a configurable time period. This is useful for monitoring maximum temperatures, peak power usage, or any metric where you want to see how high the value has climbed.
+
+**Entity-Controlled Mode:** Display the value of a separate entity on the high needle. This is useful for comparing two related sensors, such as indoor vs outdoor temperature, or current value vs setpoint.
 
 **Features:**
 
-- High value tracking needle (customizable color) that marks the highest value
-- Automatically resets after the configured duration (default 60 seconds)
+- High value needle (customizable color) with two operating modes:
+  - **Automatic tracking**: Marks the highest value and resets after the configured duration (default 60 seconds)
+  - **Entity-controlled**: Displays the value of `high_needle_entity` directly, ignoring duration settings
+- Falls back to automatic mode when `high_needle_entity` is not configured or becomes unavailable
 - Adjustable needle length (25-150% of standard needle)
 - Smooth animations synchronized with main needle
+- Value is automatically clamped to gauge min/max range
+
+**Example - Entity-Controlled High Needle:**
+
+```yaml
+type: custom:foundry-gauge-card
+entity: sensor.indoor_temperature
+title: Temperature\nComparison
+min: 50
+max: 100
+unit: °F
+high_needle_enabled: true
+high_needle_entity: sensor.outdoor_temperature  # Compare indoor vs outdoor
+high_needle_color: '#2196F3'
+needle_color: '#C41E3A'
+```
+
+In this example, the main red needle shows indoor temperature while the blue high needle shows outdoor temperature for easy comparison.
 
 ### Aged Texture Effects
 

@@ -340,6 +340,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
       aged_texture: 'glass_only',
       aged_texture_intensity: 50,
       high_needle_enabled: false,
+      high_needle_entity: undefined,
       high_needle_color: '#FF9800',
       high_needle_duration: 60,
       high_needle_length: 100,
@@ -624,6 +625,7 @@ class FoundryGaugeCardEditor extends HTMLElement {
     // Group: High Value Needle
     data.high_needle = {
       high_needle_enabled: sourceConfig.high_needle_enabled,
+      high_needle_entity: sourceConfig.high_needle_entity,
       high_needle_color: this._hexToRgb(
         sourceConfig.high_needle_color ?? '#FF9800'
       ) ?? [255, 152, 0],
@@ -1056,6 +1058,11 @@ class FoundryGaugeCardEditor extends HTMLElement {
             name: 'high_needle_enabled',
             label: 'Enable High Needle',
             selector: { boolean: {} },
+          },
+          {
+            name: 'high_needle_entity',
+            label: 'Control Entity (Optional)',
+            selector: { entity: { domain: 'sensor' } },
           },
           {
             name: 'high_needle_color',

@@ -4111,22 +4111,33 @@ var FoundryGaugeCard = class extends HTMLElement {
     if (highNeedleEnabled) {
       const highNeedle = this.shadowRoot.getElementById("highNeedle");
       if (highNeedle) {
-        if (this._highNeedleValue === null) {
-          this._highNeedleValue = clampedValue;
-        }
-        if (clampedValue >= this._highNeedleValue) {
-          this._highNeedleValue = clampedValue;
-          if (this._highNeedleTimeout) {
-            clearTimeout(this._highNeedleTimeout);
-            this._highNeedleTimeout = null;
+        const highNeedleEntity = this.config.high_needle_entity;
+        if (highNeedleEntity) {
+          const highEntity = this._hass.states[highNeedleEntity];
+          if (highEntity && highEntity.state !== "unavailable" && highEntity.state !== "unknown") {
+            const highEntityValue = parseFloat(highEntity.state);
+            if (!isNaN(highEntityValue)) {
+              this._highNeedleValue = highEntityValue;
+            }
           }
         } else {
-          if (!this._highNeedleTimeout) {
-            this._highNeedleTimeout = setTimeout(() => {
-              this._highNeedleValue = clampedValue;
+          if (this._highNeedleValue === null) {
+            this._highNeedleValue = clampedValue;
+          }
+          if (clampedValue >= this._highNeedleValue) {
+            this._highNeedleValue = clampedValue;
+            if (this._highNeedleTimeout) {
+              clearTimeout(this._highNeedleTimeout);
               this._highNeedleTimeout = null;
-              this.updateGauge();
-            }, highNeedleDuration * 1e3);
+            }
+          } else {
+            if (!this._highNeedleTimeout) {
+              this._highNeedleTimeout = setTimeout(() => {
+                this._highNeedleValue = clampedValue;
+                this._highNeedleTimeout = null;
+                this.updateGauge();
+              }, highNeedleDuration * 1e3);
+            }
           }
         }
         const highValuePosition = Math.max(
@@ -4781,6 +4792,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
       aged_texture: "glass_only",
       aged_texture_intensity: 50,
       high_needle_enabled: false,
+      high_needle_entity: void 0,
       high_needle_color: "#FF9800",
       high_needle_duration: 60,
       high_needle_length: 100,
@@ -5007,6 +5019,7 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
     };
     data.high_needle = {
       high_needle_enabled: sourceConfig.high_needle_enabled,
+      high_needle_entity: sourceConfig.high_needle_entity,
       high_needle_color: this._hexToRgb(
         sourceConfig.high_needle_color ?? "#FF9800"
       ) ?? [255, 152, 0],
@@ -5394,6 +5407,11 @@ var FoundryGaugeCardEditor = class extends HTMLElement {
             name: "high_needle_enabled",
             label: "Enable High Needle",
             selector: { boolean: {} }
+          },
+          {
+            name: "high_needle_entity",
+            label: "Control Entity (Optional)",
+            selector: { entity: { domain: "sensor" } }
           },
           {
             name: "high_needle_color",

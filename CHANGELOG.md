@@ -1,3 +1,9 @@
+## v26.4.1
+
+### 🛠️ Improvements
+- **Issue #125:** - Gauge Card: Added `high_needle_entity` option to control the high needle position with a separate entity, enabling direct comparison between two sensors (e.g., indoor vs outdoor temperature).
+
+
 ## v26.3.3
 
 ### 🛠️ Improvements

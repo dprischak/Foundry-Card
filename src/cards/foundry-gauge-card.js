@@ -1604,30 +1604,52 @@ class FoundryGaugeCard extends HTMLElement {
     if (highNeedleEnabled) {
       const highNeedle = this.shadowRoot.getElementById('highNeedle');
       if (highNeedle) {
-        // Initialize high needle value if not set
-        if (this._highNeedleValue === null) {
-          this._highNeedleValue = clampedValue;
-        }
+        // Check if entity-based control is configured
+        const highNeedleEntity = this.config.high_needle_entity;
 
-        // If current value is higher than stored high value, update it
-        if (clampedValue >= this._highNeedleValue) {
-          this._highNeedleValue = clampedValue;
-
-          // Clear any existing timeout
-          if (this._highNeedleTimeout) {
-            clearTimeout(this._highNeedleTimeout);
-            this._highNeedleTimeout = null;
+        if (highNeedleEntity) {
+          // Entity-controlled mode: read value from specified entity
+          const highEntity = this._hass.states[highNeedleEntity];
+          if (
+            highEntity &&
+            highEntity.state !== 'unavailable' &&
+            highEntity.state !== 'unknown'
+          ) {
+            const highEntityValue = parseFloat(highEntity.state);
+            if (!isNaN(highEntityValue)) {
+              // Use entity value directly, no timeout/tracking logic
+              this._highNeedleValue = highEntityValue;
+            }
+            // If entity value is invalid, keep last known position (no update)
           }
+          // If entity doesn't exist or is unavailable, keep last known position
         } else {
-          // Value has decreased - start timeout if not already running
-          if (!this._highNeedleTimeout) {
-            this._highNeedleTimeout = setTimeout(() => {
-              // After timeout, set high needle to current value
-              this._highNeedleValue = clampedValue;
+          // Automatic tracking mode: track maximum value with timeout
+          // Initialize high needle value if not set
+          if (this._highNeedleValue === null) {
+            this._highNeedleValue = clampedValue;
+          }
+
+          // If current value is higher than stored high value, update it
+          if (clampedValue >= this._highNeedleValue) {
+            this._highNeedleValue = clampedValue;
+
+            // Clear any existing timeout
+            if (this._highNeedleTimeout) {
+              clearTimeout(this._highNeedleTimeout);
               this._highNeedleTimeout = null;
-              // Trigger update to move the high needle
-              this.updateGauge();
-            }, highNeedleDuration * 1000);
+            }
+          } else {
+            // Value has decreased - start timeout if not already running
+            if (!this._highNeedleTimeout) {
+              this._highNeedleTimeout = setTimeout(() => {
+                // After timeout, set high needle to current value
+                this._highNeedleValue = clampedValue;
+                this._highNeedleTimeout = null;
+                // Trigger update to move the high needle
+                this.updateGauge();
+              }, highNeedleDuration * 1000);
+            }
           }
         }
 
