@@ -1,3 +1,15 @@
+## v26.4.2
+
+### 🐛 Defect Fixes
+- **Gauge Card:** Fixed high needle hold duration not working for long periods (e.g., 86400 seconds for daily reset). The high needle state is now persisted to localStorage and uses timestamp-based tracking instead of setTimeout, ensuring it survives page reloads and works reliably for any duration length.
+
+
+## v26.4.1
+
+### 🛠️ Improvements
+- **Issue #125:** - Gauge Card: Added `high_needle_entity` option to control the high needle position with a separate entity, enabling direct comparison between two sensors (e.g., indoor vs outdoor temperature).
+
+
 ## v26.3.3
 
 ### 🛠️ Improvements
