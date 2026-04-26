@@ -4,7 +4,7 @@
 [![Stable][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
 ![Latest Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/latest/foundry-card.js)
-![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.2/foundry-card.js)
+![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.3/foundry-card.js)
 
 
 
@@ -1617,7 +1617,7 @@ Want to contribute or customize the cards?
 
 4. **Code Quality**
 
-   The project enforces code quality through linting and formatting. These checks run automatically on Pull Requests and must pass.
+   The project enforces code quality through linting, formatting, and unit tests. These checks run automatically on Pull Requests and must pass.
 
    **Run checks locally:**
 
@@ -1627,6 +1627,10 @@ Want to contribute or customize the cards?
 
    # Check for formatting issues
    npm run format
+
+   # Run unit tests
+   npm run test
+
    ```
 
    **Fix issues automatically:**

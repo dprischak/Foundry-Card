@@ -4205,7 +4205,10 @@ var FoundryGaugeCard = class extends HTMLElement {
             this._clearHighNeedleState();
           } else if (this._highNeedleResetTime === null) {
             this._highNeedleResetTime = now + highNeedleDuration * 1e3;
-            this._saveHighNeedleState(this._highNeedleValue, this._highNeedleResetTime);
+            this._saveHighNeedleState(
+              this._highNeedleValue,
+              this._highNeedleResetTime
+            );
           }
         }
         const highValuePosition = Math.max(
@@ -23626,7 +23629,7 @@ if (!customElements.get("foundry-digital-meter-card-editor")) {
 }
 
 // src/foundry-card.js
-var FOUNDRY_CARDS_VERSION = "26.3.3";
+var FOUNDRY_CARDS_VERSION = "26.4.2";
 console.info(
   `%cFoundry Cards%c v${FOUNDRY_CARDS_VERSION}`,
   "color: #03a9f4; font-weight: bold;",
