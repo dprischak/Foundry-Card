@@ -1,20 +1,20 @@
-[![hacs][hacs-default]][hacs-default-link]
+[![Home Assistant Marketplace][marketplace-default]][marketplace-default-link]
 ![Downloads][downloads]
 [![forum][forum-badge]][forum-url]
 [![Stable][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
 ![Latest Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/latest/foundry-card.js)
-![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.3.3/foundry-card.js)
+![Previous Release Downloads](https://img.shields.io/github/downloads/dprischak/Foundry-Card/v26.4.2/foundry-card.js)
 
 
 
 <!--Badges-->
 
 [downloads]: https://img.shields.io/github/downloads/dprischak/Foundry-Card/total
-[hacs-badge]: https://img.shields.io/badge/HACS-Default-41BDF5.svg
-[hacs-link]: https://hacs.xyz/
-[hacs-default]: https://img.shields.io/badge/HACS-Default-blue?style=flat&logo=homeassistantcommunitystore&logoSize=auto
-[hacs-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
+[marketplace-badge]: https://img.shields.io/badge/Home_Assistant-Marketplace-41BDF5.svg
+[marketplace-link]: https://www.home-assistant.io/integrations/marketplace/
+[marketplace-default]: https://img.shields.io/badge/Home_Assistant-Marketplace-blue?style=flat&logo=homeassistant&logoSize=auto
+[marketplace-default-link]: https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin
 [releases]: https://github.com/dprischak/foundry-card/releases/latest
 [forum-url]: https://community.home-assistant.io/
 [forum-badge]: https://img.shields.io/badge/forum-community?style=flat&logo=homeassistant&label=community&color=blue
@@ -225,22 +225,23 @@ A vintage digital LED bar meter in a landscape rectangular chassis.
 
 ## Installation
 
-### [HACS](https://hacs.xyz) (Home Assistant Community Store)
+### [Home Assistant Marketplace](https://www.home-assistant.io/integrations/marketplace/) (Recommended)
 
-Foundry card is available in HACS.
+Foundry Card is available in the Home Assistant Marketplace (Home Assistant 2026.11 and later).
 
-Use this link to directly go to the repository in HACS
+Use this link to directly open the repository in Home Assistant:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dprischak&repository=Foundry-Card&category=plugin)
 
 or
 
-1. If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/#getting-started-with-hacs](https://hacs.xyz/docs/use/#getting-started-with-hacs)
-2. Open HACS in Home Assistant
-3. Search for `Foundry Card`
-4. Click the download button. ⬇️
-5. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
-6. Add any foundry card to your dashboard
+1. In Home Assistant, go to **Settings → Marketplace**
+2. Search for `Foundry Card`
+3. Click the download button. ⬇️
+4. Force refresh the Home Assistant page `Ctrl` + `F5` / `Shift` + `⌘` + `R`
+5. Add any foundry card to your dashboard
+
+> **Home Assistant 2026.10 and earlier (HACS):** Starting in Home Assistant 2026.11, HACS is built into Home Assistant Core as Marketplace and existing installations migrate automatically (see the [official migration guide](https://www.home-assistant.io/integrations/marketplace/#coming-from-hacs)). On Home Assistant 2026.10 and earlier, install [HACS](https://hacs.xyz/docs/use/#getting-started-with-hacs), open **HACS** in Home Assistant, search for `Foundry Card`, and click the download button.
 
 ### Manual Installation
 

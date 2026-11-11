@@ -1,3 +1,10 @@
+## v26.11.1
+
+### 🛠️ Improvements
+- **Build:** Minified the production JavaScript bundle reducing raw bundle size by ~34%
+- **Documentation:** Updated README badge and installation instructions for the Home Assistant Marketplace (Home Assistant 2026.11+), with migration and legacy HACS notes for 2026.10 and earlier.
+
+
 ## v26.4.2
 
 ### 🐛 Defect Fixes
